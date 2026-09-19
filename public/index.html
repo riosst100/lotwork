@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>lotwork — Local Project Manager</title>
+<style>
+  :root {
+    --bg: #0c0e12;
+    --panel: #15181f;
+    --panel-2: #1b1f28;
+    --border: #262b36;
+    --border-soft: #1f232c;
+    --text: #eef0f4;
+    --muted: #8b92a3;
+    --muted-2: #5f6779;
+    --accent: #5b8cff;
+    --accent-hover: #6f9aff;
+    --accent-soft: rgba(91, 140, 255, 0.12);
+    --green: #34c77b;
+    --green-soft: rgba(52, 199, 123, 0.12);
+    --red: #ef5a5a;
+    --red-soft: rgba(239, 90, 90, 0.12);
+    --yellow: #e0b93a;
+    --radius: 10px;
+    --radius-sm: 7px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(91,140,255,0.06), transparent),
+      var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: rgba(12, 14, 18, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+  header .brand { display: flex; align-items: center; gap: 10px; }
+  header .logo {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #3a5fd9);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; color: white;
+    box-shadow: 0 2px 10px rgba(91,140,255,0.35);
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: 0.2px; }
+  header .sub { color: var(--muted-2); font-size: 11px; margin-top: 1px; }
+  main { padding: 28px 32px 60px; max-width: 1180px; margin: 0 auto; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 22px; align-items: center; }
+
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:active:not(:disabled) { transform: scale(0.98); }
+  button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+  button.secondary:hover:not(:disabled) { background: #232834; }
+  button.danger { background: var(--red-soft); color: var(--red); }
+  button.danger:hover:not(:disabled) { background: rgba(239, 90, 90, 0.2); }
+  button.small { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 14px 16px; font-size: 13px; }
+  thead th {
+    color: var(--muted-2); font-weight: 600; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;
+  }
+  tbody tr { border-top: 1px solid var(--border-soft); transition: background 0.12s ease; }
+  tbody tr:hover { background: rgba(255,255,255,0.015); }
+  tbody td { color: var(--text); }
+  td .proj-name { font-weight: 600; }
+  td code {
+    background: var(--panel-2); padding: 3px 8px; border-radius: 5px;
+    font-size: 12px; color: #b9c0d4; font-family: "Cascadia Code", Consolas, monospace;
+  }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 500;
+  }
+  .status-pill.on { background: var(--green-soft); color: var(--green); }
+  .status-pill.off { background: rgba(139, 146, 163, 0.1); color: var(--muted); }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+  .dot.on { background: var(--green); box-shadow: 0 0 8px rgba(52,199,123,0.7); }
+  .dot.off { background: var(--muted-2); }
+
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .empty-state {
+    padding: 60px 20px; text-align: center; color: var(--muted-2);
+  }
+
+  .modal-bg {
+    display: none; position: fixed; inset: 0; background: rgba(6, 7, 10, 0.7);
+    align-items: center; justify-content: center; backdrop-filter: blur(2px);
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px; width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal h2 { margin: 0 0 18px; font-size: 16px; font-weight: 600; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+  .field input, .field select {
+    width: 100%; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: #0f1115; color: var(--text); font-size: 13px; transition: border-color 0.15s ease;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .domain-input {
+    display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: #0f1115; overflow: hidden;
+  }
+  .domain-input:focus-within { border-color: var(--accent); }
+  .domain-input input { border: none; background: transparent; flex: 1; }
+  .domain-input input:focus { outline: none; }
+  .domain-suffix { padding: 9px 10px 9px 0; color: var(--muted-2); font-size: 13px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--panel-2); color: var(--muted); }
+  a.domain-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+  a.domain-link:hover { text-decoration: underline; }
+  #logModal .modal { width: 660px; }
+  pre#logContent {
+    background: #0a0b0e; padding: 14px; border-radius: var(--radius-sm); height: 340px; overflow: auto;
+    font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all;
+    font-family: "Cascadia Code", Consolas, monospace; border: 1px solid var(--border-soft);
+  }
+  .error-msg { color: var(--red); font-size: 12px; margin-top: 8px; }
+  .caddy-status {
+    font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border-soft);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">L</div>
+    <div>
+      <h1>lotwork</h1>
+      <div class="sub">Local dev project manager</div>
+    </div>
+  </div>
+  <div class="caddy-status" id="caddyStatus">checking caddy...</div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button onclick="openAddModal()">+ Tambah Project</button>
+    <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">Reload Caddy / Sync Domains</button>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Nama</th>
+          <th>Port</th>
+          <th>Domain</th>
+          <th>Command</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="projectRows"></tbody>
+    </table>
+  </div>
+</main>
+
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">Tambah Project</h2>
+    <input type="hidden" id="editId" />
+    <div class="field">
+      <label>Nama project</label>
+      <input id="fName" placeholder="my-app" />
+    </div>
+    <div class="field">
+      <label>Folder (cwd)</label>
+      <input id="fCwd" placeholder="D:\kerjaan-2026\projects\my-app" />
+    </div>
+    <div class="field">
+      <label>Stack (opsional, auto-isi command)</label>
+      <select id="fStack" onchange="applyStackTemplate()">
+        <option value="">— Pilih stack —</option>
+        <option value="node-dev">Node.js (npm run dev)</option>
+        <option value="node-start">Node.js (npm start)</option>
+        <option value="yarn-dev">Node.js (yarn dev)</option>
+        <option value="pnpm-dev">Node.js (pnpm dev)</option>
+        <option value="laravel">Laravel (php artisan serve)</option>
+        <option value="php-builtin">PHP built-in server</option>
+        <option value="django">Django (manage.py runserver)</option>
+        <option value="flask">Flask (flask run)</option>
+        <option value="custom">Custom command</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Command</label>
+      <input id="fCommand" placeholder="npm run dev" />
+    </div>
+    <div class="field">
+      <label>Port</label>
+      <input id="fPort" placeholder="3000" type="number" oninput="applyStackTemplate()" />
+    </div>
+    <div class="field">
+      <label>Custom domain (opsional, butuh Caddy + admin)</label>
+      <div class="domain-input">
+        <input id="fDomain" placeholder="my-app" />
+        <span class="domain-suffix">.local</span>
+      </div>
+    </div>
+    <div class="error-msg" id="formError"></div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeAddModal()">Batal</button>
+      <button onclick="submitProject()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="logModal">
+  <div class="modal">
+    <h2 id="logTitle">Logs</h2>
+    <pre id="logContent"></pre>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeLogModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let projects = [];
+let logInterval = null;
+let currentLogId = null;
+const pendingIds = new Set();
+
+async function fetchProjects() {
+  const res = await fetch('/api/projects');
+  projects = await res.json();
+  render();
+}
+
+function render() {
+  const rows = projects.map(p => {
+    const running = p.status.running;
+    const domainLink = p.domain
+      ? `<a class="domain-link" href="https://${p.domain}" target="_blank">${p.domain}</a>`
+      : '<span class="badge">no domain</span>';
+    return `
+      <tr>
+        <td><span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? 'Running' : 'Stopped'}</span></td>
+        <td class="proj-name">${escapeHtml(p.name)}</td>
+        <td>${p.port}</td>
+        <td>${domainLink}</td>
+        <td><code>${escapeHtml(p.command)}</code></td>
+        <td class="actions">
+          ${(() => {
+            const busy = pendingIds.has(p.id);
+            const toggleBtn = running
+              ? `<button class="small danger" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${busy ? 'Stopping...' : 'Stop'}</button>`
+              : `<button class="small" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${busy ? 'Starting...' : 'Start'}</button>`;
+            return `
+              ${toggleBtn}
+              <button class="small secondary" onclick="showLogs('${p.id}', '${escapeHtml(p.name)}')">Logs</button>
+              <button class="small secondary" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">Edit</button>
+              <button class="small danger" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? '...' : 'Hapus'}</button>
+            `;
+          })()}
+        </td>
+      </tr>
+    `;
+  }).join('');
+  document.getElementById('projectRows').innerHTML = rows || '<tr><td colspan="6"><div class="empty-state">Belum ada project.<br>Klik "+ Tambah Project" untuk mulai.</div></td></tr>';
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function startProject(id) {
+  if (pendingIds.has(id)) return;
+  pendingIds.add(id);
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/start`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+    await fetchProjects();
+    // Give the process a moment, then check if it already died (e.g. missing deps) and show logs.
+    setTimeout(async () => {
+      await fetchProjects();
+      const p = projects.find(x => x.id === id);
+      if (p && !p.status.running) {
+        showLogs(id, p.name);
+      }
+    }, 1200);
+  } finally {
+    pendingIds.delete(id);
+    await fetchProjects();
+  }
+}
+
+async function stopProject(id) {
+  if (pendingIds.has(id)) return;
+  pendingIds.add(id);
+  render();
+  try {
+    await fetch(`/api/projects/${id}/stop`, { method: 'POST' });
+  } finally {
+    pendingIds.delete(id);
+    await fetchProjects();
+  }
+}
+
+async function deleteProject(id) {
+  if (!confirm('Hapus project ini dari daftar? (tidak menghapus file project)')) return;
+  if (pendingIds.has(id)) return;
+  pendingIds.add(id);
+  render();
+  try {
+    await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+  } finally {
+    pendingIds.delete(id);
+    await fetchProjects();
+  }
+}
+
+const STACK_TEMPLATES = {
+  'node-dev': 'npm run dev',
+  'node-start': 'npm start',
+  'yarn-dev': 'yarn dev',
+  'pnpm-dev': 'pnpm dev',
+  'laravel': 'php artisan serve --port={PORT}',
+  'php-builtin': 'php -S localhost:{PORT} -t public',
+  'django': 'python manage.py runserver 0.0.0.0:{PORT}',
+  'flask': 'flask run --port={PORT}',
+  'custom': '',
+};
+
+function applyStackTemplate() {
+  const stack = document.getElementById('fStack').value;
+  if (!stack || !(stack in STACK_TEMPLATES)) return;
+  const port = document.getElementById('fPort').value || '{PORT}';
+  document.getElementById('fCommand').value = STACK_TEMPLATES[stack].replace('{PORT}', port);
+}
+
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = 'Tambah Project';
+  document.getElementById('editId').value = '';
+  document.getElementById('fName').value = '';
+  document.getElementById('fCwd').value = '';
+  document.getElementById('fStack').value = '';
+  document.getElementById('fCommand').value = '';
+  document.getElementById('fPort').value = '';
+  document.getElementById('fDomain').value = '';
+  document.getElementById('formError').textContent = '';
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modalTitle').textContent = 'Edit Project';
+  document.getElementById('editId').value = p.id;
+  document.getElementById('fName').value = p.name;
+  document.getElementById('fCwd').value = p.cwd;
+  document.getElementById('fStack').value = '';
+  document.getElementById('fCommand').value = p.command;
+  document.getElementById('fPort').value = p.port;
+  document.getElementById('fDomain').value = (p.domain || '').replace(/\.local$/, '');
+  document.getElementById('formError').textContent = '';
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+async function submitProject() {
+  const id = document.getElementById('editId').value;
+  const domainName = document.getElementById('fDomain').value.trim().replace(/\.local$/, '');
+  const body = {
+    name: document.getElementById('fName').value.trim(),
+    cwd: document.getElementById('fCwd').value.trim(),
+    command: document.getElementById('fCommand').value.trim(),
+    port: Number(document.getElementById('fPort').value),
+    domain: domainName ? `${domainName}.local` : '',
+  };
+  if (!body.name || !body.cwd || !body.command || !body.port) {
+    document.getElementById('formError').textContent = 'Nama, folder, command, dan port wajib diisi.';
+    return;
+  }
+  const url = id ? `/api/projects/${id}` : '/api/projects';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    document.getElementById('formError').textContent = data.error;
+    return;
+  }
+  closeAddModal();
+  fetchProjects();
+  if (data.sync && data.sync.hostsOk === false) {
+    alert('Domain disimpan, tapi sinkronisasi ke hosts file gagal:\n\n' + data.sync.hostsMessage + '\n\nJalankan lotwork sebagai Administrator lalu klik "Reload Caddy / Sync Domains".');
+  }
+  checkCaddyStatus();
+}
+
+function showLogs(id, name) {
+  currentLogId = id;
+  document.getElementById('logTitle').textContent = 'Logs — ' + name;
+  document.getElementById('logModal').classList.add('open');
+  pollLogs();
+  logInterval = setInterval(pollLogs, 1500);
+}
+
+async function pollLogs() {
+  if (!currentLogId) return;
+  const res = await fetch(`/api/projects/${currentLogId}/logs`);
+  const data = await res.json();
+  const el = document.getElementById('logContent');
+  el.textContent = data.logs || '(belum ada output)';
+  el.scrollTop = el.scrollHeight;
+}
+
+function closeLogModal() {
+  document.getElementById('logModal').classList.remove('open');
+  clearInterval(logInterval);
+  currentLogId = null;
+}
+
+async function reloadCaddy() {
+  const btn = document.getElementById('reloadCaddyBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Reloading...';
+  try {
+    const res = await fetch('/api/caddy/reload', { method: 'POST' });
+    const data = await res.json();
+    alert(data.message + (data.hostsOk === false ? `\n\n${data.hostsMessage}` : ''));
+    await checkCaddyStatus();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+async function checkCaddyStatus() {
+  const res = await fetch('/api/caddy/status');
+  const data = await res.json();
+  document.getElementById('caddyStatus').textContent = data.installed
+    ? 'Caddy: installed'
+    : 'Caddy: not installed (custom domain nonaktif)';
+}
+
+fetchProjects();
+checkCaddyStatus();
+setInterval(fetchProjects, 4000);
+</script>
+
+</body>
+</html>
