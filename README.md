@@ -2,7 +2,7 @@
 
 *[Bahasa Indonesia below](#lotwork-1)*
 
-Local dashboard for managing multiple dev projects: start/stop with a button, port conflict checks, and custom localhost domains via Caddy.
+Local dashboard for managing multiple dev projects: start/stop with a button, port conflict checks, custom localhost domains via Caddy, per-project `.env` editing, and saved credentials.
 
 ## Setup (one time)
 
@@ -19,23 +19,32 @@ A small window appears with **START/STOP** buttons:
 - **START** — runs `lotwork-server.exe` in the background, then opens the dashboard in your browser via the "Open Dashboard" link
 - **STOP** — stops the server and every project currently running
 
-The dashboard can also be opened manually at http://localhost:4400
+The dashboard can also be opened manually at http://localhost:4400. It has a light/dark theme toggle (top right), remembered per browser.
 
 ## Adding a project
 
 Click "+ Tambah Project" and fill in:
 - **Nama** — free-form label
 - **Folder (cwd)** — absolute path to the project folder, e.g. `D:\kerjaan-2026\projects\my-app`
-- **Stack** (optional) — pick from the dropdown (Node.js, Laravel, Django, Flask, etc.) to auto-fill the Command field with a template that already includes the right port flag
+- **Stack** (optional) — pick from the dropdown (Node.js, Laravel, Django, Flask, etc.) to auto-fill the Command field with a template that already includes the right port flag. The chosen stack is remembered and re-selected when you edit the project later.
 - **Command** — the start command; fill in manually if your stack isn't in the list
 - **Port** — the port the project uses. lotwork sets the `PORT` env var to this value on start (read automatically by Node.js/Vite/etc.), and for commands that don't read env vars (`php artisan serve`, `python manage.py runserver`, `flask run`, etc.) lotwork automatically appends the matching port flag. lotwork also refuses to start if the port is already in use by another process outside lotwork, or already registered to another project.
-- **Custom domain** (optional) — just enter a name (e.g. `my-app`), the `.local` suffix is added automatically
+- **Custom domain** (optional) — just enter a name (e.g. `my-app`), the `.local` suffix is added automatically. Subdomains work too — e.g. entering `api.my-app` gives you `api.my-app.local`.
+
+## Project cards
+
+Each project is shown as a card with its status, port, domain, command, and when it was last started. Projects are sorted with the most recently started (within the last 8 hours) at the top, then by total start count for the rest.
+
+Three panels can be expanded inline under each card (click again to collapse):
+- **Logs** — live stdout/stderr, auto-refreshing every 1.5s while open
+- **Edit .env** — reads and writes both `.env` and `.env.local` in the project folder as a key/value list (`.env.local` wins on key collisions, matching Next.js/Vite behavior). Each row shows which file it belongs to; click the badge to move a variable between files.
+- **Credentials** — a saved list of login credentials for that project (label, username/email, password, shown in plain text). Click "+ Tambah Credential" to add one via a popup form, or "Edit"/"Hapus" on an existing entry. Copy buttons next to username and password copy the value to your clipboard.
 
 ## Start/Stop a project
 
-Click the Start/Stop button in the table. The button disables itself and shows "Starting.../Stopping..." while in progress, to prevent double-clicks. If a project fails to start (e.g. missing dependencies), the Logs panel opens automatically showing the error output.
+Click Start/Stop on the card. The button disables itself and shows "Starting.../Stopping..." while in progress, to prevent double-clicks. If a project fails to start (e.g. missing dependencies), the Logs panel opens automatically showing the error output.
 
-Each project runs as a child process of lotwork; stdout/stderr logs can be viewed anytime via the "Logs" button. Clicking STOP in the control GUI stops every running project.
+Each project runs as a child process of lotwork. Clicking STOP in the control GUI stops every running project.
 
 ## Custom domains
 
@@ -67,7 +76,7 @@ npm start
 
 ## Data
 
-- `data/projects.json` — project list (plain JSON, safe to edit manually if needed)
+- `data/projects.json` — project list, including stack choice, start history, and saved credentials (plain JSON, safe to edit manually if needed)
 - `data/Caddyfile`, `data/server.log`, `data/server.pid` — runtime files, regenerated automatically
 - The `data/` folder is not committed to git (see `.gitignore`) since its contents are machine-specific
 
@@ -75,7 +84,7 @@ npm start
 
 # lotwork
 
-Dashboard lokal untuk mengelola banyak project development: start/stop via tombol, cek konflik port, dan custom domain di localhost lewat Caddy.
+Dashboard lokal untuk mengelola banyak project development: start/stop via tombol, cek konflik port, custom domain di localhost lewat Caddy, edit `.env` per project, dan penyimpanan credentials.
 
 ## Instalasi (sekali saja)
 
@@ -92,23 +101,32 @@ Muncul jendela kecil dengan tombol **START/STOP**:
 - **START** — menjalankan `lotwork-server.exe` di background, tunggu sebentar lalu buka dashboard di browser via link "Open Dashboard"
 - **STOP** — mematikan server beserta semua project yang sedang berjalan
 
-Dashboard bisa dibuka manual di http://localhost:4400
+Dashboard bisa dibuka manual di http://localhost:4400. Ada toggle tema light/dark (kanan atas), tersimpan per browser.
 
 ## Menambah project
 
 Klik "+ Tambah Project" dan isi:
 - **Nama** — label bebas
 - **Folder (cwd)** — path absolut ke folder project, mis. `D:\kerjaan-2026\projects\my-app`
-- **Stack** (opsional) — pilih dari dropdown (Node.js, Laravel, Django, Flask, dll) untuk auto-isi field Command dengan template yang sudah include flag port yang benar
+- **Stack** (opsional) — pilih dari dropdown (Node.js, Laravel, Django, Flask, dll) untuk auto-isi field Command dengan template yang sudah include flag port yang benar. Pilihan stack ini tersimpan dan otomatis ter-pilih lagi saat kamu edit project di kemudian hari.
 - **Command** — perintah start, bisa diisi manual kalau stack tidak ada di daftar
 - **Port** — port yang dipakai project. lotwork mengisi env var `PORT` dengan nilai ini saat start (dipakai otomatis oleh Node.js/Vite/dll), dan untuk command yang tidak baca env var (`php artisan serve`, `python manage.py runserver`, `flask run`, dst) lotwork otomatis menambahkan flag port yang sesuai. lotwork juga menolak start kalau port sudah dipakai proses lain di luar lotwork, atau sudah didaftarkan project lain.
-- **Custom domain** (opsional) — cukup isi nama (mis. `my-app`), suffix `.local` ditambahkan otomatis
+- **Custom domain** (opsional) — cukup isi nama (mis. `my-app`), suffix `.local` ditambahkan otomatis. Subdomain juga bisa — mis. isi `api.my-app` jadinya `api.my-app.local`.
+
+## Card project
+
+Tiap project ditampilkan sebagai card berisi status, port, domain, command, dan kapan terakhir di-start. Project diurutkan dari yang paling baru di-start (dalam 8 jam terakhir) di paling atas, lalu sisanya berdasarkan total jumlah start terbanyak.
+
+Tiga panel bisa dibuka langsung di bawah tiap card (klik lagi untuk tutup):
+- **Logs** — stdout/stderr live, auto-refresh tiap 1.5 detik selagi terbuka
+- **Edit .env** — membaca & menulis `.env` dan `.env.local` di folder project sebagai list key/value (`.env.local` menang kalau ada key yang sama, mengikuti perilaku Next.js/Vite). Tiap baris menampilkan file asalnya; klik badge untuk pindahkan variable ke file lain.
+- **Credentials** — daftar credential login tersimpan untuk project itu (label, username/email, password, ditampilkan polos). Klik "+ Tambah Credential" untuk tambah lewat popup form, atau "Edit"/"Hapus" pada entry yang ada. Tombol copy di sebelah username dan password untuk copy value ke clipboard.
 
 ## Start/Stop project
 
-Klik tombol Start/Stop di tabel. Tombol otomatis disabled + menampilkan status "Starting.../Stopping..." selagi diproses, supaya tidak double klik. Kalau project gagal start (mis. dependencies belum diinstall), panel Logs otomatis terbuka menampilkan output error-nya.
+Klik Start/Stop di card. Tombol otomatis disabled + menampilkan status "Starting.../Stopping..." selagi diproses, supaya tidak double klik. Kalau project gagal start (mis. dependencies belum diinstall), panel Logs otomatis terbuka menampilkan output error-nya.
 
-Proses berjalan sebagai child process dari lotwork; log stdout/stderr bisa dilihat lewat tombol "Logs" kapan saja. Klik STOP di GUI kontrol akan menghentikan semua project yang sedang berjalan.
+Proses berjalan sebagai child process dari lotwork. Klik STOP di GUI kontrol akan menghentikan semua project yang sedang berjalan.
 
 ## Custom domain
 
@@ -140,6 +158,6 @@ npm start
 
 ## Data
 
-- `data/projects.json` — daftar project (plain JSON, bisa diedit manual kalau perlu)
+- `data/projects.json` — daftar project, termasuk pilihan stack, histori start, dan credentials tersimpan (plain JSON, bisa diedit manual kalau perlu)
 - `data/Caddyfile`, `data/server.log`, `data/server.pid` — file runtime, di-generate ulang otomatis
 - Folder `data/` tidak ikut di-commit ke git (lihat `.gitignore`) karena isinya spesifik per mesin
