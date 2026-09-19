@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "build": "pkg server.js --targets node22.23.2-win-x64 --output dist/lotwork-server.exe"
+    "build": "pkg server.js --targets node22.23.2-win-x64 --output lotwork-server.exe",
+    "build:gui": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Install-Module -Name ps2exe -Scope CurrentUser -Force; Invoke-ps2exe -inputFile scripts/gui.ps1 -outputFile lotwork-control.exe -iconFile lotwork.ico -noConsole -title lotwork -product lotwork -description 'lotwork Local Project Manager'\"",
+    "build:all": "npm run build && npm run build:gui"
   },
   "dependencies": {
     "express": "^4.19.2"

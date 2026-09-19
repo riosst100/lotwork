@@ -6,7 +6,31 @@ function Write-Step($msg) {
     Write-Output "=== $msg ==="
 }
 
-# 1. Install Caddy if missing
+# 1. Build the app if the exe files aren't there yet (fresh clone on a new PC)
+Write-Step "Checking build output"
+$serverExe = Join-Path $root "lotwork-server.exe"
+$controlExe = Join-Path $root "lotwork-control.exe"
+if ((Test-Path $serverExe) -and (Test-Path $controlExe)) {
+    Write-Output "lotwork-server.exe and lotwork-control.exe already built."
+} else {
+    Write-Output "Build output missing, building now (first-time setup on this machine)..."
+    Push-Location $root
+    if (-not (Test-Path (Join-Path $root "node_modules"))) {
+        Write-Output "Installing npm dependencies..."
+        npm install
+    }
+    if (-not (Test-Path $serverExe)) {
+        Write-Output "Building lotwork-server.exe..."
+        npm run build
+    }
+    if (-not (Test-Path $controlExe)) {
+        Write-Output "Building lotwork-control.exe..."
+        npm run build:gui
+    }
+    Pop-Location
+}
+
+# 2. Install Caddy if missing
 Write-Step "Checking Caddy"
 $caddyInstalled = Get-Command caddy -ErrorAction SilentlyContinue
 $caddyViaWinget = winget list --id CaddyServer.Caddy 2>$null | Select-String "CaddyServer.Caddy"
@@ -26,7 +50,7 @@ if ($caddyInstalled) {
     }
 }
 
-# 2. Generate icon if missing
+# 3. Generate icon if missing
 Write-Step "Checking icon"
 $iconPath = Join-Path $root "lotwork.ico"
 if (Test-Path $iconPath) {
@@ -36,7 +60,7 @@ if (Test-Path $iconPath) {
     & "$PSScriptRoot\make-icon.ps1"
 }
 
-# 3. Create Desktop shortcut
+# 4. Create Desktop shortcut
 Write-Step "Creating Desktop shortcut"
 $desktop = [Environment]::GetFolderPath("Desktop")
 $shortcutPath = Join-Path $desktop "lotwork.lnk"
@@ -51,7 +75,7 @@ $shortcut.Description = "lotwork - Local Project Manager"
 $shortcut.Save()
 Write-Output "Shortcut created at $shortcutPath"
 
-# 4. Set shortcut to always run as Administrator (needed to edit hosts file for custom domains)
+# 5. Set shortcut to always run as Administrator (needed to edit hosts file for custom domains)
 Write-Step "Setting shortcut to run as Administrator"
 $bytes = [System.IO.File]::ReadAllBytes($shortcutPath)
 $bytes[0x15] = $bytes[0x15] -bor 0x20
