@@ -71,12 +71,6 @@ npm start
 - `data/Caddyfile`, `data/server.log`, `data/server.pid` — runtime files, regenerated automatically
 - The `data/` folder is not committed to git (see `.gitignore`) since its contents are machine-specific
 
-## Moving to another PC
-
-1. Copy/clone the whole `lotwork` folder (you can skip `node_modules/`, it's reinstalled automatically)
-2. Run `Setup.bat` on the new PC — it rebuilds the exes, installs Caddy, and creates the Desktop shortcut
-3. Re-register your projects through the dashboard (project folder paths are usually different per PC)
-
 ---
 
 # lotwork
@@ -149,9 +143,3 @@ npm start
 - `data/projects.json` — daftar project (plain JSON, bisa diedit manual kalau perlu)
 - `data/Caddyfile`, `data/server.log`, `data/server.pid` — file runtime, di-generate ulang otomatis
 - Folder `data/` tidak ikut di-commit ke git (lihat `.gitignore`) karena isinya spesifik per mesin
-
-## Memindahkan ke PC lain
-
-1. Copy/clone seluruh folder `lotwork` (boleh skip `node_modules/`, akan diinstall ulang otomatis)
-2. Jalankan `Setup.bat` di PC baru — akan build ulang exe, install Caddy, dan buat shortcut Desktop
-3. Daftarkan ulang project lewat dashboard (path folder project biasanya berbeda per PC)
