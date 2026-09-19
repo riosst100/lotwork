@@ -85,12 +85,12 @@ $form.Controls.Add($openLink)
 
 function Refresh-UI {
     if (Is-Running) {
-        $statusLabel.Text = "● Running"
+        $statusLabel.Text = "Running"
         $statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(52, 199, 123)
         $toggleButton.Text = "STOP"
         $toggleButton.BackColor = [System.Drawing.Color]::FromArgb(239, 90, 90)
     } else {
-        $statusLabel.Text = "○ Stopped"
+        $statusLabel.Text = "Stopped"
         $statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(139, 146, 163)
         $toggleButton.Text = "START"
         $toggleButton.BackColor = [System.Drawing.Color]::FromArgb(91, 140, 255)
