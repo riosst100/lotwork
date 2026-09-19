@@ -3,6 +3,7 @@ const path = require('path');
 const { dataDir } = require('./paths');
 
 const DATA_FILE = path.join(dataDir, 'projects.json');
+const RECENT_WINDOW_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 function ensureDataFile() {
   const dir = path.dirname(DATA_FILE);
@@ -13,11 +14,25 @@ function ensureDataFile() {
 function loadProjects() {
   ensureDataFile();
   const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+  let projects;
   try {
-    return JSON.parse(raw).projects || [];
+    projects = JSON.parse(raw).projects || [];
   } catch {
-    return [];
+    projects = [];
   }
+  const now = Date.now();
+  const isRecent = (p) => p.lastStartedAt && (now - p.lastStartedAt) < RECENT_WINDOW_MS;
+
+  return projects
+    .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], ...p }))
+    .sort((a, b) => {
+      const aRecent = isRecent(a);
+      const bRecent = isRecent(b);
+      if (aRecent && bRecent) return b.lastStartedAt - a.lastStartedAt;
+      if (aRecent && !bRecent) return -1;
+      if (!aRecent && bRecent) return 1;
+      return b.startCount - a.startCount;
+    });
 }
 
 function saveProjects(projects) {
@@ -40,6 +55,10 @@ function addProject(project) {
     port: project.port,
     domain: project.domain || '',
     env: project.env || {},
+    stack: project.stack || '',
+    startCount: 0,
+    lastStartedAt: null,
+    credentials: [],
   };
   projects.push(newProject);
   saveProjects(projects);
@@ -68,4 +87,52 @@ function getProject(id) {
   return loadProjects().find(p => p.id === id);
 }
 
-module.exports = { loadProjects, saveProjects, addProject, updateProject, removeProject, getProject };
+function incrementStartCount(id) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  projects[idx].startCount = (projects[idx].startCount || 0) + 1;
+  projects[idx].lastStartedAt = Date.now();
+  saveProjects(projects);
+}
+
+function addCredential(projectId, credential) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  const newCredential = {
+    id: String(Date.now()),
+    label: credential.label || '',
+    username: credential.username || '',
+    password: credential.password || '',
+  };
+  projects[idx].credentials = [...(projects[idx].credentials || []), newCredential];
+  saveProjects(projects);
+  return newCredential;
+}
+
+function updateCredential(projectId, credentialId, updates) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  const credentials = projects[idx].credentials || [];
+  const cIdx = credentials.findIndex(c => c.id === credentialId);
+  if (cIdx === -1) throw new Error('Credential tidak ditemukan');
+  credentials[cIdx] = { ...credentials[cIdx], ...updates, id: credentialId };
+  projects[idx].credentials = credentials;
+  saveProjects(projects);
+  return credentials[cIdx];
+}
+
+function removeCredential(projectId, credentialId) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  projects[idx].credentials = (projects[idx].credentials || []).filter(c => c.id !== credentialId);
+  saveProjects(projects);
+}
+
+module.exports = {
+  loadProjects, saveProjects, addProject, updateProject, removeProject, getProject, incrementStartCount,
+  addCredential, updateCredential, removeCredential,
+};

@@ -2,162 +2,330 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
-<title>lotwork — Local Project Manager</title>
+<title>LotWork</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 <style>
   :root {
-    --bg: #0c0e12;
-    --panel: #15181f;
-    --panel-2: #1b1f28;
-    --border: #262b36;
-    --border-soft: #1f232c;
-    --text: #eef0f4;
-    --muted: #8b92a3;
-    --muted-2: #5f6779;
-    --accent: #5b8cff;
-    --accent-hover: #6f9aff;
-    --accent-soft: rgba(91, 140, 255, 0.12);
-    --green: #34c77b;
-    --green-soft: rgba(52, 199, 123, 0.12);
-    --red: #ef5a5a;
-    --red-soft: rgba(239, 90, 90, 0.12);
-    --yellow: #e0b93a;
-    --radius: 10px;
-    --radius-sm: 7px;
+    --bg: #0b0d13;
+    --bg-2: #11141c;
+    --panel: #171b26;
+    --panel-2: #1e2330;
+    --panel-3: #262c3d;
+    --border: #2b3244;
+    --border-soft: #1f2432;
+    --text: #f2f4f8;
+    --muted: #9aa3b8;
+    --muted-2: #666f85;
+    --accent: #7c6ef4;
+    --accent-2: #5b8cff;
+    --accent-hover: #8f83ff;
+    --accent-soft: rgba(124, 110, 244, 0.16);
+    --pink: #f065b0;
+    --pink-soft: rgba(240, 101, 176, 0.14);
+    --green: #3ddb96;
+    --green-soft: rgba(61, 219, 150, 0.14);
+    --red: #ff6767;
+    --red-soft: rgba(255, 103, 103, 0.14);
+    --yellow: #f3c14b;
+    --yellow-soft: rgba(243, 193, 75, 0.14);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 10px 40px rgba(0,0,0,0.35);
   }
+
+  :root[data-theme="light"] {
+    --bg: #f3f4f9;
+    --bg-2: #eaecf4;
+    --panel: #ffffff;
+    --panel-2: #f4f5fa;
+    --panel-3: #eaecf5;
+    --border: #e1e3ee;
+    --border-soft: #ececf3;
+    --text: #1c1f2b;
+    --muted: #6b7288;
+    --muted-2: #9096a8;
+    --accent-soft: rgba(124, 110, 244, 0.12);
+    --pink-soft: rgba(240, 101, 176, 0.12);
+    --green-soft: rgba(16, 163, 96, 0.12);
+    --green: #12a866;
+    --red-soft: rgba(230, 60, 60, 0.1);
+    --red: #e13c3c;
+    --yellow-soft: rgba(200, 140, 10, 0.12);
+    --yellow: #b8860b;
+    --shadow: 0 10px 30px rgba(30,35,60,0.08);
+  }
+
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0;
     background:
-      radial-gradient(1200px 600px at 100% -10%, rgba(91,140,255,0.06), transparent),
+      radial-gradient(900px 500px at 100% -10%, var(--accent-soft), transparent),
+      radial-gradient(700px 400px at -10% 30%, var(--pink-soft), transparent),
       var(--bg);
     color: var(--text);
     font-family: "Segoe UI", -apple-system, Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.2s ease, color 0.2s ease;
   }
+
   header {
-    padding: 22px 32px;
+    padding: 20px 32px;
     border-bottom: 1px solid var(--border-soft);
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
-    background: rgba(12, 14, 18, 0.85);
-    backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    backdrop-filter: blur(14px);
     z-index: 10;
   }
-  header .brand { display: flex; align-items: center; gap: 10px; }
+  header .brand { display: flex; align-items: center; gap: 12px; }
   header .logo {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--accent), #3a5fd9);
+    width: 36px; height: 36px; border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 15px; color: white;
-    box-shadow: 0 2px 10px rgba(91,140,255,0.35);
+    font-weight: 800; font-size: 17px; color: white;
+    box-shadow: 0 4px 16px rgba(124,110,244,0.4);
   }
-  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: 0.2px; }
-  header .sub { color: var(--muted-2); font-size: 11px; margin-top: 1px; }
-  main { padding: 28px 32px 60px; max-width: 1180px; margin: 0 auto; }
+  header h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
+  header .sub { color: var(--muted-2); font-size: 11.5px; margin-top: 1px; }
+  header .right { display: flex; align-items: center; gap: 12px; }
 
-  .toolbar { display: flex; gap: 10px; margin-bottom: 22px; align-items: center; }
+  .theme-toggle {
+    display: flex; align-items: center; gap: 4px; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px; cursor: pointer;
+    position: relative;
+  }
+  .theme-toggle button {
+    background: transparent; border: none; padding: 6px 10px; font-size: 14px;
+    border-radius: 999px; cursor: pointer; color: var(--muted-2); box-shadow: none;
+    display: flex; align-items: center; justify-content: center; min-width: 30px;
+  }
+  .theme-toggle button.active { background: var(--panel-3); color: var(--text); }
+
+  main { padding: 28px 32px 60px; max-width: 1240px; margin: 0 auto; }
+
+  .toolbar { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
 
   button {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
     border: none;
-    padding: 9px 16px;
+    padding: 12px 20px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background 0.15s ease, transform 0.05s ease;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    box-shadow: 0 4px 14px rgba(124,110,244,0.3);
   }
-  button:hover:not(:disabled) { background: var(--accent-hover); }
-  button:active:not(:disabled) { transform: scale(0.98); }
-  button.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
-  button.secondary:hover:not(:disabled) { background: #232834; }
-  button.danger { background: var(--red-soft); color: var(--red); }
-  button.danger:hover:not(:disabled) { background: rgba(239, 90, 90, 0.2); }
-  button.small { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(124,110,244,0.4); }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button.secondary {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    box-shadow: none;
+  }
+  button.secondary:hover:not(:disabled) { background: var(--panel-3); box-shadow: none; transform: none; }
+  button.success { background: linear-gradient(135deg, var(--green), #2bb583); box-shadow: 0 4px 14px rgba(61,219,150,0.3); }
+  button.danger { background: var(--red-soft); color: var(--red); box-shadow: none; }
+  button.danger:hover:not(:disabled) { background: rgba(255,103,103,0.22); transform: none; box-shadow: none; }
+  button.ghost { background: transparent; color: var(--muted); box-shadow: none; padding: 12px 18px; }
+  button.ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); transform: none; box-shadow: none; }
+  button.small { padding: 8px 14px; font-size: 12.5px; border-radius: 8px; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-  .card {
+  .project-grid { display: flex; flex-direction: column; gap: 14px; }
+
+  .project-card {
     background: var(--panel);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+    position: relative;
     overflow: hidden;
   }
-
-  table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 14px 16px; font-size: 13px; }
-  thead th {
-    color: var(--muted-2); font-weight: 600; font-size: 11px; text-transform: uppercase;
-    letter-spacing: 0.5px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;
+  .project-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--muted-2); opacity: 0.3;
   }
-  tbody tr { border-top: 1px solid var(--border-soft); transition: background 0.12s ease; }
-  tbody tr:hover { background: rgba(255,255,255,0.015); }
-  tbody td { color: var(--text); }
-  td .proj-name { font-weight: 600; }
-  td code {
-    background: var(--panel-2); padding: 3px 8px; border-radius: 5px;
-    font-size: 12px; color: #b9c0d4; font-family: "Cascadia Code", Consolas, monospace;
+  .project-card.running::before { background: linear-gradient(var(--green), var(--accent)); opacity: 1; }
+  .project-card:hover { border-color: var(--border); }
+
+  .project-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+  }
+  .project-info { display: flex; flex-direction: column; gap: 6px; }
+  .project-name-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .proj-name { font-weight: 700; font-size: 15.5px; }
+  .project-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12.5px; color: var(--muted); }
+  .project-meta .meta-item { display: flex; align-items: center; gap: 5px; }
+  .project-meta code {
+    background: var(--panel-2); padding: 3px 8px; border-radius: 6px;
+    font-size: 12px; color: var(--accent-2); font-family: "Cascadia Code", Consolas, monospace;
   }
 
   .status-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px 6px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+    flex-shrink: 0;
   }
   .status-pill.on { background: var(--green-soft); color: var(--green); }
-  .status-pill.off { background: rgba(139, 146, 163, 0.1); color: var(--muted); }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
-  .dot.on { background: var(--green); box-shadow: 0 0 8px rgba(52,199,123,0.7); }
+  .status-pill.off { background: var(--panel-2); color: var(--muted); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+  .dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
   .dot.off { background: var(--muted-2); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
 
-  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 
   .empty-state {
-    padding: 60px 20px; text-align: center; color: var(--muted-2);
+    padding: 70px 20px; text-align: center; color: var(--muted-2);
+    background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius);
+    font-size: 14px; line-height: 1.8;
   }
 
   .modal-bg {
-    display: none; position: fixed; inset: 0; background: rgba(6, 7, 10, 0.7);
-    align-items: center; justify-content: center; backdrop-filter: blur(2px);
+    display: none; position: fixed; inset: 0; background: rgba(6, 7, 12, 0.65);
+    align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    z-index: 100;
   }
   .modal-bg.open { display: flex; }
   .modal {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-    padding: 26px; width: 440px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 20px;
+    padding: 28px; width: 460px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    max-height: 88vh; overflow-y: auto;
   }
-  .modal h2 { margin: 0 0 18px; font-size: 16px; font-weight: 600; }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+  .modal h2 { margin: 0 0 18px; font-size: 18px; font-weight: 700; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 7px; font-weight: 600; }
   .field input, .field select {
-    width: 100%; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-    background: #0f1115; color: var(--text); font-size: 13px; transition: border-color 0.15s ease;
+    width: 100%; padding: 11px 13px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+    background: var(--bg-2); color: var(--text); font-size: 13.5px; transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .field input:focus, .field select:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
   .domain-input {
-    display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: #0f1115; overflow: hidden;
+    display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-2); overflow: hidden; transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  .domain-input:focus-within { border-color: var(--accent); }
-  .domain-input input { border: none; background: transparent; flex: 1; }
+  .domain-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .domain-input input { border: none; background: transparent; flex: 1; box-shadow: none !important; }
   .domain-input input:focus { outline: none; }
-  .domain-suffix { padding: 9px 10px 9px 0; color: var(--muted-2); font-size: 13px; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-  .badge { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--panel-2); color: var(--muted); }
-  a.domain-link { color: var(--accent); text-decoration: none; font-weight: 500; }
-  a.domain-link:hover { text-decoration: underline; }
-  #logModal .modal { width: 660px; }
-  pre#logContent {
-    background: #0a0b0e; padding: 14px; border-radius: var(--radius-sm); height: 340px; overflow: auto;
-    font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all;
-    font-family: "Cascadia Code", Consolas, monospace; border: 1px solid var(--border-soft);
+  .domain-suffix { padding: 11px 13px 11px 0; color: var(--muted-2); font-size: 13.5px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+  .badge {
+    font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2);
+    color: var(--muted); font-weight: 600;
   }
-  .error-msg { color: var(--red); font-size: 12px; margin-top: 8px; }
+  a.domain-link { color: var(--accent-2); text-decoration: none; font-weight: 600; }
+  a.domain-link:hover { text-decoration: underline; }
+  .modal-subtitle { color: var(--muted-2); font-size: 12.5px; margin: -12px 0 20px; line-height: 1.5; }
+  .modal-subtitle code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+  .panel-btn-active { background: var(--accent-soft) !important; color: var(--accent) !important; border-color: transparent !important; }
+
+  .inline-panel {
+    margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);
+    animation: panel-in 0.15s ease;
+  }
+  @keyframes panel-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .inline-panel-title {
+    font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .log-box {
+    background: var(--bg-2); padding: 14px; border-radius: var(--radius-sm); height: 260px; overflow: auto;
+    font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+    font-family: "Cascadia Code", Consolas, monospace; border: 1px solid var(--border-soft); margin: 0;
+  }
+
+  #envRows { max-height: 380px; overflow-y: auto; margin-bottom: 14px; padding-right: 4px; }
+  #envRows::-webkit-scrollbar { width: 8px; }
+  #envRows::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .env-row-head {
+    display: flex; gap: 8px; padding: 0 4px 8px; font-size: 10.5px; font-weight: 700;
+    color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .env-row-head .col-key { flex: 0 0 34%; }
+  .env-row-head .col-value { flex: 1; }
+  .env-row {
+    display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
+    background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
+    padding: 7px; transition: border-color 0.15s ease;
+  }
+  .env-row:focus-within { border-color: var(--accent); }
+  .env-row input.env-key, .env-row input.env-value {
+    background: transparent; border: none; color: var(--text);
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; padding: 5px 7px;
+  }
+  .env-row input.env-key { flex: 0 0 34%; color: var(--accent-2); border-right: 1px solid var(--border-soft); border-radius: 0; }
+  .env-row input.env-value { flex: 1; }
+  .env-row input:focus { outline: none; box-shadow: none; }
+  .env-row .source-badge {
+    flex-shrink: 0; font-size: 9.5px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+    text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; cursor: pointer;
+  }
+  .env-row .source-badge.env { background: var(--accent-soft); color: var(--accent); }
+  .env-row .source-badge.env-local { background: var(--green-soft); color: var(--green); }
+  .env-row button.remove-row {
+    flex-shrink: 0; background: transparent; color: var(--muted-2); padding: 5px 9px; font-size: 16px;
+    border: none; border-radius: 6px; line-height: 1; box-shadow: none;
+  }
+  .env-row button.remove-row:hover { background: var(--red-soft); color: var(--red); transform: none; box-shadow: none; }
+  .env-empty { color: var(--muted-2); font-size: 12.5px; padding: 28px 0; text-align: center; }
+  .env-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .env-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted-2); align-items: center; }
+  .env-legend .source-badge { position: relative; top: -1px; cursor: default; }
+
+  #credentialsList { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; max-height: 320px; overflow-y: auto; }
+  .cred-card {
+    background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
+    padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .cred-card-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .cred-card-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
+  .cred-card-row { display: flex; gap: 8px; align-items: center; font-size: 12.5px; font-family: "Cascadia Code", Consolas, monospace; color: var(--text); }
+  .copy-btn {
+    background: transparent; border: none; color: var(--muted-2); padding: 3px 6px; font-size: 12px;
+    cursor: pointer; border-radius: 5px; box-shadow: none; line-height: 1;
+  }
+  .copy-btn:hover { background: var(--panel-3); color: var(--text); transform: none; box-shadow: none; }
+  .copy-btn.copied { color: var(--green); }
+  .cred-card-row .cred-field-label { color: var(--muted-2); font-family: "Segoe UI", sans-serif; min-width: 60px; }
+  .cred-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .cred-card-actions button {
+    padding: 6px 8px; font-size: 12px; box-shadow: none; background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .cred-card-actions button:hover { background: var(--panel-3); transform: none; box-shadow: none; }
+  .cred-card-actions button.remove-cred:hover { background: var(--red-soft); color: var(--red); }
+  .cred-empty { color: var(--muted-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
+
+  .error-msg { color: var(--red); font-size: 12.5px; margin-top: 10px; }
   .caddy-status {
-    font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px;
-    padding: 6px 12px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border-soft);
+    font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border-soft);
+    font-weight: 500;
+  }
+  .caddy-status .cdot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+  @media (max-width: 720px) {
+    header { padding: 16px 18px; }
+    main { padding: 20px 18px 50px; }
+    .modal { width: 92vw !important; padding: 20px; }
   }
 </style>
 </head>
@@ -171,30 +339,22 @@
       <div class="sub">Local dev project manager</div>
     </div>
   </div>
-  <div class="caddy-status" id="caddyStatus">checking caddy...</div>
+  <div class="right">
+    <div class="caddy-status" id="caddyStatus"><span class="cdot"></span>checking caddy...</div>
+    <div class="theme-toggle" id="themeToggle">
+      <button data-theme="light" title="Light">&#9728;</button>
+      <button data-theme="dark" title="Dark">&#9789;</button>
+    </div>
+  </div>
 </header>
 
 <main>
   <div class="toolbar">
     <button onclick="openAddModal()">+ Tambah Project</button>
-    <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">Reload Caddy / Sync Domains</button>
+    <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">&#8635; Reload Caddy / Sync Domains</button>
   </div>
 
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>Status</th>
-          <th>Nama</th>
-          <th>Port</th>
-          <th>Domain</th>
-          <th>Command</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="projectRows"></tbody>
-    </table>
-  </div>
+  <div class="project-grid" id="projectRows"></div>
 </main>
 
 <div class="modal-bg" id="addModal">
@@ -247,21 +407,59 @@
   </div>
 </div>
 
-<div class="modal-bg" id="logModal">
+<div class="modal-bg" id="credentialModal">
   <div class="modal">
-    <h2 id="logTitle">Logs</h2>
-    <pre id="logContent"></pre>
+    <h2 id="credModalTitle">Tambah Credential</h2>
+    <input type="hidden" id="credModalProjectId" />
+    <input type="hidden" id="credModalId" />
+    <div class="field">
+      <label>Label (opsional)</label>
+      <input id="credModalLabel" placeholder="mis. Admin, Test User" />
+    </div>
+    <div class="field">
+      <label>Username / Email</label>
+      <input id="credModalUsername" placeholder="admin@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="credModalPassword" placeholder="password" />
+    </div>
+    <div class="error-msg" id="credModalError"></div>
     <div class="modal-actions">
-      <button class="secondary" onclick="closeLogModal()">Tutup</button>
+      <button class="secondary" onclick="closeCredentialModal()">Batal</button>
+      <button onclick="saveCredentialModal()">Simpan</button>
     </div>
   </div>
 </div>
 
 <script>
 let projects = [];
-let logInterval = null;
-let currentLogId = null;
 const pendingIds = new Set();
+
+// --- Theme ---
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelectorAll('#themeToggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.theme === theme);
+  });
+  try { localStorage.setItem('lotwork-theme', theme); } catch {}
+}
+
+function initTheme() {
+  let theme = 'dark';
+  try {
+    theme = localStorage.getItem('lotwork-theme') ||
+      (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  } catch {}
+  applyTheme(theme);
+}
+
+document.getElementById('themeToggle').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-theme]');
+  if (btn) applyTheme(btn.dataset.theme);
+});
+
+initTheme();
 
 async function fetchProjects() {
   const res = await fetch('/api/projects');
@@ -270,40 +468,93 @@ async function fetchProjects() {
 }
 
 function render() {
-  const rows = projects.map(p => {
+  if (projects.length === 0) {
+    document.getElementById('projectRows').innerHTML =
+      '<div class="empty-state">Belum ada project.<br>Klik <strong>"+ Tambah Project"</strong> untuk mulai mengelola project lokalmu.</div>';
+    return;
+  }
+
+  const cards = projects.map(p => {
     const running = p.status.running;
+    const busy = pendingIds.has(p.id);
     const domainLink = p.domain
       ? `<a class="domain-link" href="https://${p.domain}" target="_blank">${p.domain}</a>`
       : '<span class="badge">no domain</span>';
+    const toggleBtn = running
+      ? `<button class="danger" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${busy ? 'Stopping...' : '&#9632; Stop'}</button>`
+      : `<button class="success" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${busy ? 'Starting...' : '&#9654; Start'}</button>`;
+    const lastStarted = p.lastStartedAt ? formatLastStarted(p.lastStartedAt) : null;
+
     return `
-      <tr>
-        <td><span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? 'Running' : 'Stopped'}</span></td>
-        <td class="proj-name">${escapeHtml(p.name)}</td>
-        <td>${p.port}</td>
-        <td>${domainLink}</td>
-        <td><code>${escapeHtml(p.command)}</code></td>
-        <td class="actions">
-          ${(() => {
-            const busy = pendingIds.has(p.id);
-            const toggleBtn = running
-              ? `<button class="small danger" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${busy ? 'Stopping...' : 'Stop'}</button>`
-              : `<button class="small" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${busy ? 'Starting...' : 'Start'}</button>`;
-            return `
-              ${toggleBtn}
-              <button class="small secondary" onclick="showLogs('${p.id}', '${escapeHtml(p.name)}')">Logs</button>
-              <button class="small secondary" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">Edit</button>
-              <button class="small danger" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? '...' : 'Hapus'}</button>
-            `;
-          })()}
-        </td>
-      </tr>
+      <div class="project-card ${running ? 'running' : ''}">
+        <div class="project-top">
+          <div class="project-info">
+            <div class="project-name-row">
+              <span class="proj-name">${escapeHtml(p.name)}</span>
+              <span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? 'Running' : 'Stopped'}</span>
+            </div>
+            <div class="project-meta">
+              <span class="meta-item">Port <code>${p.port}</code></span>
+              <span class="meta-item">${domainLink}</span>
+              <span class="meta-item"><code>${escapeHtml(p.command)}</code></span>
+              ${lastStarted ? `<span class="meta-item">Terakhir start: ${lastStarted}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          ${toggleBtn}
+          <button class="secondary small ${expandedPanels.get(p.id) === 'logs' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'logs')">Logs</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'env' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'env')">Edit .env</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'credentials' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'credentials')">Credentials${(p.credentials && p.credentials.length) ? ` (${p.credentials.length})` : ''}</button>
+          <button class="secondary small" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">Edit</button>
+          <button class="danger small" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? '...' : 'Hapus'}</button>
+        </div>
+        ${renderPanel(p)}
+      </div>
     `;
   }).join('');
-  document.getElementById('projectRows').innerHTML = rows || '<tr><td colspan="6"><div class="empty-state">Belum ada project.<br>Klik "+ Tambah Project" untuk mulai.</div></td></tr>';
+  document.getElementById('projectRows').innerHTML = cards;
+  restoreLogScroll();
+}
+
+function formatLastStarted(timestamp) {
+  const date = new Date(timestamp);
+  const time = date.toLocaleTimeString('id-ID', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta',
+  });
+  const today = new Date();
+  const isToday = date.toDateString() === today.toDateString();
+  if (isToday) return `${time} WIB`;
+  const dateStr = date.toLocaleDateString('id-ID', {
+    day: '2-digit', month: 'short', timeZone: 'Asia/Jakarta',
+  });
+  return `${dateStr}, ${time} WIB`;
 }
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function copyToClipboard(btn, text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  const original = btn.innerHTML;
+  btn.innerHTML = '&#10003;';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.innerHTML = original;
+    btn.classList.remove('copied');
+  }, 1200);
 }
 
 async function startProject(id) {
@@ -322,8 +573,8 @@ async function startProject(id) {
     setTimeout(async () => {
       await fetchProjects();
       const p = projects.find(x => x.id === id);
-      if (p && !p.status.running) {
-        showLogs(id, p.name);
+      if (p && !p.status.running && expandedPanels.get(id) !== 'logs') {
+        togglePanel(id, 'logs');
       }
     }, 1200);
   } finally {
@@ -396,7 +647,7 @@ function openEditModal(id) {
   document.getElementById('editId').value = p.id;
   document.getElementById('fName').value = p.name;
   document.getElementById('fCwd').value = p.cwd;
-  document.getElementById('fStack').value = '';
+  document.getElementById('fStack').value = p.stack || '';
   document.getElementById('fCommand').value = p.command;
   document.getElementById('fPort').value = p.port;
   document.getElementById('fDomain').value = (p.domain || '').replace(/\.local$/, '');
@@ -417,6 +668,7 @@ async function submitProject() {
     command: document.getElementById('fCommand').value.trim(),
     port: Number(document.getElementById('fPort').value),
     domain: domainName ? `${domainName}.local` : '',
+    stack: document.getElementById('fStack').value,
   };
   if (!body.name || !body.cwd || !body.command || !body.port) {
     document.getElementById('formError').textContent = 'Nama, folder, command, dan port wajib diisi.';
@@ -442,27 +694,257 @@ async function submitProject() {
   checkCaddyStatus();
 }
 
-function showLogs(id, name) {
-  currentLogId = id;
-  document.getElementById('logTitle').textContent = 'Logs — ' + name;
-  document.getElementById('logModal').classList.add('open');
-  pollLogs();
-  logInterval = setInterval(pollLogs, 1500);
+// --- Inline expandable panels (Logs / Edit .env / Credentials) ---
+const expandedPanels = new Map(); // projectId -> 'logs' | 'env' | 'credentials'
+const envDrafts = new Map(); // projectId -> { entries, loaded, error }
+const logCache = new Map(); // projectId -> last fetched log text
+
+function togglePanel(id, type) {
+  const current = expandedPanels.get(id);
+  if (current === type) {
+    expandedPanels.delete(id);
+  } else {
+    expandedPanels.set(id, type);
+    if (type === 'env' && !envDrafts.has(id)) loadEnvDraft(id);
+    if (type === 'logs') pollLogsFor(id);
+  }
+  render();
 }
 
-async function pollLogs() {
-  if (!currentLogId) return;
-  const res = await fetch(`/api/projects/${currentLogId}/logs`);
+function renderPanel(p) {
+  const type = expandedPanels.get(p.id);
+  if (!type) return '';
+  if (type === 'logs') return renderLogsPanel(p);
+  if (type === 'env') return renderEnvPanel(p);
+  if (type === 'credentials') return renderCredentialsPanel(p);
+  return '';
+}
+
+// --- Logs panel ---
+function renderLogsPanel(p) {
+  const logs = logCache.get(p.id) || '(memuat...)';
+  return `
+    <div class="inline-panel">
+      <div class="inline-panel-title">Logs</div>
+      <pre class="log-box" id="logBox-${p.id}">${escapeHtml(logs)}</pre>
+    </div>
+  `;
+}
+
+async function pollLogsFor(id) {
+  if (expandedPanels.get(id) !== 'logs') return;
+  const res = await fetch(`/api/projects/${id}/logs`);
   const data = await res.json();
-  const el = document.getElementById('logContent');
-  el.textContent = data.logs || '(belum ada output)';
-  el.scrollTop = el.scrollHeight;
+  const logs = data.logs || '(belum ada output)';
+  logCache.set(id, logs);
+  const box = document.getElementById(`logBox-${id}`);
+  if (box) {
+    const wasAtBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 20;
+    box.textContent = logs;
+    if (wasAtBottom) box.scrollTop = box.scrollHeight;
+  }
 }
 
-function closeLogModal() {
-  document.getElementById('logModal').classList.remove('open');
-  clearInterval(logInterval);
-  currentLogId = null;
+function restoreLogScroll() {
+  for (const [id, type] of expandedPanels) {
+    if (type === 'logs') pollLogsFor(id);
+  }
+}
+
+setInterval(() => {
+  for (const [id, type] of expandedPanels) {
+    if (type === 'logs') pollLogsFor(id);
+  }
+}, 1500);
+
+// --- Edit .env panel ---
+async function loadEnvDraft(id) {
+  envDrafts.set(id, { entries: [], loaded: false, error: '' });
+  const res = await fetch(`/api/projects/${id}/env`);
+  const data = await res.json();
+  if (!res.ok) {
+    envDrafts.set(id, { entries: [], loaded: true, error: data.error || 'Gagal memuat .env' });
+  } else {
+    envDrafts.set(id, { entries: data.entries, loaded: true, error: '' });
+  }
+  render();
+}
+
+function renderEnvPanel(p) {
+  const draft = envDrafts.get(p.id);
+  if (!draft || !draft.loaded) {
+    return `<div class="inline-panel"><div class="env-empty">Memuat...</div></div>`;
+  }
+  const rows = draft.entries.length
+    ? draft.entries.map((entry, i) => {
+        const isLocal = entry.source === '.env.local';
+        return `
+          <div class="env-row">
+            <input class="env-key" placeholder="KEY" value="${escapeHtml(entry.key)}" oninput="updateEnvEntry('${p.id}', ${i}, 'key', this.value)" />
+            <input class="env-value" placeholder="value" value="${escapeHtml(entry.value)}" oninput="updateEnvEntry('${p.id}', ${i}, 'value', this.value)" />
+            <span class="source-badge ${isLocal ? 'env-local' : 'env'}" title="Klik untuk pindah ke file lain" onclick="toggleEnvSource('${p.id}', ${i})">${isLocal ? 'local' : 'env'}</span>
+            <button type="button" class="remove-row" title="Hapus" onclick="removeEnvRow('${p.id}', ${i})">&times;</button>
+          </div>
+        `;
+      }).join('')
+    : '<div class="env-empty">Belum ada variable. Klik "+ Variable".</div>';
+
+  return `
+    <div class="inline-panel">
+      <div class="inline-panel-title">Edit .env</div>
+      <div class="modal-subtitle" style="margin-top:0">Membaca &amp; menulis <code>.env</code> dan <code>.env.local</code>. <code>.env.local</code> menang kalau ada key yang sama.</div>
+      <div class="env-row-head">
+        <span class="col-key">Key</span>
+        <span class="col-value">Value</span>
+      </div>
+      <div id="envRows-${p.id}">${rows}</div>
+      ${draft.error ? `<div class="error-msg">${escapeHtml(draft.error)}</div>` : ''}
+      <div class="modal-actions env-footer">
+        <div class="env-legend">
+          <span><span class="source-badge env">env</span> .env</span>
+          <span><span class="source-badge env-local">local</span> .env.local</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="secondary small" onclick="addEnvRow('${p.id}')">+ Variable</button>
+          <button onclick="saveEnv('${p.id}')">Simpan</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateEnvEntry(id, i, field, value) {
+  const draft = envDrafts.get(id);
+  if (!draft) return;
+  draft.entries[i][field] = value;
+}
+
+function toggleEnvSource(id, i) {
+  const draft = envDrafts.get(id);
+  if (!draft) return;
+  draft.entries[i].source = draft.entries[i].source === '.env.local' ? '.env' : '.env.local';
+  render();
+}
+
+function addEnvRow(id) {
+  const draft = envDrafts.get(id);
+  if (!draft) return;
+  draft.entries.push({ key: '', value: '', source: '.env' });
+  render();
+}
+
+function removeEnvRow(id, i) {
+  const draft = envDrafts.get(id);
+  if (!draft) return;
+  draft.entries.splice(i, 1);
+  render();
+}
+
+async function saveEnv(id) {
+  const draft = envDrafts.get(id);
+  if (!draft) return;
+  const entries = draft.entries.filter(e => e.key.trim());
+  const res = await fetch(`/api/projects/${id}/env`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ entries }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    draft.error = data.error || 'Gagal menyimpan .env';
+    render();
+    return;
+  }
+  expandedPanels.delete(id);
+  envDrafts.delete(id);
+  render();
+}
+
+// --- Credentials panel ---
+function renderCredentialsPanel(p) {
+  const credentials = p.credentials || [];
+
+  const list = credentials.length
+    ? credentials.map(c => `
+        <div class="cred-card">
+          <div class="cred-card-info">
+            ${c.label ? `<span class="cred-card-label">${escapeHtml(c.label)}</span>` : ''}
+            <span class="cred-card-row"><span class="cred-field-label">Username</span>${escapeHtml(c.username)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.username).replace(/'/g, "\\'")}')">&#128203;</button></span>
+            <span class="cred-card-row"><span class="cred-field-label">Password</span>${escapeHtml(c.password)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.password).replace(/'/g, "\\'")}')">&#128203;</button></span>
+          </div>
+          <div class="cred-card-actions">
+            <button type="button" onclick="editCredential('${p.id}', '${c.id}')">Edit</button>
+            <button type="button" class="remove-cred" onclick="deleteCredential('${p.id}', '${c.id}')">Hapus</button>
+          </div>
+        </div>
+      `).join('')
+    : '<div class="cred-empty">Belum ada credential.</div>';
+
+  return `
+    <div class="inline-panel">
+      <div class="inline-panel-title">Credentials</div>
+      <div>${list}</div>
+      <div class="modal-actions" style="justify-content:flex-start; margin-top:12px;">
+        <button type="button" class="secondary small" onclick="openCredentialModal('${p.id}')">+ Tambah Credential</button>
+      </div>
+    </div>
+  `;
+}
+
+function openCredentialModal(id, credId) {
+  const p = projects.find(x => x.id === id);
+  const c = credId ? (p && p.credentials || []).find(x => x.id === credId) : null;
+  document.getElementById('credModalTitle').textContent = c ? 'Edit Credential' : 'Tambah Credential';
+  document.getElementById('credModalProjectId').value = id;
+  document.getElementById('credModalLabel').value = c ? (c.label || '') : '';
+  document.getElementById('credModalUsername').value = c ? (c.username || '') : '';
+  document.getElementById('credModalPassword').value = c ? (c.password || '') : '';
+  document.getElementById('credModalError').textContent = '';
+  document.getElementById('credModalId').value = c ? c.id : '';
+  document.getElementById('credentialModal').classList.add('open');
+}
+
+function editCredential(id, credId) {
+  openCredentialModal(id, credId);
+}
+
+function closeCredentialModal() {
+  document.getElementById('credentialModal').classList.remove('open');
+}
+
+async function saveCredentialModal() {
+  const id = document.getElementById('credModalProjectId').value;
+  const credId = document.getElementById('credModalId').value;
+  const body = {
+    label: document.getElementById('credModalLabel').value.trim(),
+    username: document.getElementById('credModalUsername').value.trim(),
+    password: document.getElementById('credModalPassword').value,
+  };
+  if (!body.username || !body.password) {
+    document.getElementById('credModalError').textContent = 'Username dan password wajib diisi.';
+    return;
+  }
+  const url = credId
+    ? `/api/projects/${id}/credentials/${credId}`
+    : `/api/projects/${id}/credentials`;
+  const res = await fetch(url, {
+    method: credId ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    document.getElementById('credModalError').textContent = data.error || 'Gagal menyimpan credential';
+    return;
+  }
+  closeCredentialModal();
+  await fetchProjects();
+}
+
+async function deleteCredential(id, credId) {
+  if (!confirm('Hapus credential ini?')) return;
+  await fetch(`/api/projects/${id}/credentials/${credId}`, { method: 'DELETE' });
+  await fetchProjects();
 }
 
 async function reloadCaddy() {
@@ -485,9 +967,10 @@ async function reloadCaddy() {
 async function checkCaddyStatus() {
   const res = await fetch('/api/caddy/status');
   const data = await res.json();
-  document.getElementById('caddyStatus').textContent = data.installed
-    ? 'Caddy: installed'
-    : 'Caddy: not installed (custom domain nonaktif)';
+  const el = document.getElementById('caddyStatus');
+  el.innerHTML = data.installed
+    ? '<span class="cdot"></span>Caddy: installed'
+    : '<span class="cdot" style="background:var(--red)"></span>Caddy: not installed';
 }
 
 fetchProjects();

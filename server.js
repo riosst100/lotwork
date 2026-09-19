@@ -6,6 +6,7 @@ const store = require('./store');
 const pm = require('./processManager');
 const caddy = require('./caddyManager');
 const hosts = require('./hostsManager');
+const envFile = require('./envFile');
 const { dataDir, publicDir } = require('./paths');
 
 const app = express();
@@ -87,6 +88,7 @@ app.post('/api/projects/:id/start', async (req, res) => {
 
   try {
     const result = pm.startProject(project);
+    store.incrementStartCount(project.id);
     res.json({ ok: true, ...result });
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -100,6 +102,55 @@ app.post('/api/projects/:id/stop', (req, res) => {
 
 app.get('/api/projects/:id/logs', (req, res) => {
   res.json({ logs: pm.getLogs(req.params.id) });
+});
+
+app.get('/api/projects/:id/env', (req, res) => {
+  const project = store.getProject(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = envFile.readEnvFile(project.cwd);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/projects/:id/env', (req, res) => {
+  const project = store.getProject(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    envFile.writeEnvFile(project.cwd, req.body.entries || []);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/projects/:id/credentials', (req, res) => {
+  try {
+    const credential = store.addCredential(req.params.id, req.body);
+    res.json(credential);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/projects/:id/credentials/:credId', (req, res) => {
+  try {
+    const credential = store.updateCredential(req.params.id, req.params.credId, req.body);
+    res.json(credential);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/projects/:id/credentials/:credId', (req, res) => {
+  try {
+    store.removeCredential(req.params.id, req.params.credId);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 app.post('/api/caddy/reload', (req, res) => {
