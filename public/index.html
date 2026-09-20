@@ -727,6 +727,10 @@ const I18N = {
     passwordLabel: 'Password',
     loadingGitStatus: 'Loading git status...',
     notGitRepo: 'This folder is not a git repository.',
+    notGitRepoSubtitle: 'This folder is not a git repository yet. Initialize it before you can set a remote or push.',
+    initializeGit: 'Initialize Git',
+    initializing: 'Initializing...',
+    gitInitFailed: 'Failed to initialize git',
     branch: 'Branch',
     ahead: 'ahead',
     behind: 'behind',
@@ -849,6 +853,10 @@ const I18N = {
     passwordLabel: 'Password',
     loadingGitStatus: 'Memuat status git...',
     notGitRepo: 'Folder ini bukan git repository.',
+    notGitRepoSubtitle: 'Folder ini belum jadi git repository. Init dulu sebelum bisa set remote atau push.',
+    initializeGit: 'Initialize Git',
+    initializing: 'Menginisialisasi...',
+    gitInitFailed: 'Gagal inisialisasi git',
     branch: 'Branch',
     ahead: 'ahead',
     behind: 'behind',
@@ -1618,6 +1626,9 @@ async function loadGitStatus(id) {
     const data = await res.json();
     if (!res.ok) {
       gitStatusCache.set(id, { loading: false, error: data.error });
+    } else if (!data.isRepo) {
+      // Not a git repository at all (or no .git folder) - nothing further to compute.
+      gitStatusCache.set(id, { loading: false, data });
     } else {
       const project = projects.find(x => x.id === id);
       const candidateMain = (project && project.defaultBranch && project.defaultBranch !== data.currentBranch)
@@ -1635,6 +1646,28 @@ async function loadGitStatus(id) {
     gitStatusCache.set(id, { loading: false, error: e.message });
   }
   render();
+}
+
+async function initGitRepo(id) {
+  const state = gitStatusCache.get(id);
+  if (!state) return;
+  state.initializing = true;
+  state.initError = null;
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/git/init`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      state.initError = data.error || t('gitInitFailed');
+      return;
+    }
+    await loadGitStatus(id);
+  } catch (e) {
+    state.initError = e.message;
+  } finally {
+    state.initializing = false;
+    render();
+  }
 }
 
 async function saveRemoteUrl(id) {
@@ -1702,7 +1735,11 @@ function renderGitPanel(p) {
     return `
       <div class="inline-panel">
         <div class="inline-panel-title">${t('github')}</div>
-        <div class="env-empty">${t('notGitRepo')}</div>
+        <div class="modal-subtitle" style="margin-top:0">${t('notGitRepoSubtitle')}</div>
+        ${state.initError ? `<div class="error-msg">${escapeHtml(state.initError)}</div>` : ''}
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button ${state.initializing ? 'disabled' : ''} onclick="initGitRepo('${p.id}')">${state.initializing ? t('initializing') : t('initializeGit')}</button>
+        </div>
       </div>
     `;
   }

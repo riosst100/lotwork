@@ -305,6 +305,17 @@ app.post('/api/projects/:id/git/remote', async (req, res) => {
   }
 });
 
+app.post('/api/projects/:id/git/init', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = await gitOps.initRepo(cwd);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message });
+  }
+});
+
 app.post('/api/caddy/reload', (req, res) => {
   const { caddyResult, hostsResult } = syncDomains();
   res.json({ ...caddyResult, hostsMessage: hostsResult.message, hostsOk: hostsResult.ok });

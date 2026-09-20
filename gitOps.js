@@ -31,6 +31,16 @@ function findGitDir(cwd) {
   }
 }
 
+// The folder containing .git - i.e. the actual repo root, which may be a
+// parent of cwd in a monorepo (project.cwd = repo/backend, root = repo).
+// `git status --porcelain` always prints paths relative to this root
+// regardless of cwd, so commands that consume those paths (git add <path>)
+// must also run from here, not from project.cwd, or pathspecs won't resolve.
+function getRepoRoot(cwd) {
+  const gitDir = findGitDir(cwd);
+  return gitDir ? path.dirname(gitDir) : null;
+}
+
 // Fast, synchronous remote URL lookup by reading .git/config directly,
 // instead of spawning `git`. Safe to call on every /api/projects poll.
 function getRemoteUrlSync(cwd) {
@@ -148,14 +158,29 @@ async function getStatus(cwd) {
     return { isRepo: false };
   }
 
-  const [branchOut, statusOut, branchesOut] = await Promise.all([
-    run(cwd, ['rev-parse', '--abbrev-ref', 'HEAD']),
+  // A freshly `git init`-ed repo with no commits yet has no valid HEAD, so
+  // `rev-parse --abbrev-ref HEAD` fails. Fall back to reading the symbolic
+  // ref directly (e.g. "refs/heads/main") instead of erroring the whole page.
+  let currentBranch;
+  try {
+    currentBranch = (await run(cwd, ['rev-parse', '--abbrev-ref', 'HEAD'])).trim();
+  } catch {
+    try {
+      const symbolicRef = await run(cwd, ['symbolic-ref', '--short', 'HEAD']);
+      currentBranch = symbolicRef.trim();
+    } catch {
+      currentBranch = 'main';
+    }
+  }
+
+  const [statusOut, branchesOut] = await Promise.all([
     run(cwd, ['status', '--porcelain']),
     run(cwd, ['branch', '--format=%(refname:short)']),
   ]);
 
-  const currentBranch = branchOut.trim();
   const branches = branchesOut.split('\n').map(b => b.trim()).filter(Boolean);
+  const noCommitsYet = branches.length === 0;
+  if (noCommitsYet) branches.push(currentBranch);
 
   let remoteUrl = null;
   try {
@@ -192,7 +217,14 @@ async function getStatus(cwd) {
     behind,
     remoteUrl: toWebUrl(remoteUrl),
     hasChanges: files.length > 0,
+    noCommitsYet,
   };
+}
+
+async function initRepo(cwd) {
+  if (isGitRepo(cwd)) throw new Error('Folder ini sudah git repository');
+  await run(cwd, ['init']);
+  return { ok: true };
 }
 
 async function setRemoteUrl(cwd, url) {
@@ -214,16 +246,21 @@ async function setRemoteUrl(cwd, url) {
 
 async function commitAndPush(cwd, { branch, message, files }) {
   if (!isGitRepo(cwd)) throw new Error('Bukan git repository');
+  // `git status --porcelain` prints paths relative to the repo root even
+  // when run from a subfolder, so `git add <path>` must run from that same
+  // root too, or the pathspec won't match (e.g. in a monorepo where
+  // project.cwd is repo/backend but paths look like "backend/file.php").
+  const root = getRepoRoot(cwd);
 
   const status = await getStatus(cwd);
   if (branch && branch !== status.currentBranch) {
-    await run(cwd, ['checkout', branch]);
+    await run(root, ['checkout', branch]);
   }
 
   if (Array.isArray(files) && files.length > 0) {
-    await run(cwd, ['add', '--', ...files]);
+    await run(root, ['add', '--', ...files]);
   } else if (!files) {
-    await run(cwd, ['add', '-A']);
+    await run(root, ['add', '-A']);
   } else {
     throw new Error('Tidak ada file yang dipilih untuk di-commit');
   }
@@ -231,7 +268,7 @@ async function commitAndPush(cwd, { branch, message, files }) {
   const finalMessage = message || 'Update';
 
   try {
-    await run(cwd, ['commit', '-m', finalMessage]);
+    await run(root, ['commit', '-m', finalMessage]);
   } catch (e) {
     if (/nothing to commit/i.test(e.stdout || '') || /nothing to commit/i.test(e.stderr || '')) {
       throw new Error('Tidak ada perubahan untuk di-commit');
@@ -241,11 +278,11 @@ async function commitAndPush(cwd, { branch, message, files }) {
 
   const targetBranch = branch || status.currentBranch;
   try {
-    await run(cwd, ['push', 'origin', targetBranch]);
+    await run(root, ['push', 'origin', targetBranch]);
   } catch (e) {
     // First push on a new branch needs -u
     if (/no upstream branch/i.test(e.stderr || '')) {
-      await run(cwd, ['push', '-u', 'origin', targetBranch]);
+      await run(root, ['push', '-u', 'origin', targetBranch]);
     } else {
       throw e;
     }
@@ -276,16 +313,18 @@ async function pullFromMain(cwd, { mainBranch, currentBranch }) {
   if (!currentBranch) throw new Error('Current branch tidak diketahui');
   if (mainBranch === currentBranch) throw new Error('Main branch dan current branch tidak boleh sama');
 
-  if (await hasUncommittedChanges(cwd)) {
+  const root = getRepoRoot(cwd);
+
+  if (await hasUncommittedChanges(root)) {
     throw new Error('Ada perubahan belum di-commit. Commit atau stash dulu sebelum pull dari main branch.');
   }
 
-  await run(cwd, ['checkout', mainBranch]);
-  await run(cwd, ['pull', 'origin', mainBranch]);
-  await run(cwd, ['checkout', currentBranch]);
+  await run(root, ['checkout', mainBranch]);
+  await run(root, ['pull', 'origin', mainBranch]);
+  await run(root, ['checkout', currentBranch]);
 
   try {
-    await run(cwd, ['merge', mainBranch]);
+    await run(root, ['merge', mainBranch]);
   } catch (e) {
     const err = new Error(
       `Merge "${mainBranch}" ke "${currentBranch}" menghasilkan conflict. ` +
@@ -296,12 +335,12 @@ async function pullFromMain(cwd, { mainBranch, currentBranch }) {
     throw err;
   }
 
-  await run(cwd, ['push', 'origin', currentBranch]);
+  await run(root, ['push', 'origin', currentBranch]);
 
   return { ok: true, mainBranch, currentBranch };
 }
 
 module.exports = {
   isGitRepo, getStatus, commitAndPush, getRemoteUrlSync, getLastCommit,
-  getCurrentBranchSync, getDefaultBranchSync, setRemoteUrl, pullFromMain, getChangeSummary,
+  getCurrentBranchSync, getDefaultBranchSync, setRemoteUrl, pullFromMain, getChangeSummary, initRepo,
 };
