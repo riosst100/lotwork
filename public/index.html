@@ -764,6 +764,9 @@ const I18N = {
     setRemote: 'Set Remote',
     remoteUrlRequired: 'Remote URL is required.',
     setRemoteFailed: 'Failed to set remote URL',
+    remoteSettings: 'Remote Settings',
+    saving: 'Saving...',
+    remoteUrlUpdated: 'Remote URL updated successfully.',
     servicesTitle: 'Services',
     servicesLoadFailed: 'Failed to load services',
     noServicesFound: 'No dev database services found.',
@@ -890,6 +893,9 @@ const I18N = {
     setRemote: 'Set Remote',
     remoteUrlRequired: 'URL remote wajib diisi.',
     setRemoteFailed: 'Gagal set URL remote',
+    remoteSettings: 'Pengaturan Remote',
+    saving: 'Menyimpan...',
+    remoteUrlUpdated: 'URL remote berhasil diubah.',
     servicesTitle: 'Services',
     servicesLoadFailed: 'Gagal memuat services',
     noServicesFound: 'Tidak ada service database yang ditemukan.',
@@ -1674,22 +1680,52 @@ async function saveRemoteUrl(id) {
   const input = document.getElementById(`remoteUrlInput-${id}`);
   const url = input.value.trim();
   const state = gitStatusCache.get(id);
+  if (!state) return;
   if (!url) {
-    if (state) { state.remoteError = t('remoteUrlRequired'); render(); }
+    state.remoteError = t('remoteUrlRequired');
+    render();
     return;
   }
-  const res = await fetch(`/api/projects/${id}/git/remote`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    if (state) { state.remoteError = data.error || t('setRemoteFailed'); render(); }
-    return;
+
+  const wasEditingExisting = !!(state.data && state.data.remoteUrl);
+  state.savingRemote = true;
+  state.remoteError = null;
+  state.remoteSuccess = null;
+  render();
+
+  try {
+    const res = await fetch(`/api/projects/${id}/git/remote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      state.remoteError = data.error || t('setRemoteFailed');
+      return;
+    }
+    await fetchProjects();
+    if (wasEditingExisting) {
+      // Refresh status in the background but keep the confirmation visible
+      // instead of resetting gitMode and closing the "remote" detail panel.
+      const res2 = await fetch(`/api/projects/${id}/git/status`);
+      const freshData = await res2.json();
+      const refreshedState = gitStatusCache.get(id);
+      if (refreshedState) {
+        refreshedState.data = freshData;
+        refreshedState.remoteUrlDraft = undefined;
+        refreshedState.remoteSuccess = t('remoteUrlUpdated');
+      }
+    } else {
+      await loadGitStatus(id);
+    }
+  } catch (e) {
+    state.remoteError = e.message;
+  } finally {
+    const finalState = gitStatusCache.get(id);
+    if (finalState) finalState.savingRemote = false;
+    render();
   }
-  await fetchProjects();
-  await loadGitStatus(id);
 }
 
 function toggleGitFile(id, filePath, checked) {
@@ -1817,6 +1853,20 @@ function renderGitPanel(p) {
     </div>
   ` : '';
 
+  const remoteDetail = mode === 'remote' ? `
+    <div class="git-mode-detail">
+      <div class="field">
+        <label>${t('remoteUrlLabel')}</label>
+        <input id="remoteUrlInput-${p.id}" value="${escapeHtml(state.remoteUrlDraft !== undefined ? state.remoteUrlDraft : data.remoteUrl || '')}" placeholder="git@github.com:user/repo.git" oninput="updateRemoteUrlDraft('${p.id}', this.value)" />
+      </div>
+      ${state.remoteError ? `<div class="error-msg">${escapeHtml(state.remoteError)}</div>` : ''}
+      ${state.remoteSuccess ? `<div class="git-success">${escapeHtml(state.remoteSuccess)}</div>` : ''}
+      <div class="modal-actions" style="justify-content:flex-start;">
+        <button ${state.savingRemote ? 'disabled' : ''} onclick="saveRemoteUrl('${p.id}')">${state.savingRemote ? t('saving') : t('save')}</button>
+      </div>
+    </div>
+  ` : '';
+
   return `
     <div class="inline-panel">
       <div class="inline-panel-title">${t('github')}</div>
@@ -1835,12 +1885,20 @@ function renderGitPanel(p) {
       <div class="git-mode-buttons">
         <button type="button" class="secondary ${mode === 'pull' ? 'panel-btn-active' : ''}" onclick="setGitMode('${p.id}', 'pull')">${t('pullFromMaster')}</button>
         <button type="button" class="secondary ${mode === 'push' ? 'panel-btn-active' : ''}" onclick="setGitMode('${p.id}', 'push')">${t('pushCommitChanges')}</button>
+        <button type="button" class="secondary ${mode === 'remote' ? 'panel-btn-active' : ''}" onclick="setGitMode('${p.id}', 'remote')">${t('remoteSettings')}</button>
       </div>
 
       ${pullDetail}
       ${pushDetail}
+      ${remoteDetail}
     </div>
   `;
+}
+
+function updateRemoteUrlDraft(id, value) {
+  const state = gitStatusCache.get(id);
+  if (!state) return;
+  state.remoteUrlDraft = value;
 }
 
 function setGitMode(id, mode) {
