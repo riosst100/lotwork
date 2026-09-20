@@ -23,6 +23,27 @@ function isCaddyInstalled() {
   }
 }
 
+// Distinguishes "not installed at all" from "installed, but this process's
+// PATH hasn't picked it up yet" (common right after a winget install, since
+// PATH changes only apply to new processes) so the UI can suggest the right
+// fix: install vs. restart the server.
+function checkCaddyAvailability() {
+  if (isCaddyInstalled()) {
+    return { installed: true, needsRestart: false };
+  }
+  if (process.platform === 'win32') {
+    try {
+      const out = execSync('winget list --id CaddyServer.Caddy', { encoding: 'utf-8' });
+      if (out.includes('CaddyServer.Caddy')) {
+        return { installed: false, needsRestart: true };
+      }
+    } catch {
+      // winget not available or Caddy not found via it; fall through
+    }
+  }
+  return { installed: false, needsRestart: false };
+}
+
 let caddyProcess = null;
 
 function reloadCaddy(projects) {
@@ -57,4 +78,4 @@ function stopCaddy() {
   }
 }
 
-module.exports = { generateCaddyfile, reloadCaddy, stopCaddy, isCaddyInstalled, CADDYFILE };
+module.exports = { generateCaddyfile, reloadCaddy, stopCaddy, isCaddyInstalled, checkCaddyAvailability, CADDYFILE };

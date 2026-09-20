@@ -105,7 +105,55 @@
   }
   .theme-toggle button.active { background: var(--panel-3); color: var(--text); }
 
-  main { padding: 28px 32px 60px; max-width: 1240px; margin: 0 auto; }
+  .lang-toggle {
+    display: flex; align-items: center; gap: 4px; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px;
+  }
+  .lang-toggle button {
+    background: transparent; border: none; padding: 6px 10px; font-size: 11px; font-weight: 700;
+    border-radius: 999px; cursor: pointer; color: var(--muted-2); box-shadow: none; min-width: 30px;
+  }
+  .lang-toggle button.active { background: var(--panel-3); color: var(--text); }
+
+  main { padding: 28px 32px 60px; max-width: 1440px; margin: 0 auto; }
+
+  .main-layout { display: flex; gap: 24px; align-items: flex-start; }
+  .main-content { flex: 1; min-width: 0; }
+  .services-sidebar {
+    flex: 0 0 260px; background: var(--panel); border: 1px solid var(--border-soft);
+    border-radius: var(--radius); padding: 18px; position: sticky; top: 96px;
+  }
+  .sidebar-title {
+    font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 14px;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .service-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+  }
+  .service-row:last-child { border-bottom: none; }
+  .service-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .service-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .service-sub { font-size: 11px; color: var(--muted-2); }
+  .service-toggle {
+    flex-shrink: 0; padding: 5px 12px; font-size: 11px; border-radius: 999px; font-weight: 600;
+    box-shadow: none;
+  }
+  .service-toggle.on { background: var(--red-soft); color: var(--red); }
+  .service-toggle.off { background: var(--green-soft); color: var(--green); }
+  .service-toggle:disabled { opacity: 0.5; }
+  .services-empty { font-size: 12px; color: var(--muted-2); padding: 8px 0; }
+  .runtime-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0;
+  }
+  .runtime-name { font-size: 12.5px; color: var(--text); }
+  .runtime-version { font-size: 11px; color: var(--muted-2); font-family: "Cascadia Code", Consolas, monospace; }
+  .services-divider { border: none; border-top: 1px solid var(--border-soft); margin: 14px 0; }
+
+  @media (max-width: 980px) {
+    .main-layout { flex-direction: column; }
+    .services-sidebar { flex: 1 1 auto; width: 100%; position: static; }
+  }
 
   .toolbar { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
 
@@ -153,6 +201,8 @@
     background: var(--muted-2); opacity: 0.3;
   }
   .project-card.running::before { background: linear-gradient(var(--green), var(--accent)); opacity: 1; }
+  .self-card::before { background: linear-gradient(var(--pink), var(--accent)); opacity: 1; }
+  .self-badge { background: var(--accent-soft); color: var(--accent); }
   .project-card:hover { border-color: var(--border); }
 
   .project-top {
@@ -162,6 +212,24 @@
   .project-info { display: flex; flex-direction: column; gap: 6px; }
   .project-name-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .proj-name { font-weight: 700; font-size: 15.5px; }
+  .repo-link {
+    display: inline-flex; align-items: center; gap: 5px; color: var(--muted-2); text-decoration: none;
+    font-size: 11.5px; margin-top: 2px; margin-bottom: 8px; font-family: "Cascadia Code", Consolas, monospace;
+  }
+  .repo-link::before { content: "\1F517"; font-size: 11px; }
+  .repo-link:hover { color: var(--accent); text-decoration: underline; }
+  .repo-link.no-remote { color: var(--red); cursor: default; }
+  .repo-link.no-remote:hover { text-decoration: none; color: var(--red); }
+  .last-commit {
+    font-size: 11.5px; color: var(--muted-2); margin-bottom: 6px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+  .branch-info { font-size: 11.5px; color: var(--muted-2); margin-bottom: 8px; }
+  .branch-info code {
+    background: var(--panel-2); padding: 2px 7px; border-radius: 5px;
+    font-size: 11px; color: var(--accent-2); font-family: "Cascadia Code", Consolas, monospace;
+  }
+  .branch-vs { color: var(--muted-2); }
   .project-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12.5px; color: var(--muted); }
   .project-meta .meta-item { display: flex; align-items: center; gap: 5px; }
   .project-meta code {
@@ -205,6 +273,9 @@
     max-height: 88vh; overflow-y: auto;
   }
   .modal h2 { margin: 0 0 18px; font-size: 18px; font-weight: 700; }
+  .dialog-modal { width: 400px; }
+  .dialog-message { font-size: 13.5px; color: var(--text); line-height: 1.6; white-space: pre-line; }
+  .dialog-modal.alert-only #dialogCancelBtn { display: none; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 7px; font-weight: 600; }
   .field input, .field select {
@@ -299,9 +370,11 @@
   .cred-card-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
   .cred-card-row { display: flex; gap: 8px; align-items: center; font-size: 12.5px; font-family: "Cascadia Code", Consolas, monospace; color: var(--text); }
   .copy-btn {
-    background: transparent; border: none; color: var(--muted-2); padding: 3px 6px; font-size: 12px;
-    cursor: pointer; border-radius: 5px; box-shadow: none; line-height: 1;
+    background: transparent; border: none; color: var(--muted-2); padding: 6px; cursor: pointer;
+    border-radius: 6px; box-shadow: none; line-height: 1; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
   }
+  .copy-btn svg { width: 16px; height: 16px; display: block; }
   .copy-btn:hover { background: var(--panel-3); color: var(--text); transform: none; box-shadow: none; }
   .copy-btn.copied { color: var(--green); }
   .cred-card-row .cred-field-label { color: var(--muted-2); font-family: "Segoe UI", sans-serif; min-width: 60px; }
@@ -314,6 +387,50 @@
   .cred-card-actions button.remove-cred:hover { background: var(--red-soft); color: var(--red); }
   .cred-empty { color: var(--muted-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
 
+  .git-meta { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 4px; }
+  .pull-main-row {
+    display: flex; align-items: flex-end; gap: 10px; padding: 12px; margin-top: 12px;
+    background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  }
+  .git-branch-settings {
+    display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .git-branch-settings .field { flex: 1; min-width: 140px; max-width: 220px; }
+  .git-mode-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+  .git-mode-buttons button { flex: 1; }
+  .git-mode-detail {
+    padding-top: 16px; border-top: 1px dashed var(--border);
+    animation: panel-in 0.15s ease;
+  }
+  .git-file-list { max-height: 260px; overflow-y: auto; margin-bottom: 14px; }
+  .git-file-row {
+    display: flex; align-items: center; gap: 10px; padding: 7px 10px;
+    border-bottom: 1px solid var(--border-soft); font-size: 12.5px; cursor: pointer;
+  }
+  .git-file-row:hover { background: var(--bg-2); }
+  .git-file-row:last-child { border-bottom: none; }
+  .git-file-row input[type="checkbox"], .git-select-all input[type="checkbox"] {
+    accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0;
+  }
+  .git-select-all {
+    display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700;
+    color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer;
+  }
+  .git-file-status {
+    flex-shrink: 0; width: 74px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 4px; text-align: center;
+  }
+  .git-file-status.status-M { background: var(--yellow-soft); color: var(--yellow); }
+  .git-file-status.status-A { background: var(--green-soft); color: var(--green); }
+  .git-file-status.status-D { background: var(--red-soft); color: var(--red); }
+  .git-file-status.status-R { background: var(--accent-soft); color: var(--accent); }
+  .git-file-status.status-untracked { background: var(--panel-3); color: var(--muted); }
+  .git-file-path { font-family: "Cascadia Code", Consolas, monospace; color: var(--text); word-break: break-all; }
+  .git-success {
+    background: var(--green-soft); color: var(--green); font-size: 12.5px; padding: 10px 12px;
+    border-radius: var(--radius-sm); margin-bottom: 12px;
+  }
+
   .error-msg { color: var(--red); font-size: 12.5px; margin-top: 10px; }
   .caddy-status {
     font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 7px;
@@ -321,15 +438,52 @@
     font-weight: 500;
   }
   .caddy-status .cdot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .caddy-status.caddy-missing {
+    cursor: pointer; border-color: var(--red); color: var(--red);
+    animation: caddy-pulse 2s infinite;
+  }
+  .caddy-status.caddy-missing:hover { background: var(--red-soft); }
+  @keyframes caddy-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,103,103,0.3); }
+    50% { box-shadow: 0 0 0 5px rgba(255,103,103,0); }
+  }
 
   @media (max-width: 720px) {
     header { padding: 16px 18px; }
     main { padding: 20px 18px 50px; }
     .modal { width: 92vw !important; padding: 20px; }
   }
+
+  .page-loading {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    background: var(--bg);
+    transition: opacity 0.25s ease;
+  }
+  .page-loading.hidden { opacity: 0; pointer-events: none; }
+  .page-loading-logo {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 26px; color: white;
+    box-shadow: 0 8px 24px rgba(124,110,244,0.4);
+  }
+  .page-loading-title { font-size: 18px; font-weight: 700; color: var(--text); margin-top: -8px; }
+  .page-loading-spinner {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 3px solid var(--border); border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+
+<div class="page-loading" id="pageLoading">
+  <div class="page-loading-logo">L</div>
+  <div class="page-loading-title">LotWork</div>
+  <div class="page-loading-spinner"></div>
+</div>
 
 <header>
   <div class="brand">
@@ -340,7 +494,11 @@
     </div>
   </div>
   <div class="right">
-    <div class="caddy-status" id="caddyStatus"><span class="cdot"></span>checking caddy...</div>
+    <div class="caddy-status" id="caddyStatus"></div>
+    <div class="lang-toggle" id="langToggle">
+      <button data-lang="en" title="English">EN</button>
+      <button data-lang="id" title="Bahasa Indonesia">ID</button>
+    </div>
     <div class="theme-toggle" id="themeToggle">
       <button data-theme="light" title="Light">&#9728;</button>
       <button data-theme="dark" title="Dark">&#9789;</button>
@@ -349,30 +507,39 @@
 </header>
 
 <main>
-  <div class="toolbar">
-    <button onclick="openAddModal()">+ Tambah Project</button>
-    <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">&#8635; Reload Caddy / Sync Domains</button>
-  </div>
+  <div class="main-layout">
+    <div class="main-content">
+      <div class="toolbar">
+        <button id="addProjectBtn" onclick="openAddModal()">+ Add Project</button>
+        <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">&#8635; Reload Caddy / Sync Domains</button>
+      </div>
 
-  <div class="project-grid" id="projectRows"></div>
+      <div class="project-grid" id="projectRows"></div>
+    </div>
+
+    <aside class="services-sidebar">
+      <div class="sidebar-title" id="servicesTitle">Services</div>
+      <div id="servicesList"></div>
+    </aside>
+  </div>
 </main>
 
 <div class="modal-bg" id="addModal">
   <div class="modal">
-    <h2 id="modalTitle">Tambah Project</h2>
+    <h2 id="modalTitle">Add Project</h2>
     <input type="hidden" id="editId" />
     <div class="field">
-      <label>Nama project</label>
+      <label id="lblName">Project name</label>
       <input id="fName" placeholder="my-app" />
     </div>
     <div class="field">
-      <label>Folder (cwd)</label>
+      <label id="lblFolder">Folder (cwd)</label>
       <input id="fCwd" placeholder="D:\kerjaan-2026\projects\my-app" />
     </div>
     <div class="field">
-      <label>Stack (opsional, auto-isi command)</label>
+      <label id="lblStack">Stack (optional, auto-fills Command)</label>
       <select id="fStack" onchange="applyStackTemplate()">
-        <option value="">— Pilih stack —</option>
+        <option value="">— Choose stack —</option>
         <option value="node-dev">Node.js (npm run dev)</option>
         <option value="node-start">Node.js (npm start)</option>
         <option value="yarn-dev">Node.js (yarn dev)</option>
@@ -385,15 +552,15 @@
       </select>
     </div>
     <div class="field">
-      <label>Command</label>
+      <label id="lblCommand">Command</label>
       <input id="fCommand" placeholder="npm run dev" />
     </div>
     <div class="field">
-      <label>Port</label>
+      <label id="lblPort">Port</label>
       <input id="fPort" placeholder="3000" type="number" oninput="applyStackTemplate()" />
     </div>
     <div class="field">
-      <label>Custom domain (opsional, butuh Caddy + admin)</label>
+      <label id="lblDomain">Custom domain (optional, needs Caddy + admin)</label>
       <div class="domain-input">
         <input id="fDomain" placeholder="my-app" />
         <span class="domain-suffix">.local</span>
@@ -401,33 +568,44 @@
     </div>
     <div class="error-msg" id="formError"></div>
     <div class="modal-actions">
-      <button class="secondary" onclick="closeAddModal()">Batal</button>
-      <button onclick="submitProject()">Simpan</button>
+      <button class="secondary" id="addModalCancelBtn" onclick="closeAddModal()">Cancel</button>
+      <button id="addModalSaveBtn" onclick="submitProject()">Save</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="credentialModal">
   <div class="modal">
-    <h2 id="credModalTitle">Tambah Credential</h2>
+    <h2 id="credModalTitle">Add Credential</h2>
     <input type="hidden" id="credModalProjectId" />
     <input type="hidden" id="credModalId" />
     <div class="field">
-      <label>Label (opsional)</label>
-      <input id="credModalLabel" placeholder="mis. Admin, Test User" />
+      <label id="lblCredLabel">Label (optional)</label>
+      <input id="credModalLabel" placeholder="e.g. Admin, Test User" />
     </div>
     <div class="field">
-      <label>Username / Email</label>
+      <label id="lblCredUsername">Username / Email</label>
       <input id="credModalUsername" placeholder="admin@example.com" />
     </div>
     <div class="field">
-      <label>Password</label>
+      <label id="lblCredPassword">Password</label>
       <input id="credModalPassword" placeholder="password" />
     </div>
     <div class="error-msg" id="credModalError"></div>
     <div class="modal-actions">
-      <button class="secondary" onclick="closeCredentialModal()">Batal</button>
-      <button onclick="saveCredentialModal()">Simpan</button>
+      <button class="secondary" id="credModalCancelBtn" onclick="closeCredentialModal()">Cancel</button>
+      <button id="credModalSaveBtn" onclick="saveCredentialModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="dialogModal">
+  <div class="modal dialog-modal">
+    <h2 id="dialogTitle">lotwork</h2>
+    <div id="dialogMessage" class="dialog-message"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="dialogCancelBtn" onclick="dialogResolve(false)">Cancel</button>
+      <button id="dialogOkBtn" onclick="dialogResolve(true)">OK</button>
     </div>
   </div>
 </div>
@@ -435,6 +613,338 @@
 <script>
 let projects = [];
 const pendingIds = new Set();
+
+// --- Custom alert/confirm dialogs (replaces native browser alert/confirm) ---
+let dialogResolveFn = null;
+
+function dialogResolve(result) {
+  document.getElementById('dialogModal').classList.remove('open');
+  if (dialogResolveFn) {
+    dialogResolveFn(result);
+    dialogResolveFn = null;
+  }
+}
+
+function showAlert(message, title) {
+  return new Promise((resolve) => {
+    dialogResolveFn = () => resolve();
+    document.getElementById('dialogTitle').textContent = title || 'lotwork';
+    document.getElementById('dialogMessage').textContent = message;
+    document.querySelector('#dialogModal .dialog-modal').classList.add('alert-only');
+    document.getElementById('dialogOkBtn').textContent = 'OK';
+    document.getElementById('dialogModal').classList.add('open');
+  });
+}
+
+function showConfirm(message, title) {
+  return new Promise((resolve) => {
+    dialogResolveFn = (result) => resolve(result);
+    document.getElementById('dialogTitle').textContent = title || 'lotwork';
+    document.getElementById('dialogMessage').textContent = message;
+    document.querySelector('#dialogModal .dialog-modal').classList.remove('alert-only');
+    document.getElementById('dialogOkBtn').textContent = 'OK';
+    document.getElementById('dialogModal').classList.add('open');
+  });
+}
+
+// --- i18n ---
+const I18N = {
+  en: {
+    subtitle: 'Local dev project manager',
+    caddyChecking: 'checking caddy...',
+    caddyInstalled: 'Caddy: installed',
+    caddyNotInstalled: 'Caddy: not installed (click to install)',
+    caddyNeedsRestart: 'Caddy: needs restart (click for info)',
+    caddyInstalling: 'Installing Caddy...',
+    caddyInstallConfirm: 'Caddy is required for custom domains. Install it now via winget? This may take a minute.',
+    caddyInstallFailed: 'Failed to install Caddy',
+    caddyRestartInstructions: 'Caddy is installed, but this lotwork process was started before that and can’t see it yet.\n\nClick STOP then START in the lotwork control window to pick it up.',
+    addProject: '+ Add Project',
+    reloadCaddy: '&#8635; Reload Caddy / Sync Domains',
+    emptyState: 'No projects yet.<br>Click <strong>"+ Add Project"</strong> to get started.',
+    running: 'Running',
+    stopped: 'Stopped',
+    start: '&#9654; Start',
+    starting: 'Starting...',
+    stop: '&#9632; Stop',
+    stopping: 'Stopping...',
+    logs: 'Logs',
+    editEnv: 'Edit .env',
+    credentials: 'Credentials',
+    git: 'Git',
+    github: 'GitHub',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleting: '...',
+    port: 'Port',
+    noDomain: 'no domain',
+    lastStarted: 'Last started',
+    confirmDeleteProject: 'Delete this project from the list? (project files are not deleted)',
+    modalAddTitle: 'Add Project',
+    modalEditTitle: 'Edit Project',
+    fieldName: 'Project name',
+    fieldFolder: 'Folder (cwd)',
+    fieldStack: 'Stack (optional, auto-fills Command)',
+    stackPlaceholder: '— Choose stack —',
+    stackCustom: 'Custom command',
+    fieldCommand: 'Command',
+    fieldPort: 'Port',
+    fieldDomain: 'Custom domain (optional, needs Caddy + admin)',
+    cancel: 'Cancel',
+    save: 'Save',
+    requiredFieldsError: 'Name, folder, command, and port are required.',
+    hostsSyncFailedAlert: 'Domain saved, but hosts file sync failed:',
+    hostsSyncFailedHint: 'Run lotwork as Administrator then click "Reload Caddy / Sync Domains".',
+    nextOriginUnrecognized: 'This project looks like Next.js, but lotwork couldn’t recognize its config format:',
+    loadingLogs: '(loading...)',
+    noOutputYet: '(no output yet)',
+    loadingEnv: 'Loading...',
+    envSubtitle: 'Reads & writes both <code>.env</code> and <code>.env.local</code>. <code>.env.local</code> wins on key collisions.',
+    envKey: 'Key',
+    envValue: 'Value',
+    envNoVars: 'No variables yet. Click "+ Variable".',
+    addVariable: '+ Variable',
+    envSourceHint: 'Click to move to the other file',
+    envLegendEnv: '.env',
+    envLegendLocal: '.env.local',
+    envSaveFailed: 'Failed to save .env',
+    envLoadFailed: 'Failed to load .env',
+    noCredentialsYet: 'No credentials yet.',
+    addCredential: '+ Add Credential',
+    editCredentialTitle: 'Edit Credential',
+    addCredentialTitle: 'Add Credential',
+    fieldLabel: 'Label (optional)',
+    fieldUsername: 'Username / Email',
+    fieldPassword: 'Password',
+    credRequiredError: 'Username and password are required.',
+    credSaveFailed: 'Failed to save credential',
+    confirmDeleteCredential: 'Delete this credential?',
+    usernameLabel: 'Username',
+    passwordLabel: 'Password',
+    loadingGitStatus: 'Loading git status...',
+    notGitRepo: 'This folder is not a git repository.',
+    branch: 'Branch',
+    ahead: 'ahead',
+    behind: 'behind',
+    changesSelected: (selected, total) => `Changes (${selected}/${total} selected)`,
+    noChanges: 'No changes.',
+    refresh: '&#8635; Refresh',
+    commitAndPush: 'Commit & Push',
+    pushing: 'Pushing...',
+    confirmPushTitle: (branch) => `Commit & push to branch "${branch}"?`,
+    confirmPushFiles: (count) => `${count} file(s) will be committed:`,
+    confirmPushAutoMessage: 'A commit message will be generated automatically (timestamp).',
+    pushSuccess: (branch, message) => `Successfully pushed to "${branch}": ${message}`,
+    pushFailed: 'Push failed',
+    statusModified: 'Modified',
+    statusAdded: 'Added',
+    statusDeleted: 'Deleted',
+    statusRenamed: 'Renamed',
+    statusCopied: 'Copied',
+    statusUnmerged: 'Unmerged',
+    statusUntracked: 'Untracked',
+    reloading: 'Reloading...',
+    portFree: 'free',
+    branchVsMain: 'vs main',
+    selfBadge: 'This app',
+    noRemote: 'No remote repo found',
+    setRemoteSubtitle: 'This project has no remote repository configured yet. Set one before you can view changes or push.',
+    remoteUrlLabel: 'Remote URL',
+    setRemote: 'Set Remote',
+    remoteUrlRequired: 'Remote URL is required.',
+    setRemoteFailed: 'Failed to set remote URL',
+    servicesTitle: 'Services',
+    servicesLoadFailed: 'Failed to load services',
+    noServicesFound: 'No dev database services found.',
+    notInstalledShort: 'not installed',
+    serviceActionFailed: 'Service action failed',
+    currentBranchLabel: 'Current Branch',
+    mainBranchLabel: 'Master Branch',
+    pullFromMaster: 'Pull Master',
+    pushCommitChanges: 'Push/Commit Changes',
+    pulling: 'Pulling...',
+    confirmPullFromMain: (main, current) =>
+      `This will:\n\n1. Checkout "${main}"\n2. Pull latest from origin/${main}\n3. Checkout "${current}"\n4. Merge "${main}" into "${current}"\n5. Push "${current}" to origin\n\nContinue?`,
+    pullFromMainFailed: 'Pull from main branch failed',
+    pullFromMainSuccess: (main, current) => `Successfully merged "${main}" into "${current}" and pushed.`,
+  },
+  id: {
+    subtitle: 'Local dev project manager',
+    caddyChecking: 'memeriksa caddy...',
+    caddyInstalled: 'Caddy: terpasang',
+    caddyNotInstalled: 'Caddy: belum terpasang (klik untuk install)',
+    caddyNeedsRestart: 'Caddy: perlu restart (klik untuk info)',
+    caddyInstalling: 'Menginstall Caddy...',
+    caddyInstallConfirm: 'Caddy dibutuhkan untuk custom domain. Install sekarang lewat winget? Proses ini bisa memakan waktu semenit.',
+    caddyInstallFailed: 'Gagal install Caddy',
+    caddyRestartInstructions: 'Caddy sudah terpasang, tapi proses lotwork ini dijalankan sebelum itu dan belum bisa mendeteksinya.\n\nKlik STOP lalu START di window kontrol lotwork untuk memuatnya.',
+    addProject: '+ Tambah Project',
+    reloadCaddy: '&#8635; Reload Caddy / Sync Domains',
+    emptyState: 'Belum ada project.<br>Klik <strong>"+ Tambah Project"</strong> untuk mulai.',
+    running: 'Berjalan',
+    stopped: 'Berhenti',
+    start: '&#9654; Start',
+    starting: 'Memulai...',
+    stop: '&#9632; Stop',
+    stopping: 'Menghentikan...',
+    logs: 'Logs',
+    editEnv: 'Edit .env',
+    credentials: 'Credentials',
+    git: 'Git',
+    github: 'GitHub',
+    edit: 'Edit',
+    delete: 'Hapus',
+    deleting: '...',
+    port: 'Port',
+    noDomain: 'tanpa domain',
+    lastStarted: 'Terakhir start',
+    confirmDeleteProject: 'Hapus project ini dari daftar? (file project tidak ikut terhapus)',
+    modalAddTitle: 'Tambah Project',
+    modalEditTitle: 'Edit Project',
+    fieldName: 'Nama project',
+    fieldFolder: 'Folder (cwd)',
+    fieldStack: 'Stack (opsional, auto-isi Command)',
+    stackPlaceholder: '— Pilih stack —',
+    stackCustom: 'Command custom',
+    fieldCommand: 'Command',
+    fieldPort: 'Port',
+    fieldDomain: 'Custom domain (opsional, butuh Caddy + admin)',
+    cancel: 'Batal',
+    save: 'Simpan',
+    requiredFieldsError: 'Nama, folder, command, dan port wajib diisi.',
+    hostsSyncFailedAlert: 'Domain disimpan, tapi sinkronisasi ke hosts file gagal:',
+    hostsSyncFailedHint: 'Jalankan lotwork sebagai Administrator lalu klik "Reload Caddy / Sync Domains".',
+    nextOriginUnrecognized: 'Project ini terdeteksi sebagai Next.js, tapi format config-nya tidak dikenali lotwork:',
+    loadingLogs: '(memuat...)',
+    noOutputYet: '(belum ada output)',
+    loadingEnv: 'Memuat...',
+    envSubtitle: 'Membaca &amp; menulis <code>.env</code> dan <code>.env.local</code>. <code>.env.local</code> menang kalau ada key yang sama.',
+    envKey: 'Key',
+    envValue: 'Value',
+    envNoVars: 'Belum ada variable. Klik "+ Variable".',
+    addVariable: '+ Variable',
+    envSourceHint: 'Klik untuk pindah ke file lain',
+    envLegendEnv: '.env',
+    envLegendLocal: '.env.local',
+    envSaveFailed: 'Gagal menyimpan .env',
+    envLoadFailed: 'Gagal memuat .env',
+    noCredentialsYet: 'Belum ada credential.',
+    addCredential: '+ Tambah Credential',
+    editCredentialTitle: 'Edit Credential',
+    addCredentialTitle: 'Tambah Credential',
+    fieldLabel: 'Label (opsional)',
+    fieldUsername: 'Username / Email',
+    fieldPassword: 'Password',
+    credRequiredError: 'Username dan password wajib diisi.',
+    credSaveFailed: 'Gagal menyimpan credential',
+    confirmDeleteCredential: 'Hapus credential ini?',
+    usernameLabel: 'Username',
+    passwordLabel: 'Password',
+    loadingGitStatus: 'Memuat status git...',
+    notGitRepo: 'Folder ini bukan git repository.',
+    branch: 'Branch',
+    ahead: 'ahead',
+    behind: 'behind',
+    changesSelected: (selected, total) => `Perubahan (${selected}/${total} dipilih)`,
+    noChanges: 'Tidak ada perubahan.',
+    refresh: '&#8635; Refresh',
+    commitAndPush: 'Commit & Push',
+    pushing: 'Pushing...',
+    confirmPushTitle: (branch) => `Commit & push ke branch "${branch}"?`,
+    confirmPushFiles: (count) => `${count} file akan di-commit:`,
+    confirmPushAutoMessage: 'Pesan commit akan dibuat otomatis (timestamp).',
+    pushSuccess: (branch, message) => `Berhasil push ke "${branch}": ${message}`,
+    pushFailed: 'Gagal push',
+    statusModified: 'Modified',
+    statusAdded: 'Added',
+    statusDeleted: 'Deleted',
+    statusRenamed: 'Renamed',
+    statusCopied: 'Copied',
+    statusUnmerged: 'Unmerged',
+    statusUntracked: 'Untracked',
+    reloading: 'Reloading...',
+    portFree: 'kosong',
+    branchVsMain: 'vs main',
+    selfBadge: 'Aplikasi ini',
+    noRemote: 'Belum ada remote repo',
+    setRemoteSubtitle: 'Project ini belum punya remote repository. Set dulu sebelum bisa lihat perubahan atau push.',
+    remoteUrlLabel: 'URL Remote',
+    setRemote: 'Set Remote',
+    remoteUrlRequired: 'URL remote wajib diisi.',
+    setRemoteFailed: 'Gagal set URL remote',
+    servicesTitle: 'Services',
+    servicesLoadFailed: 'Gagal memuat services',
+    noServicesFound: 'Tidak ada service database yang ditemukan.',
+    notInstalledShort: 'belum terpasang',
+    serviceActionFailed: 'Aksi service gagal',
+    currentBranchLabel: 'Current Branch',
+    mainBranchLabel: 'Master Branch',
+    pullFromMaster: 'Pull Master',
+    pushCommitChanges: 'Push/Commit Changes',
+    pulling: 'Pulling...',
+    confirmPullFromMain: (main, current) =>
+      `Ini akan menjalankan:\n\n1. Checkout "${main}"\n2. Pull terbaru dari origin/${main}\n3. Checkout "${current}"\n4. Merge "${main}" ke "${current}"\n5. Push "${current}" ke origin\n\nLanjutkan?`,
+    pullFromMainFailed: 'Gagal pull dari main branch',
+    pullFromMainSuccess: (main, current) => `Berhasil merge "${main}" ke "${current}" dan push.`,
+  },
+};
+
+function getLang() {
+  try {
+    return localStorage.getItem('lotwork-lang') || 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+function setLang(lang) {
+  try { localStorage.setItem('lotwork-lang', lang); } catch {}
+  document.querySelectorAll('#langToggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  render();
+  updateStaticTexts();
+}
+
+function t(key, ...args) {
+  const dict = I18N[getLang()] || I18N.en;
+  const value = dict[key] !== undefined ? dict[key] : I18N.en[key];
+  return typeof value === 'function' ? value(...args) : value;
+}
+
+function updateStaticTexts() {
+  document.querySelector('header .sub').textContent = t('subtitle');
+  document.getElementById('addProjectBtn').textContent = t('addProject');
+  document.getElementById('reloadCaddyBtn').innerHTML = t('reloadCaddy');
+  document.getElementById('fStack').options[0].textContent = t('stackPlaceholder');
+  document.querySelector('#fStack option[value="custom"]').textContent = t('stackCustom');
+  document.getElementById('lblName').textContent = t('fieldName');
+  document.getElementById('lblFolder').textContent = t('fieldFolder');
+  document.getElementById('lblStack').textContent = t('fieldStack');
+  document.getElementById('lblCommand').textContent = t('fieldCommand');
+  document.getElementById('lblPort').textContent = t('fieldPort');
+  document.getElementById('lblDomain').textContent = t('fieldDomain');
+  document.getElementById('addModalCancelBtn').textContent = t('cancel');
+  document.getElementById('addModalSaveBtn').textContent = t('save');
+  document.getElementById('lblCredLabel').textContent = t('fieldLabel');
+  document.getElementById('lblCredUsername').textContent = t('fieldUsername');
+  document.getElementById('lblCredPassword').textContent = t('fieldPassword');
+  document.getElementById('credModalCancelBtn').textContent = t('cancel');
+  document.getElementById('credModalSaveBtn').textContent = t('save');
+  document.getElementById('servicesTitle').textContent = t('servicesTitle');
+  loadServices();
+  // Re-set modal titles only if the modal isn't mid-edit (avoid flashing "Add" over "Edit")
+  const modalTitle = document.getElementById('modalTitle');
+  if (modalTitle) modalTitle.textContent = document.getElementById('editId').value ? t('modalEditTitle') : t('modalAddTitle');
+  const credModalTitle = document.getElementById('credModalTitle');
+  if (credModalTitle) credModalTitle.textContent = document.getElementById('credModalId').value ? t('editCredentialTitle') : t('addCredentialTitle');
+  checkCaddyStatus();
+}
+
+document.getElementById('langToggle').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-lang]');
+  if (btn) setLang(btn.dataset.lang);
+});
 
 // --- Theme ---
 function applyTheme(theme) {
@@ -461,6 +971,11 @@ document.getElementById('themeToggle').addEventListener('click', (e) => {
 
 initTheme();
 
+document.querySelectorAll('#langToggle button').forEach(b => {
+  b.classList.toggle('active', b.dataset.lang === getLang());
+});
+updateStaticTexts();
+
 async function fetchProjects() {
   const res = await fetch('/api/projects');
   projects = await res.json();
@@ -470,20 +985,30 @@ async function fetchProjects() {
 function render() {
   if (projects.length === 0) {
     document.getElementById('projectRows').innerHTML =
-      '<div class="empty-state">Belum ada project.<br>Klik <strong>"+ Tambah Project"</strong> untuk mulai mengelola project lokalmu.</div>';
+      `<div class="empty-state">${t('emptyState')}</div>`;
     return;
   }
 
   const cards = projects.map(p => {
+    if (p.isSelf) return renderSelfCard(p);
+
     const running = p.status.running;
     const busy = pendingIds.has(p.id);
     const domainLink = p.domain
       ? `<a class="domain-link" href="https://${p.domain}" target="_blank">${p.domain}</a>`
-      : '<span class="badge">no domain</span>';
+      : `<span class="badge">${t('noDomain')}</span>`;
     const toggleBtn = running
-      ? `<button class="danger" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${busy ? 'Stopping...' : '&#9632; Stop'}</button>`
-      : `<button class="success" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${busy ? 'Starting...' : '&#9654; Start'}</button>`;
+      ? `<button class="danger" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${busy ? t('stopping') : t('stop')}</button>`
+      : `<button class="success" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${busy ? t('starting') : t('start')}</button>`;
     const lastStarted = p.lastStartedAt ? formatLastStarted(p.lastStartedAt) : null;
+    const lastCommitText = p.lastCommit
+      ? `${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}`
+      : '';
+    const branchText = p.currentBranch
+      ? (p.defaultBranch && p.defaultBranch !== p.currentBranch
+          ? `<code>${escapeHtml(p.currentBranch)}</code> <span class="branch-vs">${t('branchVsMain')}</span> <code>${escapeHtml(p.defaultBranch)}</code>`
+          : `<code>${escapeHtml(p.currentBranch)}</code>`)
+      : '';
 
     return `
       <div class="project-card ${running ? 'running' : ''}">
@@ -491,23 +1016,29 @@ function render() {
           <div class="project-info">
             <div class="project-name-row">
               <span class="proj-name">${escapeHtml(p.name)}</span>
-              <span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? 'Running' : 'Stopped'}</span>
+              <span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? t('running') : t('stopped')}</span>
             </div>
+            ${p.repoUrl
+              ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank">${escapeHtml(p.repoUrl)}</a>`
+              : `<span class="repo-link no-remote">${t('noRemote')}</span>`}
+            ${lastCommitText ? `<div class="last-commit">${lastCommitText}</div>` : ''}
+            ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
             <div class="project-meta">
-              <span class="meta-item">Port <code>${p.port}</code></span>
+              <span class="meta-item">${t('port')} <code>${p.port}</code></span>
               <span class="meta-item">${domainLink}</span>
               <span class="meta-item"><code>${escapeHtml(p.command)}</code></span>
-              ${lastStarted ? `<span class="meta-item">Terakhir start: ${lastStarted}</span>` : ''}
+              ${lastStarted ? `<span class="meta-item">${t('lastStarted')}: ${lastStarted}</span>` : ''}
             </div>
           </div>
         </div>
         <div class="actions">
           ${toggleBtn}
-          <button class="secondary small ${expandedPanels.get(p.id) === 'logs' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'logs')">Logs</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'env' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'env')">Edit .env</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'credentials' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'credentials')">Credentials${(p.credentials && p.credentials.length) ? ` (${p.credentials.length})` : ''}</button>
-          <button class="secondary small" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">Edit</button>
-          <button class="danger small" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? '...' : 'Hapus'}</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'logs' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'logs')">${t('logs')}</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'env' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'env')">${t('editEnv')}</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'credentials' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'credentials')">${t('credentials')}${(p.credentials && p.credentials.length) ? ` (${p.credentials.length})` : ''}</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'git' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'git')">${t('github')}</button>
+          <button class="secondary small" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">${t('edit')}</button>
+          <button class="danger small" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? t('deleting') : t('delete')}</button>
         </div>
         ${renderPanel(p)}
       </div>
@@ -515,6 +1046,43 @@ function render() {
   }).join('');
   document.getElementById('projectRows').innerHTML = cards;
   restoreLogScroll();
+}
+
+function renderSelfCard(p) {
+  const lastCommitText = p.lastCommit
+    ? `${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}`
+    : '';
+  const branchText = p.currentBranch
+    ? (p.defaultBranch && p.defaultBranch !== p.currentBranch
+        ? `<code>${escapeHtml(p.currentBranch)}</code> <span class="branch-vs">${t('branchVsMain')}</span> <code>${escapeHtml(p.defaultBranch)}</code>`
+        : `<code>${escapeHtml(p.currentBranch)}</code>`)
+    : '';
+
+  return `
+    <div class="project-card running self-card">
+      <div class="project-top">
+        <div class="project-info">
+          <div class="project-name-row">
+            <span class="proj-name">${escapeHtml(p.name)}</span>
+            <span class="badge self-badge">${t('selfBadge')}</span>
+            <span class="status-pill on"><span class="dot on"></span>${t('running')}</span>
+          </div>
+          ${p.repoUrl
+            ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank">${escapeHtml(p.repoUrl)}</a>`
+            : `<span class="repo-link no-remote">${t('noRemote')}</span>`}
+          ${lastCommitText ? `<div class="last-commit">${lastCommitText}</div>` : ''}
+          ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
+          <div class="project-meta">
+            <span class="meta-item">${t('port')} <code>${p.port}</code></span>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="secondary small ${expandedPanels.get(p.id) === 'git' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'git')">${t('github')}</button>
+      </div>
+      ${renderPanel(p)}
+    </div>
+  `;
 }
 
 function formatLastStarted(timestamp) {
@@ -531,9 +1099,28 @@ function formatLastStarted(timestamp) {
   return `${dateStr}, ${time} WIB`;
 }
 
+function formatCommitDate(gitDateStr) {
+  // git's %ci format: "2026-09-19 12:27:19 +0700" - parseable by Date directly
+  const date = new Date(gitDateStr.replace(' ', 'T').replace(' ', ''));
+  if (isNaN(date.getTime())) return gitDateStr;
+  const locale = getLang() === 'id' ? 'id-ID' : 'en-US';
+  return date.toLocaleString(locale, {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+const COPY_ICON = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M13 7V5.5C13 4.67157 12.3284 4 11.5 4H4.5C3.67157 4 3 4.67157 3 5.5V12.5C3 13.3284 3.67157 14 4.5 14H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+</svg>`;
+
+const CHECK_ICON = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 10.5L8 14.5L16 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
 
 async function copyToClipboard(btn, text) {
   try {
@@ -548,13 +1135,16 @@ async function copyToClipboard(btn, text) {
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
-  const original = btn.innerHTML;
-  btn.innerHTML = '&#10003;';
+  btn.innerHTML = CHECK_ICON;
   btn.classList.add('copied');
   setTimeout(() => {
-    btn.innerHTML = original;
+    btn.innerHTML = COPY_ICON;
     btn.classList.remove('copied');
   }, 1200);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function startProject(id) {
@@ -565,18 +1155,28 @@ async function startProject(id) {
     const res = await fetch(`/api/projects/${id}/start`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error);
+      await showAlert(data.error);
       return;
     }
-    await fetchProjects();
-    // Give the process a moment, then check if it already died (e.g. missing deps) and show logs.
-    setTimeout(async () => {
+
+    // Poll until the project's port actually accepts connections (or the
+    // process crashes / we time out), rather than just trusting the process
+    // spawned successfully — a spawned process isn't necessarily ready yet.
+    const maxAttempts = 20; // ~20s
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await sleep(1000);
       await fetchProjects();
       const p = projects.find(x => x.id === id);
-      if (p && !p.status.running && expandedPanels.get(id) !== 'logs') {
-        togglePanel(id, 'logs');
+      if (!p) break;
+      if (!p.status.running) {
+        // process died before becoming ready (e.g. missing deps) - show logs
+        if (expandedPanels.get(id) !== 'logs') togglePanel(id, 'logs');
+        break;
       }
-    }, 1200);
+      const readyRes = await fetch(`/api/projects/${id}/ready`);
+      const readyData = await readyRes.json();
+      if (readyData.ready) break;
+    }
   } finally {
     pendingIds.delete(id);
     await fetchProjects();
@@ -596,7 +1196,7 @@ async function stopProject(id) {
 }
 
 async function deleteProject(id) {
-  if (!confirm('Hapus project ini dari daftar? (tidak menghapus file project)')) return;
+  if (!(await showConfirm(t('confirmDeleteProject')))) return;
   if (pendingIds.has(id)) return;
   pendingIds.add(id);
   render();
@@ -620,10 +1220,32 @@ const STACK_TEMPLATES = {
   'custom': '',
 };
 
-function applyStackTemplate() {
+const STACK_PORT_BASE = {
+  'node-dev': { base: 3000, max: 4000 },
+  'node-start': { base: 3000, max: 4000 },
+  'yarn-dev': { base: 3000, max: 4000 },
+  'pnpm-dev': { base: 3000, max: 4000 },
+  'laravel': { base: 8000, max: 9000 },
+  'php-builtin': { base: 8080, max: 9080 },
+  'django': { base: 8000, max: 9000 },
+  'flask': { base: 5000, max: 6000 },
+};
+
+async function applyStackTemplate() {
   const stack = document.getElementById('fStack').value;
   if (!stack || !(stack in STACK_TEMPLATES)) return;
-  const port = document.getElementById('fPort').value || '{PORT}';
+
+  const portField = document.getElementById('fPort');
+  if (!portField.value && STACK_PORT_BASE[stack]) {
+    const { base, max } = STACK_PORT_BASE[stack];
+    try {
+      const res = await fetch(`/api/ports/next?base=${base + 1}&max=${max}`);
+      const data = await res.json();
+      if (res.ok) portField.value = data.port;
+    } catch {}
+  }
+
+  const port = portField.value || '{PORT}';
   document.getElementById('fCommand').value = STACK_TEMPLATES[stack].replace('{PORT}', port);
 }
 
@@ -671,7 +1293,7 @@ async function submitProject() {
     stack: document.getElementById('fStack').value,
   };
   if (!body.name || !body.cwd || !body.command || !body.port) {
-    document.getElementById('formError').textContent = 'Nama, folder, command, dan port wajib diisi.';
+    document.getElementById('formError').textContent = t('requiredFieldsError');
     return;
   }
   const url = id ? `/api/projects/${id}` : '/api/projects';
@@ -689,7 +1311,10 @@ async function submitProject() {
   closeAddModal();
   fetchProjects();
   if (data.sync && data.sync.hostsOk === false) {
-    alert('Domain disimpan, tapi sinkronisasi ke hosts file gagal:\n\n' + data.sync.hostsMessage + '\n\nJalankan lotwork sebagai Administrator lalu klik "Reload Caddy / Sync Domains".');
+    await showAlert(`${t('hostsSyncFailedAlert')}\n\n${data.sync.hostsMessage}\n\n${t('hostsSyncFailedHint')}`);
+  }
+  if (data.nextOrigin && data.nextOrigin.ok === false && data.nextOrigin.reason === 'unrecognized_format') {
+    await showAlert(`${t('nextOriginUnrecognized')}\n\n${data.nextOrigin.message}`);
   }
   checkCaddyStatus();
 }
@@ -707,6 +1332,7 @@ function togglePanel(id, type) {
     expandedPanels.set(id, type);
     if (type === 'env' && !envDrafts.has(id)) loadEnvDraft(id);
     if (type === 'logs') pollLogsFor(id);
+    if (type === 'git') loadGitStatus(id);
   }
   render();
 }
@@ -717,15 +1343,16 @@ function renderPanel(p) {
   if (type === 'logs') return renderLogsPanel(p);
   if (type === 'env') return renderEnvPanel(p);
   if (type === 'credentials') return renderCredentialsPanel(p);
+  if (type === 'git') return renderGitPanel(p);
   return '';
 }
 
 // --- Logs panel ---
 function renderLogsPanel(p) {
-  const logs = logCache.get(p.id) || '(memuat...)';
+  const logs = logCache.get(p.id) || t('loadingLogs');
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">Logs</div>
+      <div class="inline-panel-title">${t('logs')}</div>
       <pre class="log-box" id="logBox-${p.id}">${escapeHtml(logs)}</pre>
     </div>
   `;
@@ -735,7 +1362,7 @@ async function pollLogsFor(id) {
   if (expandedPanels.get(id) !== 'logs') return;
   const res = await fetch(`/api/projects/${id}/logs`);
   const data = await res.json();
-  const logs = data.logs || '(belum ada output)';
+  const logs = data.logs || t('noOutputYet');
   logCache.set(id, logs);
   const box = document.getElementById(`logBox-${id}`);
   if (box) {
@@ -763,7 +1390,7 @@ async function loadEnvDraft(id) {
   const res = await fetch(`/api/projects/${id}/env`);
   const data = await res.json();
   if (!res.ok) {
-    envDrafts.set(id, { entries: [], loaded: true, error: data.error || 'Gagal memuat .env' });
+    envDrafts.set(id, { entries: [], loaded: true, error: data.error || t('envLoadFailed') });
   } else {
     envDrafts.set(id, { entries: data.entries, loaded: true, error: '' });
   }
@@ -773,7 +1400,7 @@ async function loadEnvDraft(id) {
 function renderEnvPanel(p) {
   const draft = envDrafts.get(p.id);
   if (!draft || !draft.loaded) {
-    return `<div class="inline-panel"><div class="env-empty">Memuat...</div></div>`;
+    return `<div class="inline-panel"><div class="env-empty">${t('loadingEnv')}</div></div>`;
   }
   const rows = draft.entries.length
     ? draft.entries.map((entry, i) => {
@@ -782,31 +1409,31 @@ function renderEnvPanel(p) {
           <div class="env-row">
             <input class="env-key" placeholder="KEY" value="${escapeHtml(entry.key)}" oninput="updateEnvEntry('${p.id}', ${i}, 'key', this.value)" />
             <input class="env-value" placeholder="value" value="${escapeHtml(entry.value)}" oninput="updateEnvEntry('${p.id}', ${i}, 'value', this.value)" />
-            <span class="source-badge ${isLocal ? 'env-local' : 'env'}" title="Klik untuk pindah ke file lain" onclick="toggleEnvSource('${p.id}', ${i})">${isLocal ? 'local' : 'env'}</span>
-            <button type="button" class="remove-row" title="Hapus" onclick="removeEnvRow('${p.id}', ${i})">&times;</button>
+            <span class="source-badge ${isLocal ? 'env-local' : 'env'}" title="${t('envSourceHint')}" onclick="toggleEnvSource('${p.id}', ${i})">${isLocal ? 'local' : 'env'}</span>
+            <button type="button" class="remove-row" title="${t('delete')}" onclick="removeEnvRow('${p.id}', ${i})">&times;</button>
           </div>
         `;
       }).join('')
-    : '<div class="env-empty">Belum ada variable. Klik "+ Variable".</div>';
+    : `<div class="env-empty">${t('envNoVars')}</div>`;
 
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">Edit .env</div>
-      <div class="modal-subtitle" style="margin-top:0">Membaca &amp; menulis <code>.env</code> dan <code>.env.local</code>. <code>.env.local</code> menang kalau ada key yang sama.</div>
+      <div class="inline-panel-title">${t('editEnv')}</div>
+      <div class="modal-subtitle" style="margin-top:0">${t('envSubtitle')}</div>
       <div class="env-row-head">
-        <span class="col-key">Key</span>
-        <span class="col-value">Value</span>
+        <span class="col-key">${t('envKey')}</span>
+        <span class="col-value">${t('envValue')}</span>
       </div>
       <div id="envRows-${p.id}">${rows}</div>
       ${draft.error ? `<div class="error-msg">${escapeHtml(draft.error)}</div>` : ''}
       <div class="modal-actions env-footer">
         <div class="env-legend">
-          <span><span class="source-badge env">env</span> .env</span>
-          <span><span class="source-badge env-local">local</span> .env.local</span>
+          <span><span class="source-badge env">env</span> ${t('envLegendEnv')}</span>
+          <span><span class="source-badge env-local">local</span> ${t('envLegendLocal')}</span>
         </div>
         <div style="display:flex; gap:8px;">
-          <button type="button" class="secondary small" onclick="addEnvRow('${p.id}')">+ Variable</button>
-          <button onclick="saveEnv('${p.id}')">Simpan</button>
+          <button type="button" class="secondary small" onclick="addEnvRow('${p.id}')">${t('addVariable')}</button>
+          <button onclick="saveEnv('${p.id}')">${t('save')}</button>
         </div>
       </div>
     </div>
@@ -851,7 +1478,7 @@ async function saveEnv(id) {
   });
   const data = await res.json();
   if (!res.ok) {
-    draft.error = data.error || 'Gagal menyimpan .env';
+    draft.error = data.error || t('envSaveFailed');
     render();
     return;
   }
@@ -869,23 +1496,23 @@ function renderCredentialsPanel(p) {
         <div class="cred-card">
           <div class="cred-card-info">
             ${c.label ? `<span class="cred-card-label">${escapeHtml(c.label)}</span>` : ''}
-            <span class="cred-card-row"><span class="cred-field-label">Username</span>${escapeHtml(c.username)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.username).replace(/'/g, "\\'")}')">&#128203;</button></span>
-            <span class="cred-card-row"><span class="cred-field-label">Password</span>${escapeHtml(c.password)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.password).replace(/'/g, "\\'")}')">&#128203;</button></span>
+            <span class="cred-card-row"><span class="cred-field-label">${t('usernameLabel')}</span>${escapeHtml(c.username)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.username).replace(/'/g, "\\'")}')">${COPY_ICON}</button></span>
+            <span class="cred-card-row"><span class="cred-field-label">${t('passwordLabel')}</span>${escapeHtml(c.password)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.password).replace(/'/g, "\\'")}')">${COPY_ICON}</button></span>
           </div>
           <div class="cred-card-actions">
-            <button type="button" onclick="editCredential('${p.id}', '${c.id}')">Edit</button>
-            <button type="button" class="remove-cred" onclick="deleteCredential('${p.id}', '${c.id}')">Hapus</button>
+            <button type="button" onclick="editCredential('${p.id}', '${c.id}')">${t('edit')}</button>
+            <button type="button" class="remove-cred" onclick="deleteCredential('${p.id}', '${c.id}')">${t('delete')}</button>
           </div>
         </div>
       `).join('')
-    : '<div class="cred-empty">Belum ada credential.</div>';
+    : `<div class="cred-empty">${t('noCredentialsYet')}</div>`;
 
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">Credentials</div>
+      <div class="inline-panel-title">${t('credentials')}</div>
       <div>${list}</div>
       <div class="modal-actions" style="justify-content:flex-start; margin-top:12px;">
-        <button type="button" class="secondary small" onclick="openCredentialModal('${p.id}')">+ Tambah Credential</button>
+        <button type="button" class="secondary small" onclick="openCredentialModal('${p.id}')">${t('addCredential')}</button>
       </div>
     </div>
   `;
@@ -894,7 +1521,7 @@ function renderCredentialsPanel(p) {
 function openCredentialModal(id, credId) {
   const p = projects.find(x => x.id === id);
   const c = credId ? (p && p.credentials || []).find(x => x.id === credId) : null;
-  document.getElementById('credModalTitle').textContent = c ? 'Edit Credential' : 'Tambah Credential';
+  document.getElementById('credModalTitle').textContent = c ? t('editCredentialTitle') : t('addCredentialTitle');
   document.getElementById('credModalProjectId').value = id;
   document.getElementById('credModalLabel').value = c ? (c.label || '') : '';
   document.getElementById('credModalUsername').value = c ? (c.username || '') : '';
@@ -921,7 +1548,7 @@ async function saveCredentialModal() {
     password: document.getElementById('credModalPassword').value,
   };
   if (!body.username || !body.password) {
-    document.getElementById('credModalError').textContent = 'Username dan password wajib diisi.';
+    document.getElementById('credModalError').textContent = t('credRequiredError');
     return;
   }
   const url = credId
@@ -934,7 +1561,7 @@ async function saveCredentialModal() {
   });
   const data = await res.json();
   if (!res.ok) {
-    document.getElementById('credModalError').textContent = data.error || 'Gagal menyimpan credential';
+    document.getElementById('credModalError').textContent = data.error || t('credSaveFailed');
     return;
   }
   closeCredentialModal();
@@ -942,40 +1569,451 @@ async function saveCredentialModal() {
 }
 
 async function deleteCredential(id, credId) {
-  if (!confirm('Hapus credential ini?')) return;
+  if (!(await showConfirm(t('confirmDeleteCredential')))) return;
   await fetch(`/api/projects/${id}/credentials/${credId}`, { method: 'DELETE' });
   await fetchProjects();
+}
+
+// --- Git panel ---
+const gitStatusCache = new Map(); // projectId -> { loading, data, error, selectedBranch, pushing, result }
+
+function statusLabel(code) {
+  const map = {
+    'M': 'statusModified', 'A': 'statusAdded', 'D': 'statusDeleted', 'R': 'statusRenamed',
+    'C': 'statusCopied', 'U': 'statusUnmerged', '??': 'statusUntracked',
+  };
+  return map[code] ? t(map[code]) : code;
+}
+
+async function loadGitStatus(id) {
+  gitStatusCache.set(id, { loading: true });
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/git/status`);
+    const data = await res.json();
+    if (!res.ok) {
+      gitStatusCache.set(id, { loading: false, error: data.error });
+    } else {
+      const project = projects.find(x => x.id === id);
+      const candidateMain = (project && project.defaultBranch && project.defaultBranch !== data.currentBranch)
+        ? project.defaultBranch
+        : data.branches.find(b => b !== data.currentBranch);
+      gitStatusCache.set(id, {
+        loading: false,
+        data,
+        selectedBranch: data.currentBranch,
+        selectedMainBranch: candidateMain || data.currentBranch,
+        selectedFiles: new Set(data.files.map(f => f.path)), // all checked by default
+      });
+    }
+  } catch (e) {
+    gitStatusCache.set(id, { loading: false, error: e.message });
+  }
+  render();
+}
+
+async function saveRemoteUrl(id) {
+  const input = document.getElementById(`remoteUrlInput-${id}`);
+  const url = input.value.trim();
+  const state = gitStatusCache.get(id);
+  if (!url) {
+    if (state) { state.remoteError = t('remoteUrlRequired'); render(); }
+    return;
+  }
+  const res = await fetch(`/api/projects/${id}/git/remote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    if (state) { state.remoteError = data.error || t('setRemoteFailed'); render(); }
+    return;
+  }
+  await fetchProjects();
+  await loadGitStatus(id);
+}
+
+function toggleGitFile(id, filePath, checked) {
+  const state = gitStatusCache.get(id);
+  if (!state) return;
+  if (checked) state.selectedFiles.add(filePath);
+  else state.selectedFiles.delete(filePath);
+  render();
+}
+
+function toggleAllGitFiles(id, checked) {
+  const state = gitStatusCache.get(id);
+  if (!state || !state.data) return;
+  state.selectedFiles = checked ? new Set(state.data.files.map(f => f.path)) : new Set();
+  render();
+}
+
+function setGitBranch(id, branch) {
+  const state = gitStatusCache.get(id);
+  if (!state) return;
+  state.selectedBranch = branch;
+}
+
+function renderGitPanel(p) {
+  const state = gitStatusCache.get(p.id);
+
+  if (!state || state.loading) {
+    return `<div class="inline-panel"><div class="env-empty">${t('loadingGitStatus')}</div></div>`;
+  }
+
+  if (state.error) {
+    return `
+      <div class="inline-panel">
+        <div class="inline-panel-title">${t('github')}</div>
+        <div class="error-msg">${escapeHtml(state.error)}</div>
+      </div>
+    `;
+  }
+
+  const { data } = state;
+
+  if (!data.isRepo) {
+    return `
+      <div class="inline-panel">
+        <div class="inline-panel-title">${t('github')}</div>
+        <div class="env-empty">${t('notGitRepo')}</div>
+      </div>
+    `;
+  }
+
+  if (!data.remoteUrl) {
+    return `
+      <div class="inline-panel">
+        <div class="inline-panel-title">${t('github')}</div>
+        <div class="modal-subtitle" style="margin-top:0">${t('setRemoteSubtitle')}</div>
+        <div class="field">
+          <label>${t('remoteUrlLabel')}</label>
+          <input id="remoteUrlInput-${p.id}" placeholder="git@github.com:user/repo.git" />
+        </div>
+        ${state.remoteError ? `<div class="error-msg">${escapeHtml(state.remoteError)}</div>` : ''}
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button onclick="saveRemoteUrl('${p.id}')">${t('setRemote')}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  const allChecked = data.files.length > 0 && data.files.every(f => state.selectedFiles.has(f.path));
+  const someChecked = data.files.some(f => state.selectedFiles.has(f.path));
+
+  const fileList = data.files.length
+    ? data.files.map(f => `
+        <label class="git-file-row">
+          <input type="checkbox" ${state.selectedFiles.has(f.path) ? 'checked' : ''} onchange="toggleGitFile('${p.id}', '${escapeHtml(f.path).replace(/'/g, "\\'")}', this.checked)" />
+          <span class="git-file-status status-${f.status.replace('?', 'untracked')}">${escapeHtml(statusLabel(f.status))}</span>
+          <span class="git-file-path">${escapeHtml(f.path)}</span>
+        </label>
+      `).join('')
+    : `<div class="env-empty">${t('noChanges')}</div>`;
+
+  const branchOptions = data.branches.map(b =>
+    `<option value="${escapeHtml(b)}" ${b === state.selectedBranch ? 'selected' : ''}>${escapeHtml(b)}</option>`
+  ).join('');
+
+  const mainBranchOptions = data.branches
+    .filter(b => b !== data.currentBranch)
+    .map(b => `<option value="${escapeHtml(b)}" ${b === state.selectedMainBranch ? 'selected' : ''}>${escapeHtml(b)}</option>`)
+    .join('');
+
+  const aheadBehind = [];
+  if (data.ahead) aheadBehind.push(`${data.ahead} ${t('ahead')}`);
+  if (data.behind) aheadBehind.push(`${data.behind} ${t('behind')}`);
+
+  const mode = state.gitMode; // null | 'pull' | 'push'
+
+  const pullDetail = mode === 'pull' ? `
+    <div class="git-mode-detail">
+      ${state.pullError ? `<div class="error-msg">${escapeHtml(state.pullError)}</div>` : ''}
+      ${state.pullSuccess ? `<div class="git-success">${escapeHtml(state.pullSuccess)}</div>` : ''}
+      <div class="modal-actions" style="justify-content:flex-start;">
+        <button ${(!mainBranchOptions || state.pulling) ? 'disabled' : ''} onclick="confirmPullFromMain('${p.id}')">${state.pulling ? t('pulling') : t('pullFromMaster')}</button>
+      </div>
+    </div>
+  ` : '';
+
+  const pushDetail = mode === 'push' ? `
+    <div class="git-mode-detail">
+      <div class="env-row-head" style="justify-content:space-between; display:flex;">
+        <label class="git-select-all">
+          <input type="checkbox" ${allChecked ? 'checked' : ''} ${data.files.length === 0 ? 'disabled' : ''} onchange="toggleAllGitFiles('${p.id}', this.checked)" />
+          ${t('changesSelected', state.selectedFiles.size, data.files.length)}
+        </label>
+      </div>
+      <div class="git-file-list">${fileList}</div>
+      ${state.result ? `<div class="git-success">${escapeHtml(state.result)}</div>` : ''}
+      ${state.pushError ? `<div class="error-msg">${escapeHtml(state.pushError)}</div>` : ''}
+      <div class="modal-actions" style="justify-content:space-between;">
+        <button type="button" class="secondary small" onclick="loadGitStatus('${p.id}')">${t('refresh')}</button>
+        <button ${(!someChecked || state.pushing) ? 'disabled' : ''} onclick="confirmGitPush('${p.id}')">${state.pushing ? t('pushing') : t('commitAndPush')}</button>
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    <div class="inline-panel">
+      <div class="inline-panel-title">${t('github')}</div>
+      <div class="git-branch-settings">
+        <div class="field" style="margin-bottom:0;">
+          <label>${t('currentBranchLabel')}</label>
+          <select onchange="setGitBranch('${p.id}', this.value)">${branchOptions}</select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>${t('mainBranchLabel')}</label>
+          <select id="mainBranchSelect-${p.id}" ${mainBranchOptions ? '' : 'disabled'}>${mainBranchOptions || `<option>${escapeHtml(data.currentBranch)}</option>`}</select>
+        </div>
+        ${aheadBehind.length ? `<span class="badge">${aheadBehind.join(', ')}</span>` : ''}
+      </div>
+
+      <div class="git-mode-buttons">
+        <button type="button" class="secondary ${mode === 'pull' ? 'panel-btn-active' : ''}" onclick="setGitMode('${p.id}', 'pull')">${t('pullFromMaster')}</button>
+        <button type="button" class="secondary ${mode === 'push' ? 'panel-btn-active' : ''}" onclick="setGitMode('${p.id}', 'push')">${t('pushCommitChanges')}</button>
+      </div>
+
+      ${pullDetail}
+      ${pushDetail}
+    </div>
+  `;
+}
+
+function setGitMode(id, mode) {
+  const state = gitStatusCache.get(id);
+  if (!state) return;
+  state.gitMode = state.gitMode === mode ? null : mode;
+  render();
+}
+
+async function confirmPullFromMain(id) {
+  const state = gitStatusCache.get(id);
+  if (!state || !state.data) return;
+  const select = document.getElementById(`mainBranchSelect-${id}`);
+  const mainBranch = select.value;
+  const currentBranch = state.data.currentBranch;
+
+  const confirmed = await showConfirm(t('confirmPullFromMain', mainBranch, currentBranch));
+  if (!confirmed) return;
+
+  state.pulling = true;
+  state.pullError = null;
+  state.pullSuccess = null;
+  render();
+
+  try {
+    const res = await fetch(`/api/projects/${id}/git/pull-main`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mainBranch, currentBranch }),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      state.pullError = result.error || t('pullFromMainFailed');
+    } else {
+      state.pullSuccess = t('pullFromMainSuccess', mainBranch, currentBranch);
+      await loadGitStatus(id);
+      return;
+    }
+  } catch (e) {
+    state.pullError = e.message;
+  } finally {
+    state.pulling = false;
+    render();
+  }
+}
+
+async function confirmGitPush(id) {
+  const state = gitStatusCache.get(id);
+  if (!state || !state.data) return;
+  const { data, selectedBranch, selectedFiles } = state;
+
+  const selectedFileList = data.files.filter(f => selectedFiles.has(f.path));
+  if (selectedFileList.length === 0) return;
+
+  const fileListText = selectedFileList.map(f => `  ${statusLabel(f.status)}: ${f.path}`).join('\n');
+  const confirmed = await showConfirm(
+    `${t('confirmPushTitle', selectedBranch)}\n\n` +
+    `${t('confirmPushFiles', selectedFileList.length)}\n${fileListText}\n\n` +
+    `${t('confirmPushAutoMessage')}`
+  );
+  if (!confirmed) return;
+
+  state.pushing = true;
+  state.pushError = null;
+  state.result = null;
+  render();
+
+  try {
+    const res = await fetch(`/api/projects/${id}/git/push`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch: selectedBranch, files: selectedFileList.map(f => f.path) }),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      state.pushError = result.error || t('pushFailed');
+    } else {
+      state.result = t('pushSuccess', result.branch, result.message);
+      await loadGitStatus(id);
+      return;
+    }
+  } catch (e) {
+    state.pushError = e.message;
+  } finally {
+    state.pushing = false;
+    render();
+  }
 }
 
 async function reloadCaddy() {
   const btn = document.getElementById('reloadCaddyBtn');
   if (btn.disabled) return;
   btn.disabled = true;
-  const originalText = btn.textContent;
-  btn.textContent = 'Reloading...';
+  const originalHtml = btn.innerHTML;
+  btn.textContent = t('reloading');
   try {
     const res = await fetch('/api/caddy/reload', { method: 'POST' });
     const data = await res.json();
-    alert(data.message + (data.hostsOk === false ? `\n\n${data.hostsMessage}` : ''));
+    await showAlert(data.message + (data.hostsOk === false ? `\n\n${data.hostsMessage}` : ''));
     await checkCaddyStatus();
   } finally {
     btn.disabled = false;
-    btn.textContent = originalText;
+    btn.innerHTML = originalHtml;
   }
 }
+
+let caddyInstalling = false;
+
+let caddyAlertShownFor = null; // tracks which problem we've already popped up, so we don't nag on every 4s poll
 
 async function checkCaddyStatus() {
   const res = await fetch('/api/caddy/status');
   const data = await res.json();
   const el = document.getElementById('caddyStatus');
-  el.innerHTML = data.installed
-    ? '<span class="cdot"></span>Caddy: installed'
-    : '<span class="cdot" style="background:var(--red)"></span>Caddy: not installed';
+  if (data.installed) {
+    el.innerHTML = `<span class="cdot"></span>${t('caddyInstalled')}`;
+    el.classList.remove('caddy-missing');
+    el.onclick = null;
+    caddyAlertShownFor = null;
+  } else {
+    const problemKey = data.needsRestart ? 'needsRestart' : 'notInstalled';
+    const label = data.needsRestart ? t('caddyNeedsRestart') : t('caddyNotInstalled');
+    el.innerHTML = `<span class="cdot" style="background:var(--red)"></span>${label}`;
+    el.classList.add('caddy-missing');
+    el.onclick = () => handleCaddyMissing(data.needsRestart);
+
+    if (caddyAlertShownFor !== problemKey) {
+      caddyAlertShownFor = problemKey;
+      handleCaddyMissing(data.needsRestart);
+    }
+  }
 }
 
-fetchProjects();
-checkCaddyStatus();
+async function handleCaddyMissing(needsRestart) {
+  if (needsRestart) {
+    await showAlert(t('caddyRestartInstructions'));
+    return;
+  }
+  const confirmed = await showConfirm(t('caddyInstallConfirm'));
+  if (!confirmed) return;
+  installCaddy();
+}
+
+async function installCaddy() {
+  if (caddyInstalling) return;
+  caddyInstalling = true;
+  const el = document.getElementById('caddyStatus');
+  el.innerHTML = `<span class="cdot" style="background:var(--yellow)"></span>${t('caddyInstalling')}`;
+  try {
+    const res = await fetch('/api/caddy/install', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      await showAlert(`${t('caddyInstallFailed')}\n\n${data.error}`);
+    } else {
+      await showAlert(t('caddyRestartInstructions'));
+    }
+  } catch (e) {
+    await showAlert(`${t('caddyInstallFailed')}\n\n${e.message}`);
+  } finally {
+    caddyInstalling = false;
+    checkCaddyStatus();
+  }
+}
+
+// --- System services sidebar ---
+const servicePending = new Set();
+
+async function loadServices() {
+  try {
+    const res = await fetch('/api/services');
+    const data = await res.json();
+    renderServices(data);
+  } catch (e) {
+    document.getElementById('servicesList').innerHTML = `<div class="services-empty">${t('servicesLoadFailed')}</div>`;
+  }
+}
+
+function renderServices(data) {
+  const { services, runtimes } = data;
+
+  const serviceRows = services.length
+    ? services.map(s => {
+        const busy = servicePending.has(s.serviceName);
+        const label = busy ? (s.running ? t('stopping') : t('starting')) : (s.running ? t('stop') : t('start'));
+        return `
+          <div class="service-row">
+            <div class="service-info">
+              <span class="service-name">${escapeHtml(s.label)}</span>
+              <span class="service-sub">${s.running ? t('running') : t('stopped')}</span>
+            </div>
+            <button class="service-toggle ${s.running ? 'on' : 'off'}" ${busy ? 'disabled' : ''}
+              onclick="toggleService('${escapeHtml(s.serviceName)}', ${s.running})">${label}</button>
+          </div>
+        `;
+      }).join('')
+    : `<div class="services-empty">${t('noServicesFound')}</div>`;
+
+  const runtimeRows = runtimes.map(r => `
+    <div class="runtime-row">
+      <span class="runtime-name">${escapeHtml(r.label)}</span>
+      <span class="runtime-version">${r.installed ? escapeHtml(r.version) : t('notInstalledShort')}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('servicesList').innerHTML = `
+    ${serviceRows}
+    <hr class="services-divider" />
+    ${runtimeRows}
+  `;
+}
+
+async function toggleService(serviceName, currentlyRunning) {
+  if (servicePending.has(serviceName)) return;
+  servicePending.add(serviceName);
+  await loadServices();
+  try {
+    const action = currentlyRunning ? 'stop' : 'start';
+    const res = await fetch(`/api/services/${encodeURIComponent(serviceName)}/${action}`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      await showAlert(data.error || t('serviceActionFailed'));
+    }
+  } catch (e) {
+    await showAlert(e.message);
+  } finally {
+    servicePending.delete(serviceName);
+    await loadServices();
+  }
+}
+
+Promise.all([fetchProjects(), checkCaddyStatus(), loadServices()]).finally(() => {
+  document.getElementById('pageLoading').classList.add('hidden');
+});
 setInterval(fetchProjects, 4000);
+setInterval(loadServices, 8000);
 </script>
 
 </body>

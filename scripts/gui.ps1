@@ -20,10 +20,35 @@ function Is-Running {
     $procId = Get-Content $pidFile -ErrorAction SilentlyContinue
     if (-not $procId) { return $false }
     $proc = Get-Process -Id $procId -ErrorAction SilentlyContinue
-    return $null -ne $proc
+    # Guard against a stale/reused PID: only trust it if it's actually a node process.
+    return ($null -ne $proc) -and ($proc.ProcessName -eq "node")
+}
+
+function Get-PortOwnerPid {
+    param([int]$Port)
+    $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($conn) { return $conn.OwningProcess }
+    return $null
 }
 
 function Start-Lotwork {
+    # Guard against a stray process already holding port 4400 (e.g. from a
+    # previous crashed/orphaned run, or a mismatched/missing pid file) so we
+    # never end up with two servers racing for the same port.
+    $portOwnerPid = Get-PortOwnerPid -Port 4400
+    if ($portOwnerPid) {
+        $portOwnerProc = Get-Process -Id $portOwnerPid -ErrorAction SilentlyContinue
+        if ($portOwnerProc -and $portOwnerProc.ProcessName -eq "node") {
+            taskkill /pid $portOwnerPid /T /F 2>$null | Out-Null
+            # taskkill returns before the port is actually released; poll for
+            # it instead of a fixed sleep, so we don't race the new process.
+            for ($i = 0; $i -lt 20; $i++) {
+                if (-not (Get-PortOwnerPid -Port 4400)) { break }
+                Start-Sleep -Milliseconds 250
+            }
+        }
+    }
+
     Push-Location $root
     Start-Process -FilePath "node" -ArgumentList "server.js" -WindowStyle Hidden `
         -RedirectStandardOutput $logFile -RedirectStandardError $errLogFile
@@ -99,14 +124,26 @@ function Refresh-UI {
 
 $toggleButton.Add_Click({
     $toggleButton.Enabled = $false
+    $timer.Stop()
+
     if (Is-Running) {
+        $toggleButton.Text = "Stopping..."
+        $statusLabel.Text = "Stopping..."
+        $statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(139, 146, 163)
+        [System.Windows.Forms.Application]::DoEvents()
         Stop-Lotwork
     } else {
+        $toggleButton.Text = "Starting..."
+        $statusLabel.Text = "Starting..."
+        $statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(139, 146, 163)
+        [System.Windows.Forms.Application]::DoEvents()
         Start-Lotwork
     }
+
     Start-Sleep -Milliseconds 500
     Refresh-UI
     $toggleButton.Enabled = $true
+    $timer.Start()
 })
 
 $timer = New-Object System.Windows.Forms.Timer

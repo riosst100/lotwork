@@ -7,7 +7,10 @@ const pm = require('./processManager');
 const caddy = require('./caddyManager');
 const hosts = require('./hostsManager');
 const envFile = require('./envFile');
-const { dataDir, publicDir } = require('./paths');
+const nextConfig = require('./nextConfig');
+const gitOps = require('./gitOps');
+const systemServices = require('./systemServices');
+const { dataDir, publicDir, appRoot } = require('./paths');
 
 const app = express();
 const PORT = process.env.LOTWORK_PORT || 4400;
@@ -25,7 +28,18 @@ function checkPortFree(port) {
 }
 
 function serialize(project) {
-  return { ...project, status: pm.getStatus(project.id) };
+  return {
+    ...project,
+    status: pm.getStatus(project.id),
+    repoUrl: gitOps.getRemoteUrlSync(project.cwd),
+    currentBranch: gitOps.getCurrentBranchSync(project.cwd),
+    defaultBranch: gitOps.getDefaultBranchSync(project.cwd),
+  };
+}
+
+async function serializeWithCommit(project) {
+  const lastCommit = await gitOps.getLastCommit(project.cwd);
+  return { ...serialize(project), lastCommit };
 }
 
 function syncDomains() {
@@ -36,9 +50,41 @@ function syncDomains() {
   return { caddyResult, hostsResult };
 }
 
+// Best-effort: if this is a Next.js project, add its domain to allowedDevOrigins
+// so the dev server doesn't block HMR requests coming through the Caddy proxy.
+function syncNextAllowedOrigin(project) {
+  if (!project.domain) return null;
+  const result = nextConfig.ensureAllowedDevOrigin(project.cwd, project.domain);
+  if (result.reason === 'not_next_project') return null;
+  return result;
+}
+
+const LOTWORK_SELF_ID = '__lotwork_self__';
+
+async function getLotworkSelfEntry() {
+  const cwd = appRoot;
+  const lastCommit = await gitOps.getLastCommit(cwd);
+  return {
+    id: LOTWORK_SELF_ID,
+    name: 'LotWork',
+    cwd,
+    command: null,
+    port: PORT,
+    domain: null,
+    isSelf: true,
+    status: { running: true },
+    repoUrl: gitOps.getRemoteUrlSync(cwd),
+    currentBranch: gitOps.getCurrentBranchSync(cwd),
+    defaultBranch: gitOps.getDefaultBranchSync(cwd),
+    lastCommit,
+  };
+}
+
 app.get('/api/projects', async (req, res) => {
   const projects = store.loadProjects();
-  res.json(projects.map(serialize));
+  const serialized = await Promise.all(projects.map(serializeWithCommit));
+  const selfEntry = await getLotworkSelfEntry();
+  res.json([selfEntry, ...serialized]);
 });
 
 app.post('/api/projects', (req, res) => {
@@ -46,7 +92,12 @@ app.post('/api/projects', (req, res) => {
     const project = store.addProject(req.body);
     let sync = null;
     if (project.domain) sync = syncDomains();
-    res.json({ ...serialize(project), sync: sync && { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message } });
+    const nextOrigin = syncNextAllowedOrigin(project);
+    res.json({
+      ...serialize(project),
+      sync: sync && { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message },
+      nextOrigin,
+    });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -58,7 +109,12 @@ app.put('/api/projects/:id', (req, res) => {
     const project = store.updateProject(req.params.id, req.body);
     let sync = null;
     if (project.domain || (before && before.domain)) sync = syncDomains();
-    res.json({ ...serialize(project), sync: sync && { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message } });
+    const nextOrigin = syncNextAllowedOrigin(project);
+    res.json({
+      ...serialize(project),
+      sync: sync && { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message },
+      nextOrigin,
+    });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -66,15 +122,29 @@ app.put('/api/projects/:id', (req, res) => {
 
 app.delete('/api/projects/:id', (req, res) => {
   const project = store.getProject(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
   pm.stopProject(req.params.id);
   store.removeProject(req.params.id);
-  if (project && project.domain) syncDomains();
+  if (project.domain) syncDomains();
   res.json({ ok: true });
 });
 
 app.get('/api/ports/check/:port', async (req, res) => {
   const free = await checkPortFree(Number(req.params.port));
   res.json({ free });
+});
+
+app.get('/api/ports/next', async (req, res) => {
+  const base = Number(req.query.base) || 3000;
+  const max = Number(req.query.max) || (base + 1000);
+  const registeredPorts = new Set(store.loadProjects().map(p => p.port));
+
+  for (let port = base; port <= max; port++) {
+    if (registeredPorts.has(port)) continue;
+    const free = await checkPortFree(port);
+    if (free) return res.json({ port });
+  }
+  res.status(404).json({ error: `Tidak ada port kosong antara ${base}-${max}` });
 });
 
 app.post('/api/projects/:id/start', async (req, res) => {
@@ -93,6 +163,22 @@ app.post('/api/projects/:id/start', async (req, res) => {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
+});
+
+function checkPortReady(port) {
+  return new Promise((resolve) => {
+    const socket = net.createConnection({ port, host: '127.0.0.1', timeout: 1000 });
+    socket.once('connect', () => { socket.destroy(); resolve(true); });
+    socket.once('timeout', () => { socket.destroy(); resolve(false); });
+    socket.once('error', () => resolve(false));
+  });
+}
+
+app.get('/api/projects/:id/ready', async (req, res) => {
+  const project = store.getProject(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  const ready = await checkPortReady(project.port);
+  res.json({ ready });
 });
 
 app.post('/api/projects/:id/stop', (req, res) => {
@@ -153,13 +239,110 @@ app.delete('/api/projects/:id/credentials/:credId', (req, res) => {
   }
 });
 
+// The "LotWork" self-entry isn't a real registered project, so its GitHub
+// panel operates on lotwork's own repo (appRoot) instead of a project.cwd.
+function resolveProjectCwd(id) {
+  if (id === LOTWORK_SELF_ID) return appRoot;
+  const project = store.getProject(id);
+  return project ? project.cwd : null;
+}
+
+app.get('/api/projects/:id/git/status', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const status = await gitOps.getStatus(cwd);
+    res.json(status);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/projects/:id/git/push', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = await gitOps.commitAndPush(cwd, {
+      branch: req.body.branch,
+      message: req.body.message,
+      files: req.body.files,
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message });
+  }
+});
+
+app.post('/api/projects/:id/git/pull-main', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = await gitOps.pullFromMain(cwd, {
+      mainBranch: req.body.mainBranch,
+      currentBranch: req.body.currentBranch,
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message, isConflict: e.isConflict || false });
+  }
+});
+
+app.post('/api/projects/:id/git/remote', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = await gitOps.setRemoteUrl(cwd, req.body.url);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message });
+  }
+});
+
 app.post('/api/caddy/reload', (req, res) => {
   const { caddyResult, hostsResult } = syncDomains();
   res.json({ ...caddyResult, hostsMessage: hostsResult.message, hostsOk: hostsResult.ok });
 });
 
 app.get('/api/caddy/status', (req, res) => {
-  res.json({ installed: caddy.isCaddyInstalled() });
+  res.json(caddy.checkCaddyAvailability());
+});
+
+app.post('/api/caddy/install', (req, res) => {
+  if (process.platform !== 'win32') {
+    return res.status(400).json({ error: 'Auto-install hanya didukung di Windows. Install Caddy manual: https://caddyserver.com/docs/install' });
+  }
+  const { exec } = require('child_process');
+  exec('winget install CaddyServer.Caddy --accept-package-agreements --accept-source-agreements', { timeout: 120000 }, (err, stdout, stderr) => {
+    if (err) {
+      return res.status(500).json({ error: stderr || err.message });
+    }
+    res.json({ ok: true, needsRestart: true, message: 'Caddy installed. Restart lotwork server to detect it.' });
+  });
+});
+
+app.get('/api/services', (req, res) => {
+  res.json({
+    services: systemServices.detectServices(),
+    runtimes: systemServices.detectRuntimes(),
+  });
+});
+
+app.post('/api/services/:serviceName/start', async (req, res) => {
+  try {
+    await systemServices.startService(req.params.serviceName);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message });
+  }
+});
+
+app.post('/api/services/:serviceName/stop', async (req, res) => {
+  try {
+    await systemServices.stopService(req.params.serviceName);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message });
+  }
 });
 
 app.post('/api/hosts/sync', (req, res) => {
