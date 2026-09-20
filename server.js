@@ -38,8 +38,11 @@ function serialize(project) {
 }
 
 async function serializeWithCommit(project) {
-  const lastCommit = await gitOps.getLastCommit(project.cwd);
-  return { ...serialize(project), lastCommit };
+  const [lastCommit, gitChanges] = await Promise.all([
+    gitOps.getLastCommit(project.cwd),
+    gitOps.getChangeSummary(project.cwd),
+  ]);
+  return { ...serialize(project), lastCommit, gitChanges };
 }
 
 function syncDomains() {
@@ -63,7 +66,10 @@ const LOTWORK_SELF_ID = '__lotwork_self__';
 
 async function getLotworkSelfEntry() {
   const cwd = appRoot;
-  const lastCommit = await gitOps.getLastCommit(cwd);
+  const [lastCommit, gitChanges] = await Promise.all([
+    gitOps.getLastCommit(cwd),
+    gitOps.getChangeSummary(cwd),
+  ]);
   return {
     id: LOTWORK_SELF_ID,
     name: 'LotWork',
@@ -77,6 +83,7 @@ async function getLotworkSelfEntry() {
     currentBranch: gitOps.getCurrentBranchSync(cwd),
     defaultBranch: gitOps.getDefaultBranchSync(cwd),
     lastCommit,
+    gitChanges,
   };
 }
 

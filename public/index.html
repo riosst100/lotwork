@@ -224,12 +224,16 @@
     font-size: 11.5px; color: var(--muted-2); margin-bottom: 6px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
   }
-  .branch-info { font-size: 11.5px; color: var(--muted-2); margin-bottom: 8px; }
+  .branch-info { font-size: 11.5px; color: var(--muted-2); }
   .branch-info code {
     background: var(--panel-2); padding: 2px 7px; border-radius: 5px;
     font-size: 11px; color: var(--accent-2); font-family: "Cascadia Code", Consolas, monospace;
   }
   .branch-vs { color: var(--muted-2); }
+  .branch-changes-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .changes-badge {
+    background: var(--yellow-soft); color: var(--yellow); font-weight: 700; cursor: default;
+  }
   .project-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12.5px; color: var(--muted); }
   .project-meta .meta-item { display: flex; align-items: center; gap: 5px; }
   .project-meta code {
@@ -747,6 +751,9 @@ const I18N = {
     portFree: 'free',
     branchVsMain: 'vs main',
     selfBadge: 'This app',
+    unpushedChanges: (n) => `${n} unpushed change${n === 1 ? '' : 's'}`,
+    changedCount: (n) => `${n} changed`,
+    untrackedCount: (n) => `${n} untracked`,
     noRemote: 'No remote repo found',
     setRemoteSubtitle: 'This project has no remote repository configured yet. Set one before you can view changes or push.',
     remoteUrlLabel: 'Remote URL',
@@ -866,6 +873,9 @@ const I18N = {
     portFree: 'kosong',
     branchVsMain: 'vs main',
     selfBadge: 'Aplikasi ini',
+    unpushedChanges: (n) => `${n} perubahan belum di-push`,
+    changedCount: (n) => `${n} berubah`,
+    untrackedCount: (n) => `${n} untracked`,
     noRemote: 'Belum ada remote repo',
     setRemoteSubtitle: 'Project ini belum punya remote repository. Set dulu sebelum bisa lihat perubahan atau push.',
     remoteUrlLabel: 'URL Remote',
@@ -1022,7 +1032,10 @@ function render() {
               ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank">${escapeHtml(p.repoUrl)}</a>`
               : `<span class="repo-link no-remote">${t('noRemote')}</span>`}
             ${lastCommitText ? `<div class="last-commit">${lastCommitText}</div>` : ''}
-            ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
+            <div class="branch-changes-row">
+              ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
+              ${renderChangesBadge(p)}
+            </div>
             <div class="project-meta">
               <span class="meta-item">${t('port')} <code>${p.port}</code></span>
               <span class="meta-item">${domainLink}</span>
@@ -1048,6 +1061,15 @@ function render() {
   restoreLogScroll();
 }
 
+function renderChangesBadge(p) {
+  const gc = p.gitChanges;
+  if (!gc || gc.total === 0) return '';
+  const parts = [];
+  if (gc.changed) parts.push(t('changedCount', gc.changed));
+  if (gc.untracked) parts.push(t('untrackedCount', gc.untracked));
+  return `<span class="badge changes-badge" title="${escapeHtml(parts.join(', '))}">${t('unpushedChanges', gc.total)}</span>`;
+}
+
 function renderSelfCard(p) {
   const lastCommitText = p.lastCommit
     ? `${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}`
@@ -1071,7 +1093,10 @@ function renderSelfCard(p) {
             ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank">${escapeHtml(p.repoUrl)}</a>`
             : `<span class="repo-link no-remote">${t('noRemote')}</span>`}
           ${lastCommitText ? `<div class="last-commit">${lastCommitText}</div>` : ''}
-          ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
+          <div class="branch-changes-row">
+            ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
+            ${renderChangesBadge(p)}
+          </div>
           <div class="project-meta">
             <span class="meta-item">${t('port')} <code>${p.port}</code></span>
           </div>

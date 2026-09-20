@@ -106,6 +106,27 @@ async function getLastCommit(cwd) {
   }
 }
 
+// Lightweight change-count summary (no per-file details) for showing on
+// project cards without the cost of a full getStatus() call. Untracked files
+// (status "??") are counted separately from tracked changes (modified/added/
+// deleted/renamed) so the UI can label them distinctly.
+async function getChangeSummary(cwd) {
+  if (!findGitDir(cwd)) return null;
+  try {
+    const out = await run(cwd, ['status', '--porcelain']);
+    const lines = out.split('\n').filter(Boolean);
+    let untracked = 0;
+    let changed = 0;
+    for (const line of lines) {
+      if (line.startsWith('??')) untracked++;
+      else changed++;
+    }
+    return { changed, untracked, total: changed + untracked };
+  } catch {
+    return null;
+  }
+}
+
 // Converts common git remote URL forms into a clickable https:// URL.
 //   git@github.com:owner/repo.git       -> https://github.com/owner/repo
 //   https://github.com/owner/repo.git   -> https://github.com/owner/repo
@@ -282,5 +303,5 @@ async function pullFromMain(cwd, { mainBranch, currentBranch }) {
 
 module.exports = {
   isGitRepo, getStatus, commitAndPush, getRemoteUrlSync, getLastCommit,
-  getCurrentBranchSync, getDefaultBranchSync, setRemoteUrl, pullFromMain,
+  getCurrentBranchSync, getDefaultBranchSync, setRemoteUrl, pullFromMain, getChangeSummary,
 };
