@@ -30,8 +30,9 @@ function startProject(project) {
     throw new Error('Project sudah berjalan');
   }
 
-  const env = { ...process.env, ...project.env, PORT: String(project.port) };
-  const command = withPortFlag(project.command, project.port);
+  const env = { ...process.env, ...project.env };
+  if (project.port) env.PORT = String(project.port);
+  const command = project.port ? withPortFlag(project.command, project.port) : project.command;
 
   logsById.set(project.id, []);
   appendLog(project.id, `$ ${command}\n`);
@@ -94,4 +95,30 @@ function stopAll() {
   }
 }
 
-module.exports = { startProject, stopProject, isRunning, getLogs, getStatus, stopAll };
+// One-shot commands (e.g. "php artisan migrate") - unlike startProject, this
+// waits for exit and returns the full output instead of tracking a long-lived
+// process, since these commands aren't meant to keep running.
+function runCommand(project, command) {
+  return new Promise((resolve) => {
+    const env = { ...process.env, ...project.env };
+    let output = `$ ${command}\n`;
+
+    const child = spawn(command, {
+      cwd: project.cwd,
+      shell: true,
+      env,
+    });
+
+    child.stdout.on('data', (data) => { output += data.toString(); });
+    child.stderr.on('data', (data) => { output += data.toString(); });
+    child.on('exit', (code) => {
+      resolve({ code, output });
+    });
+    child.on('error', (err) => {
+      output += `\n[error: ${err.message}]\n`;
+      resolve({ code: null, output });
+    });
+  });
+}
+
+module.exports = { startProject, stopProject, isRunning, getLogs, getStatus, stopAll, runCommand };

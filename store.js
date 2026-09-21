@@ -3,7 +3,6 @@ const path = require('path');
 const { dataDir } = require('./paths');
 
 const DATA_FILE = path.join(dataDir, 'projects.json');
-const RECENT_WINDOW_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 function ensureDataFile() {
   const dir = path.dirname(DATA_FILE);
@@ -20,19 +19,9 @@ function loadProjects() {
   } catch {
     projects = [];
   }
-  const now = Date.now();
-  const isRecent = (p) => p.lastStartedAt && (now - p.lastStartedAt) < RECENT_WINDOW_MS;
-
   return projects
     .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], ...p }))
-    .sort((a, b) => {
-      const aRecent = isRecent(a);
-      const bRecent = isRecent(b);
-      if (aRecent && bRecent) return b.lastStartedAt - a.lastStartedAt;
-      if (aRecent && !bRecent) return -1;
-      if (!aRecent && bRecent) return 1;
-      return b.startCount - a.startCount;
-    });
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function saveProjects(projects) {
@@ -43,16 +32,18 @@ function saveProjects(projects) {
 function addProject(project) {
   const projects = loadProjects();
   const id = project.id || String(Date.now());
-  const existingPortOwner = projects.find(p => p.port === project.port && p.id !== id);
-  if (existingPortOwner) {
-    throw new Error(`Port ${project.port} sudah dipakai oleh project "${existingPortOwner.name}"`);
+  if (project.port) {
+    const existingPortOwner = projects.find(p => p.port === project.port && p.id !== id);
+    if (existingPortOwner) {
+      throw new Error(`Port ${project.port} sudah dipakai oleh project "${existingPortOwner.name}"`);
+    }
   }
   const newProject = {
     id,
     name: project.name,
     cwd: project.cwd,
     command: project.command,
-    port: project.port,
+    port: project.port || null,
     domain: project.domain || '',
     env: project.env || {},
     stack: project.stack || '',
@@ -96,6 +87,14 @@ function incrementStartCount(id) {
   saveProjects(projects);
 }
 
+function setLastPulledAt(id, timestamp) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  projects[idx].lastPulledAt = timestamp;
+  saveProjects(projects);
+}
+
 function addCredential(projectId, credential) {
   const projects = loadProjects();
   const idx = projects.findIndex(p => p.id === projectId);
@@ -124,6 +123,29 @@ function updateCredential(projectId, credentialId, updates) {
   return credentials[cIdx];
 }
 
+function addCommand(projectId, command) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  if (!command.label || !command.command) throw new Error('Label dan command wajib diisi');
+  const newCommand = {
+    id: String(Date.now()),
+    label: command.label,
+    command: command.command,
+  };
+  projects[idx].commands = [...(projects[idx].commands || []), newCommand];
+  saveProjects(projects);
+  return newCommand;
+}
+
+function removeCommand(projectId, commandId) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  projects[idx].commands = (projects[idx].commands || []).filter(c => c.id !== commandId);
+  saveProjects(projects);
+}
+
 function removeCredential(projectId, credentialId) {
   const projects = loadProjects();
   const idx = projects.findIndex(p => p.id === projectId);
@@ -134,5 +156,5 @@ function removeCredential(projectId, credentialId) {
 
 module.exports = {
   loadProjects, saveProjects, addProject, updateProject, removeProject, getProject, incrementStartCount,
-  addCredential, updateCredential, removeCredential,
+  addCredential, updateCredential, removeCredential, setLastPulledAt, addCommand, removeCommand,
 };

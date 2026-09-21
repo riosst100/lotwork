@@ -66,7 +66,6 @@
     color: var(--text);
     font-family: "Segoe UI", -apple-system, Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
-    transition: background 0.2s ease, color 0.2s ease;
   }
 
   header {
@@ -166,23 +165,21 @@
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
     box-shadow: 0 4px 14px rgba(124,110,244,0.3);
   }
-  button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(124,110,244,0.4); }
-  button:active:not(:disabled) { transform: translateY(0); }
+  button:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(124,110,244,0.4); }
   button.secondary {
     background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
     box-shadow: none;
   }
-  button.secondary:hover:not(:disabled) { background: var(--panel-3); box-shadow: none; transform: none; }
+  button.secondary:hover:not(:disabled) { background: var(--panel-3); box-shadow: none; }
   button.success { background: linear-gradient(135deg, var(--green), #2bb583); box-shadow: 0 4px 14px rgba(61,219,150,0.3); }
   button.danger { background: var(--red-soft); color: var(--red); box-shadow: none; }
-  button.danger:hover:not(:disabled) { background: rgba(255,103,103,0.22); transform: none; box-shadow: none; }
+  button.danger:hover:not(:disabled) { background: rgba(255,103,103,0.22); box-shadow: none; }
   button.ghost { background: transparent; color: var(--muted); box-shadow: none; padding: 12px 18px; }
-  button.ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); transform: none; box-shadow: none; }
+  button.ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); box-shadow: none; }
   button.small { padding: 8px 14px; font-size: 12.5px; border-radius: 8px; }
-  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none !important; }
 
   .project-grid { display: flex; flex-direction: column; gap: 14px; }
 
@@ -192,7 +189,6 @@
     border-radius: var(--radius);
     padding: 20px 22px;
     box-shadow: var(--shadow);
-    transition: border-color 0.15s ease, transform 0.15s ease;
     position: relative;
     overflow: hidden;
   }
@@ -249,12 +245,8 @@
   .status-pill.on { background: var(--green-soft); color: var(--green); }
   .status-pill.off { background: var(--panel-2); color: var(--muted); }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-  .dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+  .dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); }
   .dot.off { background: var(--muted-2); }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
 
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 
@@ -284,14 +276,14 @@
   .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 7px; font-weight: 600; }
   .field input, .field select {
     width: 100%; padding: 11px 13px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-    background: var(--bg-2); color: var(--text); font-size: 13.5px; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background: var(--bg-2); color: var(--text); font-size: 13.5px;
   }
   .field input:focus, .field select:focus {
     outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
   }
   .domain-input {
     display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--bg-2); overflow: hidden; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background: var(--bg-2); overflow: hidden;
   }
   .domain-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .domain-input input { border: none; background: transparent; flex: 1; box-shadow: none !important; }
@@ -311,11 +303,6 @@
 
   .inline-panel {
     margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);
-    animation: panel-in 0.15s ease;
-  }
-  @keyframes panel-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
   }
   .inline-panel-title {
     font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
@@ -339,7 +326,7 @@
   .env-row {
     display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
     background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
-    padding: 7px; transition: border-color 0.15s ease;
+    padding: 7px;
   }
   .env-row:focus-within { border-color: var(--accent); }
   .env-row input.env-key, .env-row input.env-value {
@@ -402,9 +389,12 @@
   .git-branch-settings .field { flex: 1; min-width: 140px; max-width: 220px; }
   .git-mode-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
   .git-mode-buttons button { flex: 1; }
+  .git-main-check-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px;
+    padding-top: 14px; border-top: 1px solid var(--border);
+  }
   .git-mode-detail {
     padding-top: 16px; border-top: 1px dashed var(--border);
-    animation: panel-in 0.15s ease;
   }
   .git-file-list { max-height: 260px; overflow-y: auto; margin-bottom: 14px; }
   .git-file-row {
@@ -444,13 +434,8 @@
   .caddy-status .cdot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
   .caddy-status.caddy-missing {
     cursor: pointer; border-color: var(--red); color: var(--red);
-    animation: caddy-pulse 2s infinite;
   }
   .caddy-status.caddy-missing:hover { background: var(--red-soft); }
-  @keyframes caddy-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,103,103,0.3); }
-    50% { box-shadow: 0 0 0 5px rgba(255,103,103,0); }
-  }
 
   @media (max-width: 720px) {
     header { padding: 16px 18px; }
@@ -462,7 +447,6 @@
     position: fixed; inset: 0; z-index: 1000;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
     background: var(--bg);
-    transition: opacity 0.25s ease;
   }
   .page-loading.hidden { opacity: 0; pointer-events: none; }
   .page-loading-logo {
@@ -476,9 +460,7 @@
   .page-loading-spinner {
     width: 28px; height: 28px; border-radius: 50%;
     border: 3px solid var(--border); border-top-color: var(--accent);
-    animation: spin 0.8s linear infinite;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -560,8 +542,8 @@
       <input id="fCommand" placeholder="npm run dev" />
     </div>
     <div class="field">
-      <label id="lblPort">Port</label>
-      <input id="fPort" placeholder="3000" type="number" oninput="applyStackTemplate()" />
+      <label id="lblPort">Port (optional, required only for custom domain)</label>
+      <input id="fPort" placeholder="leave empty to use the command's own default port" type="number" oninput="applyStackTemplate()" />
     </div>
     <div class="field">
       <label id="lblDomain">Custom domain (optional, needs Caddy + admin)</label>
@@ -675,6 +657,20 @@ const I18N = {
     logs: 'Logs',
     editEnv: 'Edit .env',
     credentials: 'Credentials',
+    commands: 'Commands',
+    run: 'Run',
+    commandRunning: 'Running...',
+    noCommandsYet: 'No custom commands yet.',
+    commandLabelField: 'Label',
+    commandLabelPlaceholder: 'e.g. Migrate',
+    commandField: 'Command',
+    addCommand: 'Add Command',
+    commandRequiredError: 'Label and command are required.',
+    commandSaveFailed: 'Failed to save command',
+    commandRunFailed: 'Command failed to run',
+    commandSucceeded: 'Command completed successfully',
+    commandFailedWithCode: (code) => `Command failed (exit code ${code})`,
+    confirmDeleteCommand: 'Delete this command?',
     git: 'Git',
     github: 'GitHub',
     edit: 'Edit',
@@ -696,7 +692,8 @@ const I18N = {
     fieldDomain: 'Custom domain (optional, needs Caddy + admin)',
     cancel: 'Cancel',
     save: 'Save',
-    requiredFieldsError: 'Name, folder, command, and port are required.',
+    requiredFieldsError: 'Name, folder, and command are required.',
+    portRequiredForDomainError: 'Port is required when a custom domain is set.',
     hostsSyncFailedAlert: 'Domain saved, but hosts file sync failed:',
     hostsSyncFailedHint: 'Run lotwork as Administrator then click "Reload Caddy / Sync Domains".',
     nextOriginUnrecognized: 'This project looks like Next.js, but lotwork couldn’t recognize its config format:',
@@ -709,7 +706,7 @@ const I18N = {
     envNoVars: 'No variables yet. Click "+ Variable".',
     addVariable: '+ Variable',
     envSourceHint: 'Click to move to the other file',
-    envLegendEnv: '.env',
+    envLegendEnv: 'Edit .env',
     envLegendLocal: '.env.local',
     envSaveFailed: 'Failed to save .env',
     envLoadFailed: 'Failed to load .env',
@@ -781,6 +778,12 @@ const I18N = {
       `This will:\n\n1. Checkout "${main}"\n2. Pull latest from origin/${main}\n3. Checkout "${current}"\n4. Merge "${main}" into "${current}"\n5. Push "${current}" to origin\n\nContinue?`,
     pullFromMainFailed: 'Pull from main branch failed',
     pullFromMainSuccess: (main, current) => `Successfully merged "${main}" into "${current}" and pushed.`,
+    checkingMain: 'Checking main branch status...',
+    checkMainFailed: 'Failed to check main branch status',
+    lastPulledFromMain: 'Last pulled from main',
+    upToDateWithMain: (main) => `Up to date with ${main}`,
+    behindMain: (n, main) => `${n} commit${n === 1 ? '' : 's'} behind ${main}`,
+    aheadOfMain: (n) => `${n} ahead`,
   },
   id: {
     subtitle: 'Local dev project manager',
@@ -804,6 +807,20 @@ const I18N = {
     logs: 'Logs',
     editEnv: 'Edit .env',
     credentials: 'Credentials',
+    commands: 'Commands',
+    run: 'Jalankan',
+    commandRunning: 'Menjalankan...',
+    noCommandsYet: 'Belum ada command custom.',
+    commandLabelField: 'Label',
+    commandLabelPlaceholder: 'mis. Migrate',
+    commandField: 'Command',
+    addCommand: 'Tambah Command',
+    commandRequiredError: 'Label dan command wajib diisi.',
+    commandSaveFailed: 'Gagal menyimpan command',
+    commandRunFailed: 'Command gagal dijalankan',
+    commandSucceeded: 'Command berhasil dijalankan',
+    commandFailedWithCode: (code) => `Command gagal (exit code ${code})`,
+    confirmDeleteCommand: 'Hapus command ini?',
     git: 'Git',
     github: 'GitHub',
     edit: 'Edit',
@@ -825,7 +842,8 @@ const I18N = {
     fieldDomain: 'Custom domain (opsional, butuh Caddy + admin)',
     cancel: 'Batal',
     save: 'Simpan',
-    requiredFieldsError: 'Nama, folder, command, dan port wajib diisi.',
+    requiredFieldsError: 'Nama, folder, dan command wajib diisi.',
+    portRequiredForDomainError: 'Port wajib diisi kalau pakai custom domain.',
     hostsSyncFailedAlert: 'Domain disimpan, tapi sinkronisasi ke hosts file gagal:',
     hostsSyncFailedHint: 'Jalankan lotwork sebagai Administrator lalu klik "Reload Caddy / Sync Domains".',
     nextOriginUnrecognized: 'Project ini terdeteksi sebagai Next.js, tapi format config-nya tidak dikenali lotwork:',
@@ -838,7 +856,7 @@ const I18N = {
     envNoVars: 'Belum ada variable. Klik "+ Variable".',
     addVariable: '+ Variable',
     envSourceHint: 'Klik untuk pindah ke file lain',
-    envLegendEnv: '.env',
+    envLegendEnv: 'Edit .env',
     envLegendLocal: '.env.local',
     envSaveFailed: 'Gagal menyimpan .env',
     envLoadFailed: 'Gagal memuat .env',
@@ -910,6 +928,12 @@ const I18N = {
       `Ini akan menjalankan:\n\n1. Checkout "${main}"\n2. Pull terbaru dari origin/${main}\n3. Checkout "${current}"\n4. Merge "${main}" ke "${current}"\n5. Push "${current}" ke origin\n\nLanjutkan?`,
     pullFromMainFailed: 'Gagal pull dari main branch',
     pullFromMainSuccess: (main, current) => `Berhasil merge "${main}" ke "${current}" dan push.`,
+    checkingMain: 'Mengecek status main branch...',
+    checkMainFailed: 'Gagal mengecek status main branch',
+    lastPulledFromMain: 'Terakhir pull dari main',
+    upToDateWithMain: (main) => `Sudah update dengan ${main}`,
+    behindMain: (n, main) => `Tertinggal ${n} commit dari ${main}`,
+    aheadOfMain: (n) => `${n} lebih maju`,
   },
 };
 
@@ -1000,10 +1024,26 @@ document.querySelectorAll('#langToggle button').forEach(b => {
 });
 updateStaticTexts();
 
-async function fetchProjects() {
+async function fetchProjects(isBackgroundPoll) {
   const res = await fetch('/api/projects');
   projects = await res.json();
+  // Re-rendering replaces #projectRows' innerHTML wholesale, which would
+  // kill focus (and the cursor position) of any input the user is actively
+  // typing in - e.g. the add-command or credential fields inside an
+  // expanded panel. Only skip the rebuild for the silent background poll;
+  // a render triggered by the user's own action (clicking Run, Start, etc.)
+  // must still happen so the UI reflects what they just did.
+  if (isBackgroundPoll && isTypingInProjectRows()) return;
   render();
+}
+
+function isTypingInProjectRows() {
+  const active = document.activeElement;
+  if (!active) return false;
+  const tag = active.tagName;
+  if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+  const projectRows = document.getElementById('projectRows');
+  return projectRows && projectRows.contains(active);
 }
 
 function render() {
@@ -1051,7 +1091,7 @@ function render() {
               ${renderChangesBadge(p)}
             </div>
             <div class="project-meta">
-              <span class="meta-item">${t('port')} <code>${p.port}</code></span>
+              ${p.port ? `<span class="meta-item">${t('port')} <code>${p.port}</code></span>` : ''}
               <span class="meta-item">${domainLink}</span>
               <span class="meta-item"><code>${escapeHtml(p.command)}</code></span>
               ${lastStarted ? `<span class="meta-item">${t('lastStarted')}: ${lastStarted}</span>` : ''}
@@ -1063,6 +1103,7 @@ function render() {
           <button class="secondary small ${expandedPanels.get(p.id) === 'logs' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'logs')">${t('logs')}</button>
           <button class="secondary small ${expandedPanels.get(p.id) === 'env' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'env')">${t('editEnv')}</button>
           <button class="secondary small ${expandedPanels.get(p.id) === 'credentials' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'credentials')">${t('credentials')}${(p.credentials && p.credentials.length) ? ` (${p.credentials.length})` : ''}</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'commands' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'commands')">${t('commands')}${(p.commands && p.commands.length) ? ` (${p.commands.length})` : ''}</button>
           <button class="secondary small ${expandedPanels.get(p.id) === 'git' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'git')">${t('github')}</button>
           <button class="secondary small" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">${t('edit')}</button>
           <button class="danger small" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? t('deleting') : t('delete')}</button>
@@ -1112,7 +1153,7 @@ function renderSelfCard(p) {
             ${renderChangesBadge(p)}
           </div>
           <div class="project-meta">
-            <span class="meta-item">${t('port')} <code>${p.port}</code></span>
+            ${p.port ? `<span class="meta-item">${t('port')} <code>${p.port}</code></span>` : ''}
           </div>
         </div>
       </div>
@@ -1310,7 +1351,7 @@ function openEditModal(id) {
   document.getElementById('fCwd').value = p.cwd;
   document.getElementById('fStack').value = p.stack || '';
   document.getElementById('fCommand').value = p.command;
-  document.getElementById('fPort').value = p.port;
+  document.getElementById('fPort').value = p.port || '';
   document.getElementById('fDomain').value = (p.domain || '').replace(/\.local$/, '');
   document.getElementById('formError').textContent = '';
   document.getElementById('addModal').classList.add('open');
@@ -1323,16 +1364,21 @@ function closeAddModal() {
 async function submitProject() {
   const id = document.getElementById('editId').value;
   const domainName = document.getElementById('fDomain').value.trim().replace(/\.local$/, '');
+  const portValue = document.getElementById('fPort').value.trim();
   const body = {
     name: document.getElementById('fName').value.trim(),
     cwd: document.getElementById('fCwd').value.trim(),
     command: document.getElementById('fCommand').value.trim(),
-    port: Number(document.getElementById('fPort').value),
+    port: portValue ? Number(portValue) : null,
     domain: domainName ? `${domainName}.local` : '',
     stack: document.getElementById('fStack').value,
   };
-  if (!body.name || !body.cwd || !body.command || !body.port) {
+  if (!body.name || !body.cwd || !body.command) {
     document.getElementById('formError').textContent = t('requiredFieldsError');
+    return;
+  }
+  if (body.domain && !body.port) {
+    document.getElementById('formError').textContent = t('portRequiredForDomainError');
     return;
   }
   const url = id ? `/api/projects/${id}` : '/api/projects';
@@ -1383,6 +1429,7 @@ function renderPanel(p) {
   if (type === 'env') return renderEnvPanel(p);
   if (type === 'credentials') return renderCredentialsPanel(p);
   if (type === 'git') return renderGitPanel(p);
+  if (type === 'commands') return renderCommandsPanel(p);
   return '';
 }
 
@@ -1488,14 +1535,14 @@ function updateEnvEntry(id, i, field, value) {
 function toggleEnvSource(id, i) {
   const draft = envDrafts.get(id);
   if (!draft) return;
-  draft.entries[i].source = draft.entries[i].source === '.env.local' ? '.env' : '.env.local';
+  draft.entries[i].source = draft.entries[i].source === '.env.local' ? 'Edit .env' : '.env.local';
   render();
 }
 
 function addEnvRow(id) {
   const draft = envDrafts.get(id);
   if (!draft) return;
-  draft.entries.push({ key: '', value: '', source: '.env' });
+  draft.entries.push({ key: '', value: '', source: 'Edit .env' });
   render();
 }
 
@@ -1555,6 +1602,150 @@ function renderCredentialsPanel(p) {
       </div>
     </div>
   `;
+}
+
+// --- Commands panel ---
+const commandRunState = new Map(); // projectId -> { cmdId, running, output, error }
+const commandFormDraft = new Map(); // projectId -> { label, command }
+
+function renderCommandsPanel(p) {
+  const commands = p.commands || [];
+  const draft = commandFormDraft.get(p.id) || { label: '', command: '' };
+  const runState = commandRunState.get(p.id);
+
+  const list = commands.length
+    ? commands.map(c => `
+        <div class="cred-card">
+          <div class="cred-card-info">
+            <span class="cred-card-label">${escapeHtml(c.label)}</span>
+            <span class="cred-card-row"><code>${escapeHtml(c.command)}</code></span>
+          </div>
+          <div class="cred-card-actions">
+            <button type="button" ${runState && runState.running && runState.cmdId === c.id ? 'disabled' : ''} onclick="runCustomCommand('${p.id}', '${c.id}')">${runState && runState.running && runState.cmdId === c.id ? t('commandRunning') : t('run')}</button>
+            <button type="button" class="remove-cred" onclick="deleteCustomCommand('${p.id}', '${c.id}')">${t('delete')}</button>
+          </div>
+        </div>
+      `).join('')
+    : `<div class="cred-empty">${t('noCommandsYet')}</div>`;
+
+  const output = runState && runState.cmdId
+    ? `<pre class="log-box">${escapeHtml(runState.output || '')}</pre>`
+    : '';
+
+  const resultBanner = runState && !runState.running && runState.code !== undefined
+    ? `<div class="${runState.code === 0 ? 'git-success' : 'error-msg'}">${runState.code === 0 ? t('commandSucceeded') : t('commandFailedWithCode', runState.code)}</div>`
+    : '';
+
+  const allCommands = getAllKnownCommands(p.id);
+  const labelOptions = [...new Set(allCommands.map(c => c.label))]
+    .map(l => `<option value="${escapeHtml(l)}">`).join('');
+  const commandOptions = [...new Set(allCommands.map(c => c.command))]
+    .map(c => `<option value="${escapeHtml(c)}">`).join('');
+
+  return `
+    <div class="inline-panel">
+      <div class="inline-panel-title">${t('commands')}</div>
+      <div>${list}</div>
+      ${runState && runState.error ? `<div class="error-msg">${escapeHtml(runState.error)}</div>` : ''}
+      ${output}
+      ${resultBanner}
+      <div class="git-branch-settings" style="margin-top:12px;">
+        <div class="field" style="margin-bottom:0; max-width:200px;">
+          <label>${t('commandLabelField')}</label>
+          <input list="commandLabelList-${p.id}" value="${escapeHtml(draft.label)}" placeholder="${t('commandLabelPlaceholder')}" oninput="updateCommandDraft('${p.id}', 'label', this.value)" />
+          <datalist id="commandLabelList-${p.id}">${labelOptions}</datalist>
+        </div>
+        <div class="field" style="margin-bottom:0; flex:1;">
+          <label>${t('commandField')}</label>
+          <input list="commandList-${p.id}" value="${escapeHtml(draft.command)}" placeholder="php artisan migrate" oninput="updateCommandDraft('${p.id}', 'command', this.value); onCommandInputPick('${p.id}', this.value)" />
+          <datalist id="commandList-${p.id}">${commandOptions}</datalist>
+        </div>
+        <button type="button" class="secondary small" onclick="addCustomCommand('${p.id}')">${t('addCommand')}</button>
+      </div>
+    </div>
+  `;
+}
+
+// Collects the unique {label, command} pairs already defined across every
+// project (excluding the current one's own list, which is shown separately),
+// so the add-command form can suggest reusing one instead of retyping it.
+function getAllKnownCommands(excludeProjectId) {
+  const seen = new Set();
+  const result = [];
+  for (const proj of projects) {
+    if (proj.id === excludeProjectId) continue;
+    for (const c of proj.commands || []) {
+      const key = `${c.label}\u0000${c.command}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push({ label: c.label, command: c.command });
+    }
+  }
+  return result;
+}
+
+// When the user picks a known command from the datalist, auto-fill the
+// label field with the matching one instead of leaving it blank.
+function onCommandInputPick(id, commandValue) {
+  const draft = commandFormDraft.get(id) || { label: '', command: '' };
+  if (draft.label) return; // don't overwrite something the user already typed
+  const match = getAllKnownCommands(id).find(c => c.command === commandValue);
+  if (match) {
+    draft.label = match.label;
+    commandFormDraft.set(id, draft);
+    render();
+  }
+}
+
+function updateCommandDraft(id, field, value) {
+  const draft = commandFormDraft.get(id) || { label: '', command: '' };
+  draft[field] = value;
+  commandFormDraft.set(id, draft);
+}
+
+async function addCustomCommand(id) {
+  const draft = commandFormDraft.get(id) || { label: '', command: '' };
+  const label = draft.label.trim();
+  const command = draft.command.trim();
+  if (!label || !command) {
+    await showAlert(t('commandRequiredError'));
+    return;
+  }
+  const res = await fetch(`/api/projects/${id}/commands`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ label, command }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    await showAlert(data.error || t('commandSaveFailed'));
+    return;
+  }
+  commandFormDraft.delete(id);
+  await fetchProjects();
+}
+
+async function deleteCustomCommand(id, cmdId) {
+  if (!(await showConfirm(t('confirmDeleteCommand')))) return;
+  await fetch(`/api/projects/${id}/commands/${cmdId}`, { method: 'DELETE' });
+  await fetchProjects();
+}
+
+async function runCustomCommand(id, cmdId) {
+  commandRunState.set(id, { cmdId, running: true, output: '', error: null });
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/commands/${cmdId}/run`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      commandRunState.set(id, { cmdId, running: false, output: '', error: data.error || t('commandRunFailed') });
+    } else {
+      commandRunState.set(id, { cmdId, running: false, output: data.output || '', code: data.code, error: null });
+    }
+  } catch (e) {
+    commandRunState.set(id, { cmdId, running: false, output: '', error: e.message });
+  }
+  render();
 }
 
 function openCredentialModal(id, credId) {
@@ -1652,6 +1843,32 @@ async function loadGitStatus(id) {
     gitStatusCache.set(id, { loading: false, error: e.message });
   }
   render();
+}
+
+async function checkMainStatus(id) {
+  const state = gitStatusCache.get(id);
+  if (!state || !state.data) return;
+  const select = document.getElementById(`mainBranchSelect-${id}`);
+  const mainBranch = select ? select.value : state.selectedMainBranch;
+
+  state.checkingMain = true;
+  state.checkMainError = null;
+  render();
+
+  try {
+    const res = await fetch(`/api/projects/${id}/git/check-main?mainBranch=${encodeURIComponent(mainBranch)}`);
+    const result = await res.json();
+    if (!res.ok) {
+      state.checkMainError = result.error || t('checkMainFailed');
+    } else {
+      state.mainComparison = result;
+    }
+  } catch (e) {
+    state.checkMainError = e.message;
+  } finally {
+    state.checkingMain = false;
+    render();
+  }
 }
 
 async function initGitRepo(id) {
@@ -1827,6 +2044,19 @@ function renderGitPanel(p) {
 
   const pullDetail = mode === 'pull' ? `
     <div class="git-mode-detail">
+      <div class="git-main-check-row">
+        ${p.lastPulledAt ? `<span class="meta-item">${t('lastPulledFromMain')}: ${formatLastStarted(p.lastPulledAt)}</span>` : ''}
+        ${state.checkingMain ? `<span class="meta-item">${t('checkingMain')}</span>` : ''}
+        ${state.checkMainError ? `<div class="error-msg">${escapeHtml(state.checkMainError)}</div>` : ''}
+        ${state.mainComparison ? `
+          <div class="${state.mainComparison.upToDate ? 'git-success' : 'error-msg'}">
+            ${state.mainComparison.upToDate
+              ? t('upToDateWithMain', state.mainComparison.mainBranch)
+              : t('behindMain', state.mainComparison.behind, state.mainComparison.mainBranch)}
+            ${state.mainComparison.ahead ? ` (${t('aheadOfMain', state.mainComparison.ahead)})` : ''}
+          </div>
+        ` : ''}
+      </div>
       ${state.pullError ? `<div class="error-msg">${escapeHtml(state.pullError)}</div>` : ''}
       ${state.pullSuccess ? `<div class="git-success">${escapeHtml(state.pullSuccess)}</div>` : ''}
       <div class="modal-actions" style="justify-content:flex-start;">
@@ -1906,6 +2136,7 @@ function setGitMode(id, mode) {
   if (!state) return;
   state.gitMode = state.gitMode === mode ? null : mode;
   render();
+  if (state.gitMode === 'pull') checkMainStatus(id);
 }
 
 async function confirmPullFromMain(id) {
@@ -2132,7 +2363,7 @@ async function toggleService(serviceName, currentlyRunning) {
 Promise.all([fetchProjects(), checkCaddyStatus(), loadServices()]).finally(() => {
   document.getElementById('pageLoading').classList.add('hidden');
 });
-setInterval(fetchProjects, 4000);
+setInterval(() => fetchProjects(true), 4000);
 setInterval(loadServices, 8000);
 </script>
 

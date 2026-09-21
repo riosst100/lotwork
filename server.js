@@ -96,6 +96,9 @@ app.get('/api/projects', async (req, res) => {
 
 app.post('/api/projects', (req, res) => {
   try {
+    if (req.body.domain && !req.body.port) {
+      return res.status(400).json({ error: 'Port wajib diisi kalau pakai custom domain.' });
+    }
     const project = store.addProject(req.body);
     let sync = null;
     if (project.domain) sync = syncDomains();
@@ -113,6 +116,11 @@ app.post('/api/projects', (req, res) => {
 app.put('/api/projects/:id', (req, res) => {
   try {
     const before = store.getProject(req.params.id);
+    const domain = req.body.domain !== undefined ? req.body.domain : before && before.domain;
+    const port = req.body.port !== undefined ? req.body.port : before && before.port;
+    if (domain && !port) {
+      return res.status(400).json({ error: 'Port wajib diisi kalau pakai custom domain.' });
+    }
     const project = store.updateProject(req.params.id, req.body);
     let sync = null;
     if (project.domain || (before && before.domain)) sync = syncDomains();
@@ -158,9 +166,11 @@ app.post('/api/projects/:id/start', async (req, res) => {
   const project = store.getProject(req.params.id);
   if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
 
-  const free = await checkPortFree(project.port);
-  if (!free) {
-    return res.status(409).json({ error: `Port ${project.port} sedang dipakai proses lain di luar lotwork` });
+  if (project.port) {
+    const free = await checkPortFree(project.port);
+    if (!free) {
+      return res.status(409).json({ error: `Port ${project.port} sedang dipakai proses lain di luar lotwork` });
+    }
   }
 
   try {
@@ -184,7 +194,7 @@ function checkPortReady(port) {
 app.get('/api/projects/:id/ready', async (req, res) => {
   const project = store.getProject(req.params.id);
   if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
-  const ready = await checkPortReady(project.port);
+  const ready = project.port ? await checkPortReady(project.port) : true;
   res.json({ ready });
 });
 
@@ -246,6 +256,37 @@ app.delete('/api/projects/:id/credentials/:credId', (req, res) => {
   }
 });
 
+app.post('/api/projects/:id/commands', (req, res) => {
+  try {
+    const command = store.addCommand(req.params.id, req.body);
+    res.json(command);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/projects/:id/commands/:cmdId', (req, res) => {
+  try {
+    store.removeCommand(req.params.id, req.params.cmdId);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/projects/:id/commands/:cmdId/run', async (req, res) => {
+  const project = store.getProject(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  const command = (project.commands || []).find(c => c.id === req.params.cmdId);
+  if (!command) return res.status(404).json({ error: 'Command tidak ditemukan' });
+  try {
+    const result = await pm.runCommand(project, command.command);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // The "LotWork" self-entry isn't a real registered project, so its GitHub
 // panel operates on lotwork's own repo (appRoot) instead of a project.cwd.
 function resolveProjectCwd(id) {
@@ -288,9 +329,25 @@ app.post('/api/projects/:id/git/pull-main', async (req, res) => {
       mainBranch: req.body.mainBranch,
       currentBranch: req.body.currentBranch,
     });
+    if (req.params.id !== LOTWORK_SELF_ID) {
+      store.setLastPulledAt(req.params.id, Date.now());
+    }
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.stderr || e.message, isConflict: e.isConflict || false });
+  }
+});
+
+// On-demand only (hits the network via git fetch) - not called from the
+// polling /api/projects loop, so it's triggered by an explicit user action.
+app.get('/api/projects/:id/git/check-main', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = await gitOps.checkAheadBehindMain(cwd, req.query.mainBranch);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.stderr || e.message });
   }
 });
 

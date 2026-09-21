@@ -340,7 +340,49 @@ async function pullFromMain(cwd, { mainBranch, currentBranch }) {
   return { ok: true, mainBranch, currentBranch };
 }
 
+// Fetches origin, then reports how far the current branch is from the
+// remote's default/main branch. Meant to be called on-demand (e.g. a
+// "Check main" button), not on every dashboard poll, since `git fetch`
+// hits the network and can be slow.
+async function checkAheadBehindMain(cwd, mainBranch) {
+  if (!isGitRepo(cwd)) throw new Error('Bukan git repository');
+  const root = getRepoRoot(cwd);
+
+  let currentBranch;
+  try {
+    currentBranch = (await run(root, ['rev-parse', '--abbrev-ref', 'HEAD'])).trim();
+  } catch {
+    currentBranch = null;
+  }
+
+  const resolvedMain = mainBranch || getDefaultBranchSync(root) || 'main';
+
+  await run(root, ['fetch', 'origin', resolvedMain]);
+
+  const upstreamRef = `origin/${resolvedMain}`;
+  let ahead = 0, behind = 0;
+  try {
+    const out = await run(root, ['rev-list', '--left-right', '--count', `${upstreamRef}...HEAD`]);
+    const [b, a] = out.trim().split(/\s+/).map(Number);
+    behind = b || 0;
+    ahead = a || 0;
+  } catch (e) {
+    throw new Error(`Tidak bisa membandingkan dengan ${upstreamRef}: ${e.stderr || e.message}`);
+  }
+
+  return {
+    ok: true,
+    currentBranch,
+    mainBranch: resolvedMain,
+    ahead,
+    behind,
+    upToDate: behind === 0,
+    checkedAt: Date.now(),
+  };
+}
+
 module.exports = {
   isGitRepo, getStatus, commitAndPush, getRemoteUrlSync, getLastCommit,
   getCurrentBranchSync, getDefaultBranchSync, setRemoteUrl, pullFromMain, getChangeSummary, initRepo,
+  checkAheadBehindMain,
 };
