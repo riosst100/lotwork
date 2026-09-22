@@ -179,6 +179,10 @@
   button.ghost { background: transparent; color: var(--muted); box-shadow: none; padding: 12px 18px; }
   button.ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); box-shadow: none; }
   button.small { padding: 8px 14px; font-size: 12.5px; border-radius: 8px; }
+  button.icon-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; font-size: 15px;
+  }
+  .icon-btn-count { font-size: 12.5px; font-weight: 700; }
   button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none !important; }
 
   .project-grid { display: flex; flex-direction: column; gap: 14px; }
@@ -190,14 +194,31 @@
     padding: 20px 22px;
     box-shadow: var(--shadow);
     position: relative;
-    overflow: hidden;
   }
   .project-card::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
     background: var(--muted-2); opacity: 0.3;
+    border-radius: var(--radius) 0 0 var(--radius);
   }
   .project-card.running::before { background: linear-gradient(var(--green), var(--accent)); opacity: 1; }
   .self-card::before { background: linear-gradient(var(--pink), var(--accent)); opacity: 1; }
+  .card-menu-wrap { position: absolute; top: 14px; right: 16px; z-index: 5; }
+  .card-menu-btn {
+    background: transparent; border: none; box-shadow: none; color: var(--muted);
+    font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+  }
+  .card-menu-btn:hover { background: var(--panel-2); color: var(--text); box-shadow: none; }
+  .card-menu {
+    position: absolute; top: 100%; right: 0; margin-top: 4px; min-width: 160px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow); overflow: hidden; z-index: 10;
+  }
+  .card-menu button {
+    display: block; width: 100%; text-align: left; background: transparent; color: var(--text);
+    border: none; box-shadow: none; border-radius: 0; padding: 10px 14px; font-size: 13px; font-weight: 500;
+    cursor: pointer;
+  }
+  .card-menu button:hover { background: var(--panel-2); box-shadow: none; }
   .self-badge { background: var(--accent-soft); color: var(--accent); }
   .project-card:hover { border-color: var(--border); }
 
@@ -468,7 +489,9 @@
   .page-loading-spinner {
     width: 28px; height: 28px; border-radius: 50%;
     border: 3px solid var(--border); border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
   }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -506,6 +529,7 @@
       <div class="toolbar">
         <button id="addProjectBtn" onclick="openAddModal()">+ Add Project</button>
         <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">&#8635; Reload Caddy / Sync Domains</button>
+        <button class="secondary icon-btn" id="toggleSidejobsBtn" style="display:none;" onclick="toggleShowSidejobs()"></button>
       </div>
 
       <div class="project-grid" id="projectRows"></div>
@@ -607,6 +631,8 @@
 <script>
 let projects = [];
 const pendingIds = new Set();
+let showSidejobs = false;
+let cardMenuOpenId = null;
 
 // --- Custom alert/confirm dialogs (replaces native browser alert/confirm) ---
 let dialogResolveFn = null;
@@ -663,6 +689,12 @@ const I18N = {
     stop: '&#9632; Stop',
     stopping: 'Stopping...',
     close: 'Close',
+    moreOptions: 'More options',
+    setSidejob: 'Set as Sidejob',
+    unsetSidejob: 'Unset Sidejob',
+    sidejob: 'Sidejob',
+    showSidejobs: (n) => `Show sidejobs (${n})`,
+    backToMain: 'Back to main projects',
     logs: 'Logs',
     editEnv: 'Edit .env',
     credentials: 'Credentials',
@@ -814,6 +846,12 @@ const I18N = {
     stop: '&#9632; Stop',
     stopping: 'Menghentikan...',
     close: 'Tutup',
+    moreOptions: 'Opsi lainnya',
+    setSidejob: 'Jadikan Sidejob',
+    unsetSidejob: 'Batalkan Sidejob',
+    sidejob: 'Sidejob',
+    showSidejobs: (n) => `Tampilkan sidejob (${n})`,
+    backToMain: 'Kembali ke project utama',
     logs: 'Logs',
     editEnv: 'Edit .env',
     credentials: 'Credentials',
@@ -1057,13 +1095,16 @@ function isTypingInProjectRows() {
 }
 
 function render() {
-  if (projects.length === 0) {
+  const visibleProjects = projects.filter(p => p.isSelf || (showSidejobs ? p.isSidejob : !p.isSidejob));
+
+  if (visibleProjects.length === 0) {
     document.getElementById('projectRows').innerHTML =
       `<div class="empty-state">${t('emptyState')}</div>`;
+    updateSidejobToggleLabel();
     return;
   }
 
-  const cards = projects.map(p => {
+  const cards = visibleProjects.map(p => {
     if (p.isSelf) return renderSelfCard(p);
 
     const running = p.status.running;
@@ -1086,6 +1127,14 @@ function render() {
 
     return `
       <div class="project-card ${running ? 'running' : ''}">
+        <div class="card-menu-wrap">
+          <button type="button" class="card-menu-btn" title="${t('moreOptions')}" onclick="toggleCardMenu(event, '${p.id}')">&#8942;</button>
+          ${cardMenuOpenId === p.id ? `
+            <div class="card-menu">
+              <button type="button" onclick="toggleSidejob('${p.id}', ${!p.isSidejob})">${p.isSidejob ? t('unsetSidejob') : t('setSidejob')}</button>
+            </div>
+          ` : ''}
+        </div>
         <div class="project-top">
           <div class="project-info">
             <div class="project-name-row">
@@ -1124,6 +1173,50 @@ function render() {
   }).join('');
   document.getElementById('projectRows').innerHTML = cards;
   restoreLogScroll();
+  updateSidejobToggleLabel();
+}
+
+function toggleCardMenu(event, id) {
+  event.stopPropagation();
+  cardMenuOpenId = cardMenuOpenId === id ? null : id;
+  render();
+}
+
+// Close the open card menu on any outside click.
+document.addEventListener('click', () => {
+  if (cardMenuOpenId !== null) {
+    cardMenuOpenId = null;
+    render();
+  }
+});
+
+async function toggleSidejob(id, isSidejob) {
+  cardMenuOpenId = null;
+  await fetch(`/api/projects/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isSidejob }),
+  });
+  await fetchProjects();
+}
+
+function updateSidejobToggleLabel() {
+  const btn = document.getElementById('toggleSidejobsBtn');
+  if (!btn) return;
+  const count = projects.filter(p => p.isSidejob).length;
+  if (count === 0 && !showSidejobs) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  btn.title = showSidejobs ? t('backToMain') : t('showSidejobs', count);
+  btn.classList.toggle('panel-btn-active', showSidejobs);
+  btn.innerHTML = `&#128065; <span class="icon-btn-count">${count}</span>`;
+}
+
+function toggleShowSidejobs() {
+  showSidejobs = !showSidejobs;
+  render();
 }
 
 function renderChangesBadge(p) {

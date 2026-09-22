@@ -20,7 +20,7 @@ function loadProjects() {
     projects = [];
   }
   return projects
-    .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], ...p }))
+    .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], isSidejob: false, ...p }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
