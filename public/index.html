@@ -305,9 +305,17 @@
     margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);
   }
   .inline-panel-title {
-    font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
+    font-size: 12.5px; font-weight: 700; color: var(--muted);
     text-transform: uppercase; letter-spacing: 0.5px;
   }
+  .inline-panel-title-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+  }
+  .panel-close-btn {
+    background: transparent; border: none; box-shadow: none; color: var(--muted);
+    font-size: 20px; line-height: 1; padding: 0 4px; cursor: pointer;
+  }
+  .panel-close-btn:hover { color: var(--text); box-shadow: none; }
   .log-box {
     background: var(--bg-2); padding: 14px; border-radius: var(--radius-sm); height: 260px; overflow: auto;
     font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
@@ -654,6 +662,7 @@ const I18N = {
     starting: 'Starting...',
     stop: '&#9632; Stop',
     stopping: 'Stopping...',
+    close: 'Close',
     logs: 'Logs',
     editEnv: 'Edit .env',
     credentials: 'Credentials',
@@ -804,6 +813,7 @@ const I18N = {
     starting: 'Memulai...',
     stop: '&#9632; Stop',
     stopping: 'Menghentikan...',
+    close: 'Tutup',
     logs: 'Logs',
     editEnv: 'Edit .env',
     credentials: 'Credentials',
@@ -1422,6 +1432,15 @@ function togglePanel(id, type) {
   render();
 }
 
+function panelTitleWithClose(id, type, label) {
+  return `
+    <div class="inline-panel-title-row">
+      <div class="inline-panel-title">${label}</div>
+      <button type="button" class="panel-close-btn" title="${t('close')}" onclick="togglePanel('${id}', '${type}')">&times;</button>
+    </div>
+  `;
+}
+
 function renderPanel(p) {
   const type = expandedPanels.get(p.id);
   if (!type) return '';
@@ -1438,7 +1457,7 @@ function renderLogsPanel(p) {
   const logs = logCache.get(p.id) || t('loadingLogs');
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">${t('logs')}</div>
+      ${panelTitleWithClose(p.id, 'logs', t('logs'))}
       <pre class="log-box" id="logBox-${p.id}">${escapeHtml(logs)}</pre>
     </div>
   `;
@@ -1504,7 +1523,7 @@ function renderEnvPanel(p) {
 
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">${t('editEnv')}</div>
+      ${panelTitleWithClose(p.id, 'env', t('editEnv'))}
       <div class="modal-subtitle" style="margin-top:0">${t('envSubtitle')}</div>
       <div class="env-row-head">
         <span class="col-key">${t('envKey')}</span>
@@ -1595,7 +1614,7 @@ function renderCredentialsPanel(p) {
 
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">${t('credentials')}</div>
+      ${panelTitleWithClose(p.id, 'credentials', t('credentials'))}
       <div>${list}</div>
       <div class="modal-actions" style="justify-content:flex-start; margin-top:12px;">
         <button type="button" class="secondary small" onclick="openCredentialModal('${p.id}')">${t('addCredential')}</button>
@@ -1644,7 +1663,7 @@ function renderCommandsPanel(p) {
 
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">${t('commands')}</div>
+      ${panelTitleWithClose(p.id, 'commands', t('commands'))}
       <div>${list}</div>
       ${runState && runState.error ? `<div class="error-msg">${escapeHtml(runState.error)}</div>` : ''}
       ${output}
@@ -1976,7 +1995,7 @@ function renderGitPanel(p) {
   if (state.error) {
     return `
       <div class="inline-panel">
-        <div class="inline-panel-title">${t('github')}</div>
+        ${panelTitleWithClose(p.id, 'git', t('github'))}
         <div class="error-msg">${escapeHtml(state.error)}</div>
       </div>
     `;
@@ -1987,7 +2006,7 @@ function renderGitPanel(p) {
   if (!data.isRepo) {
     return `
       <div class="inline-panel">
-        <div class="inline-panel-title">${t('github')}</div>
+        ${panelTitleWithClose(p.id, 'git', t('github'))}
         <div class="modal-subtitle" style="margin-top:0">${t('notGitRepoSubtitle')}</div>
         ${state.initError ? `<div class="error-msg">${escapeHtml(state.initError)}</div>` : ''}
         <div class="modal-actions" style="justify-content:flex-start;">
@@ -2000,7 +2019,7 @@ function renderGitPanel(p) {
   if (!data.remoteUrl) {
     return `
       <div class="inline-panel">
-        <div class="inline-panel-title">${t('github')}</div>
+        ${panelTitleWithClose(p.id, 'git', t('github'))}
         <div class="modal-subtitle" style="margin-top:0">${t('setRemoteSubtitle')}</div>
         <div class="field">
           <label>${t('remoteUrlLabel')}</label>
@@ -2099,7 +2118,7 @@ function renderGitPanel(p) {
 
   return `
     <div class="inline-panel">
-      <div class="inline-panel-title">${t('github')}</div>
+      ${panelTitleWithClose(p.id, 'git', t('github'))}
       <div class="git-branch-settings">
         <div class="field" style="margin-bottom:0;">
           <label>${t('currentBranchLabel')}</label>
