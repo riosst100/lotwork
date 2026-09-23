@@ -114,6 +114,17 @@
   }
   .lang-toggle button.active { background: var(--panel-3); color: var(--text); }
 
+  .env-toggle {
+    display: flex; align-items: center; gap: 4px; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px;
+  }
+  .env-toggle button {
+    background: transparent; border: none; padding: 6px 12px; font-size: 12px; font-weight: 700;
+    border-radius: 999px; cursor: pointer; color: var(--muted-2); box-shadow: none;
+  }
+  .env-toggle button.active[data-env="local"] { background: var(--green-soft); color: var(--green); }
+  .env-toggle button.active[data-env="production"] { background: var(--red-soft); color: var(--red); }
+
   main { padding: 28px 32px 60px; max-width: 1440px; margin: 0 auto; }
 
   .main-layout { display: flex; gap: 24px; align-items: flex-start; }
@@ -511,6 +522,10 @@
     </div>
   </div>
   <div class="right">
+    <div class="env-toggle" id="envToggle">
+      <button data-env="local" title="Local development">Local</button>
+      <button data-env="production" title="Production server">Production</button>
+    </div>
     <div class="caddy-status" id="caddyStatus"></div>
     <div class="lang-toggle" id="langToggle">
       <button data-lang="en" title="English">EN</button>
@@ -617,6 +632,39 @@
   </div>
 </div>
 
+<div class="modal-bg" id="sshModal">
+  <div class="modal">
+    <h2 id="sshModalTitle">Add SSH Target</h2>
+    <input type="hidden" id="sshModalProjectId" />
+    <input type="hidden" id="sshModalId" />
+    <div class="field">
+      <label id="lblSshLabel">Label (optional)</label>
+      <input id="sshModalLabel" placeholder="e.g. Production" />
+    </div>
+    <div class="field">
+      <label id="lblSshHost">IP / Host</label>
+      <input id="sshModalHost" placeholder="203.0.113.10" />
+    </div>
+    <div class="field">
+      <label id="lblSshPort">Port</label>
+      <input id="sshModalPort" type="number" placeholder="22" />
+    </div>
+    <div class="field">
+      <label id="lblSshUsername">Username</label>
+      <input id="sshModalUsername" placeholder="root" />
+    </div>
+    <div class="field">
+      <label id="lblSshPassword">Password</label>
+      <input id="sshModalPassword" type="password" placeholder="password" />
+    </div>
+    <div class="error-msg" id="sshModalError"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="sshModalCancelBtn" onclick="closeSshModal()">Cancel</button>
+      <button id="sshModalSaveBtn" onclick="saveSshModal()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="dialogModal">
   <div class="modal dialog-modal">
     <h2 id="dialogTitle">lotwork</h2>
@@ -689,6 +737,19 @@ const I18N = {
     stop: '&#9632; Stop',
     stopping: 'Stopping...',
     close: 'Close',
+    copyLogs: 'Copy Logs',
+    copied: 'Copied!',
+    ssh: 'SSH',
+    sshHostLabel: 'Host: ',
+    connect: 'Connect',
+    noSshTargetsYet: 'No SSH targets yet.',
+    addSshTarget: 'Add SSH Target',
+    editSshTargetTitle: 'Edit SSH Target',
+    addSshTargetTitle: 'Add SSH Target',
+    sshRequiredError: 'Host and username are required.',
+    sshSaveFailed: 'Failed to save SSH target',
+    confirmDeleteSshTarget: 'Delete this SSH target?',
+    sshConnectFailed: 'Failed to launch SSH connection',
     moreOptions: 'More options',
     setSidejob: 'Set as Sidejob',
     unsetSidejob: 'Unset Sidejob',
@@ -846,6 +907,19 @@ const I18N = {
     stop: '&#9632; Stop',
     stopping: 'Menghentikan...',
     close: 'Tutup',
+    copyLogs: 'Salin Logs',
+    copied: 'Tersalin!',
+    ssh: 'SSH',
+    sshHostLabel: 'Host: ',
+    connect: 'Connect',
+    noSshTargetsYet: 'Belum ada SSH target.',
+    addSshTarget: 'Tambah SSH Target',
+    editSshTargetTitle: 'Edit SSH Target',
+    addSshTargetTitle: 'Tambah SSH Target',
+    sshRequiredError: 'Host dan username wajib diisi.',
+    sshSaveFailed: 'Gagal menyimpan SSH target',
+    confirmDeleteSshTarget: 'Hapus SSH target ini?',
+    sshConnectFailed: 'Gagal membuka koneksi SSH',
     moreOptions: 'Opsi lainnya',
     setSidejob: 'Jadikan Sidejob',
     unsetSidejob: 'Batalkan Sidejob',
@@ -1067,6 +1141,40 @@ document.getElementById('themeToggle').addEventListener('click', (e) => {
 
 initTheme();
 
+// --- Environment (local vs production) ---
+// A global, instance-wide flag - not per-project - so the whole dashboard
+// is visually flagged (e.g. red "Production" pill) when lotwork itself is
+// running on a production VPS, as a reminder before hitting Start/Stop.
+function applyEnvironment(env) {
+  document.querySelectorAll('#envToggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.env === env);
+  });
+}
+
+async function initEnvironment() {
+  try {
+    const res = await fetch('/api/environment');
+    const data = await res.json();
+    applyEnvironment(data.environment);
+  } catch {
+    applyEnvironment('local');
+  }
+}
+
+document.getElementById('envToggle').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-env]');
+  if (!btn) return;
+  const env = btn.dataset.env;
+  applyEnvironment(env);
+  await fetch('/api/environment', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ environment: env }),
+  });
+});
+
+initEnvironment();
+
 document.querySelectorAll('#langToggle button').forEach(b => {
   b.classList.toggle('active', b.dataset.lang === getLang());
 });
@@ -1163,6 +1271,7 @@ function render() {
           <button class="secondary small ${expandedPanels.get(p.id) === 'env' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'env')">${t('editEnv')}</button>
           <button class="secondary small ${expandedPanels.get(p.id) === 'credentials' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'credentials')">${t('credentials')}${(p.credentials && p.credentials.length) ? ` (${p.credentials.length})` : ''}</button>
           <button class="secondary small ${expandedPanels.get(p.id) === 'commands' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'commands')">${t('commands')}${(p.commands && p.commands.length) ? ` (${p.commands.length})` : ''}</button>
+          <button class="secondary small ${expandedPanels.get(p.id) === 'ssh' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'ssh')">${t('ssh')}${(p.sshTargets && p.sshTargets.length) ? ` (${p.sshTargets.length})` : ''}</button>
           <button class="secondary small ${expandedPanels.get(p.id) === 'git' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'git')">${t('github')}</button>
           <button class="secondary small" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">${t('edit')}</button>
           <button class="danger small" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? t('deleting') : t('delete')}</button>
@@ -1305,6 +1414,12 @@ const CHECK_ICON = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.or
   <path d="M4 10.5L8 14.5L16 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
+async function copyElementText(btn, elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  await copyToClipboard(btn, el.textContent);
+}
+
 async function copyToClipboard(btn, text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -1318,10 +1433,11 @@ async function copyToClipboard(btn, text) {
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
-  btn.innerHTML = CHECK_ICON;
+  const original = btn.innerHTML;
+  btn.innerHTML = btn.dataset.iconOnly === 'true' ? CHECK_ICON : t('copied');
   btn.classList.add('copied');
   setTimeout(() => {
-    btn.innerHTML = COPY_ICON;
+    btn.innerHTML = original;
     btn.classList.remove('copied');
   }, 1200);
 }
@@ -1542,6 +1658,7 @@ function renderPanel(p) {
   if (type === 'credentials') return renderCredentialsPanel(p);
   if (type === 'git') return renderGitPanel(p);
   if (type === 'commands') return renderCommandsPanel(p);
+  if (type === 'ssh') return renderSshPanel(p);
   return '';
 }
 
@@ -1551,6 +1668,9 @@ function renderLogsPanel(p) {
   return `
     <div class="inline-panel">
       ${panelTitleWithClose(p.id, 'logs', t('logs'))}
+      <div class="modal-actions" style="justify-content:flex-start; margin: -4px 0 10px;">
+        <button type="button" class="secondary small" onclick="copyElementText(this, 'logBox-${p.id}')">${t('copyLogs')}</button>
+      </div>
       <pre class="log-box" id="logBox-${p.id}">${escapeHtml(logs)}</pre>
     </div>
   `;
@@ -1694,8 +1814,8 @@ function renderCredentialsPanel(p) {
         <div class="cred-card">
           <div class="cred-card-info">
             ${c.label ? `<span class="cred-card-label">${escapeHtml(c.label)}</span>` : ''}
-            <span class="cred-card-row"><span class="cred-field-label">${t('usernameLabel')}</span>${escapeHtml(c.username)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.username).replace(/'/g, "\\'")}')">${COPY_ICON}</button></span>
-            <span class="cred-card-row"><span class="cred-field-label">${t('passwordLabel')}</span>${escapeHtml(c.password)}<button type="button" class="copy-btn" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.password).replace(/'/g, "\\'")}')">${COPY_ICON}</button></span>
+            <span class="cred-card-row"><span class="cred-field-label">${t('usernameLabel')}</span>${escapeHtml(c.username)}<button type="button" class="copy-btn" data-icon-only="true" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.username).replace(/'/g, "\\'")}')">${COPY_ICON}</button></span>
+            <span class="cred-card-row"><span class="cred-field-label">${t('passwordLabel')}</span>${escapeHtml(c.password)}<button type="button" class="copy-btn" data-icon-only="true" title="Copy" onclick="copyToClipboard(this, '${escapeHtml(c.password).replace(/'/g, "\\'")}')">${COPY_ICON}</button></span>
           </div>
           <div class="cred-card-actions">
             <button type="button" onclick="editCredential('${p.id}', '${c.id}')">${t('edit')}</button>
@@ -1914,6 +2034,116 @@ async function deleteCredential(id, credId) {
   if (!(await showConfirm(t('confirmDeleteCredential')))) return;
   await fetch(`/api/projects/${id}/credentials/${credId}`, { method: 'DELETE' });
   await fetchProjects();
+}
+
+// --- SSH panel ---
+const sshConnectState = new Map(); // projectId -> { targetId, error }
+
+function renderSshPanel(p) {
+  const targets = p.sshTargets || [];
+  const state = sshConnectState.get(p.id);
+
+  const list = targets.length
+    ? targets.map(t2 => `
+        <div class="cred-card">
+          <div class="cred-card-info">
+            ${t2.label ? `<span class="cred-card-label">${escapeHtml(t2.label)}</span>` : ''}
+            <span class="cred-card-row"><span class="cred-field-label">${t('sshHostLabel')}</span>${escapeHtml(t2.host)}:${t2.port}</span>
+            <span class="cred-card-row"><span class="cred-field-label">${t('usernameLabel')}</span>${escapeHtml(t2.username)}</span>
+          </div>
+          <div class="cred-card-actions">
+            <button type="button" onclick="connectSsh('${p.id}', '${t2.id}')">${t('connect')}</button>
+            <button type="button" onclick="editSshTarget('${p.id}', '${t2.id}')">${t('edit')}</button>
+            <button type="button" class="remove-cred" onclick="deleteSshTarget('${p.id}', '${t2.id}')">${t('delete')}</button>
+          </div>
+        </div>
+      `).join('')
+    : `<div class="cred-empty">${t('noSshTargetsYet')}</div>`;
+
+  return `
+    <div class="inline-panel">
+      ${panelTitleWithClose(p.id, 'ssh', t('ssh'))}
+      <div>${list}</div>
+      ${state && state.error ? `<div class="error-msg">${escapeHtml(state.error)}</div>` : ''}
+      <div class="modal-actions" style="justify-content:flex-start; margin-top:12px;">
+        <button type="button" class="secondary small" onclick="openSshModal('${p.id}')">${t('addSshTarget')}</button>
+      </div>
+    </div>
+  `;
+}
+
+function openSshModal(id, targetId) {
+  const p = projects.find(x => x.id === id);
+  const t2 = targetId ? (p && p.sshTargets || []).find(x => x.id === targetId) : null;
+  document.getElementById('sshModalTitle').textContent = t2 ? t('editSshTargetTitle') : t('addSshTargetTitle');
+  document.getElementById('sshModalProjectId').value = id;
+  document.getElementById('sshModalLabel').value = t2 ? (t2.label || '') : '';
+  document.getElementById('sshModalHost').value = t2 ? (t2.host || '') : '';
+  document.getElementById('sshModalPort').value = t2 ? (t2.port || 22) : 22;
+  document.getElementById('sshModalUsername').value = t2 ? (t2.username || '') : '';
+  document.getElementById('sshModalPassword').value = t2 ? (t2.password || '') : '';
+  document.getElementById('sshModalError').textContent = '';
+  document.getElementById('sshModalId').value = t2 ? t2.id : '';
+  document.getElementById('sshModal').classList.add('open');
+}
+
+function editSshTarget(id, targetId) {
+  openSshModal(id, targetId);
+}
+
+function closeSshModal() {
+  document.getElementById('sshModal').classList.remove('open');
+}
+
+async function saveSshModal() {
+  const id = document.getElementById('sshModalProjectId').value;
+  const targetId = document.getElementById('sshModalId').value;
+  const body = {
+    label: document.getElementById('sshModalLabel').value.trim(),
+    host: document.getElementById('sshModalHost').value.trim(),
+    port: Number(document.getElementById('sshModalPort').value) || 22,
+    username: document.getElementById('sshModalUsername').value.trim(),
+    password: document.getElementById('sshModalPassword').value,
+  };
+  if (!body.host || !body.username) {
+    document.getElementById('sshModalError').textContent = t('sshRequiredError');
+    return;
+  }
+  const url = targetId
+    ? `/api/projects/${id}/ssh-targets/${targetId}`
+    : `/api/projects/${id}/ssh-targets`;
+  const res = await fetch(url, {
+    method: targetId ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    document.getElementById('sshModalError').textContent = data.error || t('sshSaveFailed');
+    return;
+  }
+  closeSshModal();
+  await fetchProjects();
+}
+
+async function deleteSshTarget(id, targetId) {
+  if (!(await showConfirm(t('confirmDeleteSshTarget')))) return;
+  await fetch(`/api/projects/${id}/ssh-targets/${targetId}`, { method: 'DELETE' });
+  await fetchProjects();
+}
+
+async function connectSsh(id, targetId) {
+  sshConnectState.set(id, { targetId, error: null });
+  try {
+    const res = await fetch(`/api/projects/${id}/ssh-targets/${targetId}/connect`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      sshConnectState.set(id, { targetId, error: data.error || t('sshConnectFailed') });
+    }
+  } catch (e) {
+    sshConnectState.set(id, { targetId, error: e.message });
+  }
+  render();
 }
 
 // --- Git panel ---

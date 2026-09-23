@@ -25,6 +25,65 @@ function isRunning(id) {
   return running.has(id);
 }
 
+// Matches Next.js's "Another next dev server is already running" message,
+// which prints the stray process's PID a couple lines down, e.g.:
+//   ⨯ Another next dev server is already running.
+//   - PID:          18988
+const STALE_NEXT_SERVER_RE = /Another next dev server is already running/i;
+const NEXT_SERVER_PID_RE = /PID:\s*(\d+)/i;
+
+function killPid(pid) {
+  return new Promise((resolve) => {
+    const killer = spawn('taskkill', ['/pid', String(pid), '/T', '/F']);
+    killer.on('exit', () => resolve());
+    killer.on('error', () => resolve());
+  });
+}
+
+function spawnProject(project, command, env, { isRetry } = {}) {
+  let outputSoFar = '';
+  let retried = false;
+
+  const child = spawn(command, {
+    cwd: project.cwd,
+    shell: true,
+    env,
+  });
+
+  running.set(project.id, { proc: child, startedAt: Date.now() });
+
+  const handleChunk = (text) => {
+    appendLog(project.id, text);
+    if (isRetry || retried) return; // only auto-retry once
+    outputSoFar += text;
+    if (STALE_NEXT_SERVER_RE.test(outputSoFar)) {
+      const match = outputSoFar.match(NEXT_SERVER_PID_RE);
+      if (match) {
+        retried = true;
+        const stalePid = match[1];
+        appendLog(project.id, `\n[lotwork] Found a stale Next.js dev server (PID ${stalePid}), stopping it and retrying...\n`);
+        killPid(stalePid).then(() => {
+          spawn('taskkill', ['/pid', String(child.pid), '/T', '/F']);
+          setTimeout(() => spawnProject(project, command, env, { isRetry: true }), 500);
+        });
+      }
+    }
+  };
+
+  child.stdout.on('data', (data) => handleChunk(data.toString()));
+  child.stderr.on('data', (data) => handleChunk(data.toString()));
+  child.on('exit', (code) => {
+    if (retried) return; // the retry's own exit handler will report the final outcome
+    appendLog(project.id, `\n[process exited with code ${code}]\n`);
+    running.delete(project.id);
+  });
+  child.on('error', (err) => {
+    if (retried) return;
+    appendLog(project.id, `\n[error: ${err.message}]\n`);
+    running.delete(project.id);
+  });
+}
+
 function startProject(project) {
   if (running.has(project.id)) {
     throw new Error('Project sudah berjalan');
@@ -37,30 +96,9 @@ function startProject(project) {
   logsById.set(project.id, []);
   appendLog(project.id, `$ ${command}\n`);
 
-  const child = spawn(command, {
-    cwd: project.cwd,
-    shell: true,
-    env,
-  });
+  spawnProject(project, command, env);
 
-  running.set(project.id, { proc: child, startedAt: Date.now() });
-
-  child.stdout.on('data', (data) => {
-    appendLog(project.id, data.toString());
-  });
-  child.stderr.on('data', (data) => {
-    appendLog(project.id, data.toString());
-  });
-  child.on('exit', (code) => {
-    appendLog(project.id, `\n[process exited with code ${code}]\n`);
-    running.delete(project.id);
-  });
-  child.on('error', (err) => {
-    appendLog(project.id, `\n[error: ${err.message}]\n`);
-    running.delete(project.id);
-  });
-
-  return { pid: child.pid };
+  return { pid: running.get(project.id).proc.pid };
 }
 
 function stopProject(id) {

@@ -50,7 +50,28 @@ if ($caddyInstalled) {
     }
 }
 
-# 3. Generate icon if missing
+# 3. Install PuTTY if missing (its plink.exe lets the SSH feature auto-fill
+# the password; without it, lotwork falls back to a plain `ssh` prompt).
+Write-Step "Checking PuTTY (plink)"
+$plinkInstalled = Get-Command plink -ErrorAction SilentlyContinue
+$puttyViaWinget = winget list --id PuTTY.PuTTY 2>$null | Select-String "PuTTY.PuTTY"
+if ($plinkInstalled) {
+    Write-Output "PuTTY already installed: $($plinkInstalled.Source)"
+} elseif ($puttyViaWinget) {
+    Write-Output "PuTTY is installed but not yet visible in this session's PATH."
+    Write-Output "Restart lotwork (or your terminal) once for it to be detected."
+} else {
+    Write-Output "PuTTY not found. Installing via winget..."
+    try {
+        winget install PuTTY.PuTTY --accept-package-agreements --accept-source-agreements
+        Write-Output "PuTTY installed. Restart lotwork for PATH changes to take effect."
+    } catch {
+        Write-Output "WARNING: Failed to install PuTTY automatically ($($_.Exception.Message))."
+        Write-Output "Install it manually later with: winget install PuTTY.PuTTY"
+    }
+}
+
+# 4. Generate icon if missing
 Write-Step "Checking icon"
 $iconPath = Join-Path $root "lotwork.ico"
 if (Test-Path $iconPath) {
@@ -60,7 +81,7 @@ if (Test-Path $iconPath) {
     & "$PSScriptRoot\make-icon.ps1"
 }
 
-# 4. Create Desktop shortcut
+# 5. Create Desktop shortcut
 Write-Step "Creating Desktop shortcut"
 $desktop = [Environment]::GetFolderPath("Desktop")
 $shortcutPath = Join-Path $desktop "lotwork.lnk"
@@ -75,7 +96,7 @@ $shortcut.Description = "lotwork - Local Project Manager"
 $shortcut.Save()
 Write-Output "Shortcut created at $shortcutPath"
 
-# 5. Set shortcut to always run as Administrator (needed to edit hosts file for custom domains)
+# 6. Set shortcut to always run as Administrator (needed to edit hosts file for custom domains)
 Write-Step "Setting shortcut to run as Administrator"
 $bytes = [System.IO.File]::ReadAllBytes($shortcutPath)
 $bytes[0x15] = $bytes[0x15] -bor 0x20

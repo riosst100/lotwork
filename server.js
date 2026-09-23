@@ -10,6 +10,7 @@ const envFile = require('./envFile');
 const nextConfig = require('./nextConfig');
 const gitOps = require('./gitOps');
 const systemServices = require('./systemServices');
+const sshLauncher = require('./sshLauncher');
 const { dataDir, publicDir, appRoot } = require('./paths');
 
 const app = express();
@@ -287,6 +288,46 @@ app.post('/api/projects/:id/commands/:cmdId/run', async (req, res) => {
   }
 });
 
+app.post('/api/projects/:id/ssh-targets', (req, res) => {
+  try {
+    const target = store.addSshTarget(req.params.id, req.body);
+    res.json(target);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/projects/:id/ssh-targets/:targetId', (req, res) => {
+  try {
+    const target = store.updateSshTarget(req.params.id, req.params.targetId, req.body);
+    res.json(target);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/projects/:id/ssh-targets/:targetId', (req, res) => {
+  try {
+    store.removeSshTarget(req.params.id, req.params.targetId);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/projects/:id/ssh-targets/:targetId/connect', (req, res) => {
+  const project = store.getProject(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  const target = (project.sshTargets || []).find(t => t.id === req.params.targetId);
+  if (!target) return res.status(404).json({ error: 'SSH target tidak ditemukan' });
+  try {
+    const result = sshLauncher.launchSsh(target);
+    res.json({ ok: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // The "LotWork" self-entry isn't a real registered project, so its GitHub
 // panel operates on lotwork's own repo (appRoot) instead of a project.cwd.
 function resolveProjectCwd(id) {
@@ -380,6 +421,15 @@ app.post('/api/caddy/reload', (req, res) => {
 
 app.get('/api/caddy/status', (req, res) => {
   res.json(caddy.checkCaddyAvailability());
+});
+
+app.get('/api/environment', (req, res) => {
+  res.json({ environment: store.getEnvironment() });
+});
+
+app.put('/api/environment', (req, res) => {
+  const environment = store.setEnvironment(req.body.environment);
+  res.json({ environment });
 });
 
 app.post('/api/caddy/install', (req, res) => {

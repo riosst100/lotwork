@@ -3,11 +3,36 @@ const path = require('path');
 const { dataDir } = require('./paths');
 
 const DATA_FILE = path.join(dataDir, 'projects.json');
+const CONFIG_FILE = path.join(dataDir, 'config.json');
 
 function ensureDataFile() {
   const dir = path.dirname(DATA_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ projects: [] }, null, 2));
+}
+
+// Global app-level setting (not per-project): whether this lotwork instance
+// is running on a dev machine or on a production VPS. Purely a UI signal
+// (badge/color) so it's obvious which one you're looking at - it doesn't
+// change any start/stop/proxy behavior.
+function getEnvironment() {
+  const dir = path.dirname(CONFIG_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(CONFIG_FILE)) return 'local';
+  try {
+    const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+    return config.environment === 'production' ? 'production' : 'local';
+  } catch {
+    return 'local';
+  }
+}
+
+function setEnvironment(environment) {
+  const value = environment === 'production' ? 'production' : 'local';
+  const dir = path.dirname(CONFIG_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify({ environment: value }, null, 2));
+  return value;
 }
 
 function loadProjects() {
@@ -154,7 +179,47 @@ function removeCredential(projectId, credentialId) {
   saveProjects(projects);
 }
 
+function addSshTarget(projectId, target) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  if (!target.host || !target.username) throw new Error('Host dan username wajib diisi');
+  const newTarget = {
+    id: String(Date.now()),
+    label: target.label || '',
+    host: target.host,
+    port: target.port ? Number(target.port) : 22,
+    username: target.username,
+    password: target.password || '',
+  };
+  projects[idx].sshTargets = [...(projects[idx].sshTargets || []), newTarget];
+  saveProjects(projects);
+  return newTarget;
+}
+
+function updateSshTarget(projectId, targetId, updates) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  const targets = projects[idx].sshTargets || [];
+  const tIdx = targets.findIndex(t => t.id === targetId);
+  if (tIdx === -1) throw new Error('SSH target tidak ditemukan');
+  targets[tIdx] = { ...targets[tIdx], ...updates, id: targetId };
+  projects[idx].sshTargets = targets;
+  saveProjects(projects);
+  return targets[tIdx];
+}
+
+function removeSshTarget(projectId, targetId) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  projects[idx].sshTargets = (projects[idx].sshTargets || []).filter(t => t.id !== targetId);
+  saveProjects(projects);
+}
+
 module.exports = {
   loadProjects, saveProjects, addProject, updateProject, removeProject, getProject, incrementStartCount,
   addCredential, updateCredential, removeCredential, setLastPulledAt, addCommand, removeCommand,
+  addSshTarget, updateSshTarget, removeSshTarget, getEnvironment, setEnvironment,
 };
