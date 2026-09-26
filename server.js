@@ -414,6 +414,15 @@ app.post('/api/projects/:id/git/init', async (req, res) => {
   }
 });
 
+app.post('/api/projects/:id/pin', (req, res) => {
+  try {
+    const project = store.togglePinned(req.params.id);
+    res.json(serialize(project));
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 app.post('/api/caddy/reload', (req, res) => {
   const { caddyResult, hostsResult } = syncDomains();
   res.json({ ...caddyResult, hostsMessage: hostsResult.message, hostsOk: hostsResult.ok });
@@ -475,6 +484,41 @@ app.post('/api/hosts/sync', (req, res) => {
   const domains = projects.filter(p => p.domain).map(p => p.domain);
   const result = hosts.syncHosts(domains);
   res.json(result);
+});
+
+app.get('/api/hosts', (req, res) => {
+  try {
+    res.json(hosts.listEntries());
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/hosts/entries', (req, res) => {
+  try {
+    hosts.addEntry(req.body);
+    res.json(hosts.listEntries());
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/hosts/entries/:line', (req, res) => {
+  try {
+    hosts.updateEntry(Number(req.params.line), req.body.raw, req.body);
+    res.json(hosts.listEntries());
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/hosts/entries/:line', (req, res) => {
+  try {
+    hosts.deleteEntry(Number(req.params.line), req.body.raw);
+    res.json(hosts.listEntries());
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 app.listen(PORT, () => {

@@ -18,15 +18,53 @@ const SERVICE_DEFINITIONS = [
 // stop script ships with an unsubstituted "@@BITROCK_INSTALLDIR@@"
 // placeholder from the installer template, so it never actually runs.
 // mysqld.exe is spawned/killed directly instead.
-const XAMPP_ROOT = 'C:\\xampp';
-const XAMPP_PROCESS_DEFINITIONS = [
-  {
-    id: 'xampp-mysql', label: 'MySQL (XAMPP)', processName: 'mysqld',
-    exe: `${XAMPP_ROOT}\\mysql\\bin\\mysqld.exe`,
-    args: ['--defaults-file=' + `${XAMPP_ROOT}\\mysql\\bin\\my.ini`, '--standalone', '--skip-grant-tables'],
-    cwd: `${XAMPP_ROOT}\\mysql\\bin`,
-  },
+// XAMPP can be installed on any drive, so a few common roots are checked
+// rather than assuming C:\xampp.
+const XAMPP_ROOT_CANDIDATES = ['C:\\xampp', 'D:\\xampp', 'E:\\xampp'];
+
+function findXamppRoot() {
+  return XAMPP_ROOT_CANDIDATES.find(root => fs.existsSync(root)) || null;
+}
+
+function buildXamppDefs(xamppRoot) {
+  return [
+    {
+      id: 'xampp-mysql', label: 'MySQL (XAMPP)', processName: 'mysqld',
+      exe: `${xamppRoot}\\mysql\\bin\\mysqld.exe`,
+      args: ['--defaults-file=' + `${xamppRoot}\\mysql\\bin\\my.ini`, '--standalone', '--skip-grant-tables'],
+      cwd: `${xamppRoot}\\mysql\\bin`,
+    },
+  ];
+}
+
+// Manually-installed MySQL (downloaded zip, not the Windows installer and
+// not bundled with a stack like XAMPP/Laragon) also just runs mysqld.exe as
+// a plain process, launched with --defaults-file pointing at its own my.ini.
+// Each candidate root is checked for that layout; every match found is
+// listed as its own entry (with a unique id derived from the root) so two
+// manual MySQL installs never collide with each other.
+const MANUAL_MYSQL_ROOT_CANDIDATES = [
+  'D:\\devtools\\mysql-8.4',
+  'C:\\devtools\\mysql-8.4',
+  'D:\\mysql',
+  'C:\\mysql',
 ];
+
+function findManualMysqlRoots() {
+  return MANUAL_MYSQL_ROOT_CANDIDATES.filter(root => fs.existsSync(`${root}\\bin\\mysqld.exe`));
+}
+
+function buildManualMysqlDef(root) {
+  const id = 'manual-mysql-' + root.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  const iniPath = `${root}\\my.ini`;
+  const args = fs.existsSync(iniPath) ? [`--defaults-file=${iniPath}`] : [];
+  return {
+    id, label: `MySQL (${root})`, processName: 'mysqld',
+    exe: `${root}\\bin\\mysqld.exe`,
+    args,
+    cwd: `${root}\\bin`,
+  };
+}
 
 function run(cmd, args) {
   return new Promise((resolve, reject) => {
@@ -71,6 +109,26 @@ function getWindowsProcessNames() {
   }
 }
 
+// Full executable paths of every running process, via Win32_Process (which
+// exposes ExecutablePath, unlike Get-Process). Needed because two separate
+// manually-run mysqld.exe instances (e.g. XAMPP's and a standalone install)
+// share the same process name - matching by name alone can't tell them
+// apart, so status is checked by exact exe path instead.
+function getRunningExecutablePaths() {
+  try {
+    const out = execFileSync(
+      'powershell',
+      ['-NoProfile', '-Command', "Get-CimInstance Win32_Process | Select-Object -ExpandProperty ExecutablePath"],
+      { encoding: 'utf-8', timeout: 15000, windowsHide: true }
+    );
+    return new Set(
+      out.split('\n').map(s => s.trim().toLowerCase()).filter(Boolean)
+    );
+  } catch {
+    return new Set();
+  }
+}
+
 // Finds installed dev-database services on this machine and their current
 // status. Returns only services that were actually found (not every
 // definition), since most machines won't have all of them installed.
@@ -93,19 +151,26 @@ function detectServices() {
     }
   }
 
-  // Only list XAMPP entries whose executable actually exists on this
-  // machine, since XAMPP_ROOT is a guess (default install path).
-  if (fs.existsSync(XAMPP_ROOT)) {
-    const processNames = getWindowsProcessNames();
-    for (const def of XAMPP_PROCESS_DEFINITIONS) {
+  // Process-based MySQL installs (XAMPP's bundled copy, plus any manually
+  // unzipped standalone installs) - only list entries whose exe actually
+  // exists on this machine, and check "running" by exact exe path since
+  // process name alone ("mysqld") can't tell two such installs apart.
+  const processDefs = [];
+  const xamppRoot = findXamppRoot();
+  if (xamppRoot) processDefs.push(...buildXamppDefs(xamppRoot));
+  for (const root of findManualMysqlRoots()) processDefs.push(buildManualMysqlDef(root));
+
+  if (processDefs.length > 0) {
+    const runningPaths = getRunningExecutablePaths();
+    for (const def of processDefs) {
       if (!fs.existsSync(def.exe)) continue;
       found.push({
         id: def.id,
         label: def.label,
         serviceName: def.id,
         displayName: def.label,
-        running: processNames.includes(def.processName),
-        kind: 'xampp',
+        running: runningPaths.has(def.exe.toLowerCase()),
+        kind: def.id.startsWith('xampp') ? 'xampp' : 'manual-process',
       });
     }
   }
@@ -113,19 +178,28 @@ function detectServices() {
   return found;
 }
 
-function findXamppDef(serviceName) {
-  return XAMPP_PROCESS_DEFINITIONS.find(d => d.id === serviceName);
+// Looks up a process-based def (XAMPP or manual MySQL) by its id, across
+// every root currently found on disk.
+function findProcessDef(serviceName) {
+  const defs = [];
+  const xamppRoot = findXamppRoot();
+  if (xamppRoot) defs.push(...buildXamppDefs(xamppRoot));
+  for (const root of findManualMysqlRoots()) defs.push(buildManualMysqlDef(root));
+  return defs.find(d => d.id === serviceName) || null;
 }
 
 async function startService(serviceName) {
-  const xampp = findXamppDef(serviceName);
-  if (xampp) {
-    // mysqld runs in the foreground until stopped, so it's spawned detached
-    // (unref'd) rather than awaited like a one-shot command - awaiting it
-    // via execFile would hang forever since it never exits on its own.
-    const child = spawn(xampp.exe, xampp.args, {
-      cwd: xampp.cwd,
-      detached: true,
+  const processDef = findProcessDef(serviceName);
+  if (processDef) {
+    // mysqld runs in the foreground until stopped, so it's spawned and
+    // unref'd rather than awaited like a one-shot command - awaiting it via
+    // execFile would hang forever since it never exits on its own.
+    // `detached: true` on Windows gives the child its own console, which
+    // defeats `windowsHide` and pops up mysqld's console window; omitting
+    // it keeps windowsHide effective while unref() still lets lotwork exit
+    // independently of the child.
+    const child = spawn(processDef.exe, processDef.args, {
+      cwd: processDef.cwd,
       stdio: 'ignore',
       windowsHide: true,
     });
@@ -136,11 +210,56 @@ async function startService(serviceName) {
 }
 
 async function stopService(serviceName) {
-  const xampp = findXamppDef(serviceName);
-  if (xampp) {
-    // XAMPP's own mysql_stop.bat ships broken (see comment above), so the
-    // process is killed directly by name instead.
-    await run('taskkill', ['/IM', `${xampp.processName}.exe`, '/F']);
+  const processDef = findProcessDef(serviceName);
+  if (processDef) {
+    // Killing by exe name alone (taskkill /IM mysqld.exe) would also kill
+    // any other mysqld.exe instance running from a different install (e.g.
+    // XAMPP's and a standalone one at once), so only PIDs matching this
+    // install's exact exe path are targeted - via WMI filter, since taskkill
+    // has no path-based filter. mysqld can spawn itself as a child process
+    // on Windows, so every matching PID is killed, not just the first.
+    let pids = [];
+    let unreadablePathCount = 0;
+    try {
+      const out = execFileSync(
+        'powershell',
+        ['-NoProfile', '-Command',
+          `Get-CimInstance Win32_Process -Filter "Name='${processDef.processName}.exe'" | ` +
+          `Select-Object ProcessId, ExecutablePath | ConvertTo-Json -Compress`],
+        { encoding: 'utf-8', timeout: 15000, windowsHide: true }
+      );
+      const trimmed = out.trim();
+      if (trimmed) {
+        const parsed = JSON.parse(trimmed);
+        const list = Array.isArray(parsed) ? parsed : [parsed];
+        for (const proc of list) {
+          if (!proc.ExecutablePath) {
+            // WMI couldn't read this process's path - typically because it's
+            // running with higher privileges than this lookup. Can't safely
+            // tell if it's this install or a different one, so it's neither
+            // killed nor silently ignored; surfaced as its own error below.
+            unreadablePathCount++;
+          } else if (proc.ExecutablePath.toLowerCase() === processDef.exe.toLowerCase()) {
+            pids.push(String(proc.ProcessId));
+          }
+        }
+      }
+    } catch {
+      // fall through - no matching process found
+    }
+    if (pids.length === 0) {
+      if (unreadablePathCount > 0) {
+        throw new Error(
+          `Ada ${unreadablePathCount} proses mysqld.exe yang jalan tapi path-nya tidak bisa dibaca ` +
+          `(biasanya karena privilege berbeda dari lotwork). Jalankan lotwork sebagai Administrator, ` +
+          `atau matikan proses itu manual lewat Task Manager.`
+        );
+      }
+      throw new Error(`${processDef.label} tidak sedang berjalan dari lokasi ini`);
+    }
+    for (const pid of pids) {
+      await run('taskkill', ['/PID', pid, '/F']);
+    }
     return;
   }
   await run('powershell', ['-NoProfile', '-Command', `Stop-Service -Name "${serviceName}" -Force`]);

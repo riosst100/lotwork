@@ -45,8 +45,11 @@ function loadProjects() {
     projects = [];
   }
   return projects
-    .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], isSidejob: false, ...p }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], isSidejob: false, pinned: false, ...p }))
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
 }
 
 function saveProjects(projects) {
@@ -75,6 +78,7 @@ function addProject(project) {
     startCount: 0,
     lastStartedAt: null,
     credentials: [],
+    pinned: false,
   };
   projects.push(newProject);
   saveProjects(projects);
@@ -110,6 +114,15 @@ function incrementStartCount(id) {
   projects[idx].startCount = (projects[idx].startCount || 0) + 1;
   projects[idx].lastStartedAt = Date.now();
   saveProjects(projects);
+}
+
+function togglePinned(id) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === id);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  projects[idx].pinned = !projects[idx].pinned;
+  saveProjects(projects);
+  return projects[idx];
 }
 
 function setLastPulledAt(id, timestamp) {
@@ -221,5 +234,5 @@ function removeSshTarget(projectId, targetId) {
 module.exports = {
   loadProjects, saveProjects, addProject, updateProject, removeProject, getProject, incrementStartCount,
   addCredential, updateCredential, removeCredential, setLastPulledAt, addCommand, removeCommand,
-  addSshTarget, updateSshTarget, removeSshTarget, getEnvironment, setEnvironment,
+  addSshTarget, updateSshTarget, removeSshTarget, getEnvironment, setEnvironment, togglePinned,
 };

@@ -240,6 +240,14 @@
   .project-info { display: flex; flex-direction: column; gap: 6px; }
   .project-name-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .proj-name { font-weight: 700; font-size: 15.5px; }
+  .pin-btn {
+    background: transparent; border: none; box-shadow: none; padding: 2px; font-size: 17px;
+    color: var(--border); cursor: pointer; line-height: 1; display: flex; align-items: center;
+  }
+  .pin-btn:hover { color: var(--yellow); transform: none; }
+  .pin-btn.pinned { color: var(--yellow); }
+  .project-card.pinned { border-color: var(--yellow); }
+  .project-card.pinned::before { background: linear-gradient(var(--yellow), var(--accent)); opacity: 1; }
   .repo-link {
     display: inline-flex; align-items: center; gap: 5px; color: var(--muted-2); text-decoration: none;
     font-size: 11.5px; margin-top: 2px; margin-bottom: 8px; font-family: "Cascadia Code", Consolas, monospace;
@@ -391,6 +399,49 @@
   .env-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .env-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted-2); align-items: center; }
   .env-legend .source-badge { position: relative; top: -1px; cursor: default; }
+
+  /* --- Edit Hosts page --- */
+  .hosts-page { display: none; }
+  body.page-hosts .hosts-page { display: block; }
+  body.page-hosts .main-layout { display: none; }
+  .hosts-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .hosts-header h2 { margin: 0; font-size: 20px; font-weight: 700; }
+  .hosts-path { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; color: var(--muted-2); }
+  .hosts-card {
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 18px;
+  }
+  .hosts-card-title {
+    font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .hosts-form { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .hosts-form input, .hosts-filter, .hosts-row input:not([type="checkbox"]) {
+    padding: 9px 11px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+    background: var(--bg-2); color: var(--text); font-size: 13px;
+    font-family: "Cascadia Code", Consolas, monospace; min-width: 0;
+  }
+  .hosts-form input:focus, .hosts-filter:focus, .hosts-row input:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .hosts-form .h-ip, .hosts-row .h-ip { flex: 0 0 170px; }
+  .hosts-form .h-hosts, .hosts-row .h-hosts { flex: 2 1 220px; }
+  .hosts-form .h-comment, .hosts-row .h-comment { flex: 1 1 160px; }
+  .hosts-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hosts-filter { width: 260px; max-width: 100%; font-family: inherit; }
+  .hosts-row {
+    display: flex; gap: 10px; align-items: center; padding: 10px 12px; margin-bottom: 8px;
+    background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+  }
+  .hosts-row.disabled .h-text { opacity: 0.45; text-decoration: line-through; }
+  .hosts-row .h-text { font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; min-width: 0; word-break: break-all; }
+  .hosts-row .h-text.h-ip { color: var(--accent-2); }
+  .hosts-row .h-text.h-comment { color: var(--muted-2); }
+  .hosts-row .h-actions { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; align-items: center; }
+  .hosts-row .h-toggle { width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+  .hosts-empty { color: var(--muted-2); font-size: 12.5px; padding: 28px 0; text-align: center; }
+  .hosts-note { font-size: 12px; color: var(--muted-2); margin-top: 10px; line-height: 1.5; }
 
   #credentialsList { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; max-height: 320px; overflow-y: auto; }
   .cred-card {
@@ -544,6 +595,7 @@
       <div class="toolbar">
         <button id="addProjectBtn" onclick="openAddModal()">+ Add Project</button>
         <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">&#8635; Reload Caddy / Sync Domains</button>
+        <button class="secondary" id="editHostsBtn" onclick="location.hash = '#hosts'">Edit Hosts</button>
         <button class="secondary icon-btn" id="toggleSidejobsBtn" style="display:none;" onclick="toggleShowSidejobs()"></button>
       </div>
 
@@ -555,6 +607,8 @@
       <div id="servicesList"></div>
     </aside>
   </div>
+
+  <section class="hosts-page" id="hostsPage"></section>
 </main>
 
 <div class="modal-bg" id="addModal">
@@ -719,6 +773,26 @@ function showConfirm(message, title) {
 const I18N = {
   en: {
     subtitle: 'Local dev project manager',
+    editHosts: 'Edit Hosts',
+    hostsTitle: 'Hosts File',
+    back: '&larr; Back',
+    hostsAddTitle: 'Add entry',
+    hostsEntriesTitle: 'Entries',
+    hostsIp: 'IP address',
+    hostsHostnames: 'hostname(s), space separated',
+    hostsComment: 'comment (optional)',
+    hostsAdd: '+ Add',
+    hostsFilter: 'Search IP / hostname...',
+    hostsEmpty: 'No entries.',
+    hostsLoading: 'Loading hosts file...',
+    hostsLoadFailed: 'Failed to read hosts file',
+    hostsSaveFailed: 'Failed to save hosts file',
+    hostsConfirmDelete: (h) => `Delete entry "${h}" from hosts file?`,
+    hostsManagedBadge: 'lotwork',
+    hostsManagedHint: 'Managed by lotwork from project custom domains. Edit it from the project instead.',
+    hostsToggleHint: 'Enable / disable (comment out)',
+    hostsNote: 'Writing the hosts file requires lotwork to run as Administrator. The DNS cache is flushed automatically after every change.',
+    hostsCount: (n, total) => `(${n} of ${total})`,
     caddyChecking: 'checking caddy...',
     caddyInstalled: 'Caddy: installed',
     caddyNotInstalled: 'Caddy: not installed (click to install)',
@@ -751,6 +825,8 @@ const I18N = {
     confirmDeleteSshTarget: 'Delete this SSH target?',
     sshConnectFailed: 'Failed to launch SSH connection',
     moreOptions: 'More options',
+    pinProject: 'Pin to top',
+    unpinProject: 'Unpin',
     setSidejob: 'Set as Sidejob',
     unsetSidejob: 'Unset Sidejob',
     sidejob: 'Sidejob',
@@ -889,6 +965,26 @@ const I18N = {
   },
   id: {
     subtitle: 'Local dev project manager',
+    editHosts: 'Edit Hosts',
+    hostsTitle: 'File Hosts',
+    back: '&larr; Kembali',
+    hostsAddTitle: 'Tambah entry',
+    hostsEntriesTitle: 'Daftar entry',
+    hostsIp: 'Alamat IP',
+    hostsHostnames: 'hostname, pisahkan dengan spasi',
+    hostsComment: 'komentar (opsional)',
+    hostsAdd: '+ Tambah',
+    hostsFilter: 'Cari IP / hostname...',
+    hostsEmpty: 'Tidak ada entry.',
+    hostsLoading: 'Memuat file hosts...',
+    hostsLoadFailed: 'Gagal membaca file hosts',
+    hostsSaveFailed: 'Gagal menyimpan file hosts',
+    hostsConfirmDelete: (h) => `Hapus entry "${h}" dari file hosts?`,
+    hostsManagedBadge: 'lotwork',
+    hostsManagedHint: 'Dikelola lotwork dari custom domain project. Ubah lewat project-nya.',
+    hostsToggleHint: 'Aktifkan / nonaktifkan (jadikan komentar)',
+    hostsNote: 'Menulis file hosts butuh lotwork dijalankan sebagai Administrator. Cache DNS otomatis di-flush setiap ada perubahan.',
+    hostsCount: (n, total) => `(${n} dari ${total})`,
     caddyChecking: 'memeriksa caddy...',
     caddyInstalled: 'Caddy: terpasang',
     caddyNotInstalled: 'Caddy: belum terpasang (klik untuk install)',
@@ -921,6 +1017,8 @@ const I18N = {
     confirmDeleteSshTarget: 'Hapus SSH target ini?',
     sshConnectFailed: 'Gagal membuka koneksi SSH',
     moreOptions: 'Opsi lainnya',
+    pinProject: 'Pin ke atas',
+    unpinProject: 'Lepas pin',
     setSidejob: 'Jadikan Sidejob',
     unsetSidejob: 'Batalkan Sidejob',
     sidejob: 'Sidejob',
@@ -1086,6 +1184,8 @@ function updateStaticTexts() {
   document.querySelector('header .sub').textContent = t('subtitle');
   document.getElementById('addProjectBtn').textContent = t('addProject');
   document.getElementById('reloadCaddyBtn').innerHTML = t('reloadCaddy');
+  document.getElementById('editHostsBtn').textContent = t('editHosts');
+  if (document.body.classList.contains('page-hosts')) renderHostsPage();
   document.getElementById('fStack').options[0].textContent = t('stackPlaceholder');
   document.querySelector('#fStack option[value="custom"]').textContent = t('stackCustom');
   document.getElementById('lblName').textContent = t('fieldName');
@@ -1234,7 +1334,7 @@ function render() {
       : '';
 
     return `
-      <div class="project-card ${running ? 'running' : ''}">
+      <div class="project-card ${running ? 'running' : ''} ${p.pinned ? 'pinned' : ''}">
         <div class="card-menu-wrap">
           <button type="button" class="card-menu-btn" title="${t('moreOptions')}" onclick="toggleCardMenu(event, '${p.id}')">&#8942;</button>
           ${cardMenuOpenId === p.id ? `
@@ -1246,6 +1346,7 @@ function render() {
         <div class="project-top">
           <div class="project-info">
             <div class="project-name-row">
+              <button type="button" class="pin-btn ${p.pinned ? 'pinned' : ''}" title="${p.pinned ? t('unpinProject') : t('pinProject')}" onclick="togglePin('${p.id}')">&#9733;</button>
               <span class="proj-name">${escapeHtml(p.name)}</span>
               <span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? t('running') : t('stopped')}</span>
             </div>
@@ -1298,6 +1399,11 @@ document.addEventListener('click', () => {
     render();
   }
 });
+
+async function togglePin(id) {
+  await fetch(`/api/projects/${id}/pin`, { method: 'POST' });
+  await fetchProjects();
+}
 
 async function toggleSidejob(id, isSidejob) {
   cardMenuOpenId = null;
@@ -2506,9 +2612,16 @@ async function confirmPullFromMain(id) {
     if (!res.ok) {
       state.pullError = result.error || t('pullFromMainFailed');
     } else {
+      // Refresh the underlying git data in the background, but keep this
+      // same state object (with pullSuccess set) instead of calling
+      // loadGitStatus() - that replaces the whole state and would wipe out
+      // the success message before the user ever sees it.
+      const res2 = await fetch(`/api/projects/${id}/git/status`);
+      const freshData = await res2.json();
+      state.data = freshData;
+      state.selectedFiles = new Set((freshData.files || []).map(f => f.path));
       state.pullSuccess = t('pullFromMainSuccess', mainBranch, currentBranch);
-      await loadGitStatus(id);
-      return;
+      await fetchProjects();
     }
   } catch (e) {
     state.pullError = e.message;
@@ -2701,6 +2814,228 @@ async function toggleService(serviceName, currentlyRunning) {
     await loadServices();
   }
 }
+
+// --- Edit Hosts page ---
+// Routed via location.hash (#hosts) so the browser Back button works.
+const hostsState = {
+  data: null,
+  loading: false,
+  error: null,
+  busy: false,
+  filter: '',
+  editingLine: null,
+  editDraft: null,
+  addDraft: { ip: '127.0.0.1', hostnames: '', comment: '' },
+};
+
+function isHostsPage() {
+  return location.hash === '#hosts';
+}
+
+function applyRoute() {
+  const onHosts = isHostsPage();
+  document.body.classList.toggle('page-hosts', onHosts);
+  if (onHosts) loadHosts();
+}
+
+window.addEventListener('hashchange', applyRoute);
+
+async function loadHosts() {
+  hostsState.loading = true;
+  renderHostsPage();
+  try {
+    const res = await fetch('/api/hosts');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || t('hostsLoadFailed'));
+    hostsState.data = data;
+    hostsState.error = null;
+  } catch (e) {
+    hostsState.error = `${t('hostsLoadFailed')}: ${e.message}`;
+  } finally {
+    hostsState.loading = false;
+    renderHostsPage();
+  }
+}
+
+// Runs a mutating request; the server replies with the fresh entry list.
+async function hostsRequest(method, url, body) {
+  if (hostsState.busy) return false;
+  hostsState.busy = true;
+  renderHostsPage();
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      await showAlert(data.error || t('hostsSaveFailed'));
+      return false;
+    }
+    hostsState.data = data;
+    return true;
+  } catch (e) {
+    await showAlert(`${t('hostsSaveFailed')}\n\n${e.message}`);
+    return false;
+  } finally {
+    hostsState.busy = false;
+    renderHostsPage();
+  }
+}
+
+function findHostsEntry(line) {
+  return hostsState.data && hostsState.data.entries.find(e => e.line === line);
+}
+
+async function addHostsEntry() {
+  const d = hostsState.addDraft;
+  const ok = await hostsRequest('POST', '/api/hosts/entries', { ip: d.ip, hostnames: d.hostnames, comment: d.comment, enabled: true });
+  if (ok) {
+    hostsState.addDraft = { ip: d.ip, hostnames: '', comment: '' };
+    renderHostsPage();
+  }
+}
+
+function startEditHostsEntry(line) {
+  const entry = findHostsEntry(line);
+  if (!entry) return;
+  hostsState.editingLine = line;
+  hostsState.editDraft = { ip: entry.ip, hostnames: entry.hostnames.join(' '), comment: entry.comment };
+  renderHostsPage();
+}
+
+function cancelEditHostsEntry() {
+  hostsState.editingLine = null;
+  hostsState.editDraft = null;
+  renderHostsPage();
+}
+
+async function saveHostsEntry(line) {
+  const entry = findHostsEntry(line);
+  if (!entry) return;
+  const d = hostsState.editDraft;
+  const ok = await hostsRequest('PUT', `/api/hosts/entries/${line}`, { raw: entry.raw, ip: d.ip, hostnames: d.hostnames, comment: d.comment, enabled: entry.enabled });
+  if (ok) cancelEditHostsEntry();
+}
+
+async function toggleHostsEntry(line, enabled) {
+  const entry = findHostsEntry(line);
+  if (!entry) return;
+  await hostsRequest('PUT', `/api/hosts/entries/${line}`, { raw: entry.raw, ip: entry.ip, hostnames: entry.hostnames, comment: entry.comment, enabled });
+}
+
+async function deleteHostsEntry(line) {
+  const entry = findHostsEntry(line);
+  if (!entry) return;
+  const confirmed = await showConfirm(t('hostsConfirmDelete', `${entry.ip} ${entry.hostnames.join(' ')}`));
+  if (!confirmed) return;
+  const ok = await hostsRequest('DELETE', `/api/hosts/entries/${line}`, { raw: entry.raw });
+  // Line numbers shift after a delete, so drop any in-progress edit.
+  if (ok) cancelEditHostsEntry();
+}
+
+function filteredHostsEntries() {
+  const all = hostsState.data ? hostsState.data.entries : [];
+  const q = hostsState.filter.trim().toLowerCase();
+  if (!q) return all;
+  return all.filter(e =>
+    e.ip.toLowerCase().includes(q) ||
+    e.hostnames.some(h => h.toLowerCase().includes(q)) ||
+    e.comment.toLowerCase().includes(q));
+}
+
+// Only re-renders the list, so typing in the filter box keeps focus.
+function setHostsFilter(value) {
+  hostsState.filter = value;
+  document.getElementById('hostsList').innerHTML = renderHostsList();
+  document.getElementById('hostsCount').textContent = t('hostsCount', filteredHostsEntries().length, hostsState.data.entries.length);
+}
+
+function renderHostsList() {
+  const entries = filteredHostsEntries();
+  if (!entries.length) return `<div class="hosts-empty">${t('hostsEmpty')}</div>`;
+
+  const busy = hostsState.busy ? 'disabled' : '';
+  return entries.map(e => {
+    if (hostsState.editingLine === e.line) {
+      const d = hostsState.editDraft;
+      return `
+        <div class="hosts-row">
+          <input class="h-ip" value="${escapeHtml(d.ip)}" placeholder="${t('hostsIp')}" oninput="hostsState.editDraft.ip = this.value" />
+          <input class="h-hosts" value="${escapeHtml(d.hostnames)}" placeholder="${t('hostsHostnames')}" oninput="hostsState.editDraft.hostnames = this.value" onkeydown="if (event.key === 'Enter') saveHostsEntry(${e.line})" />
+          <input class="h-comment" value="${escapeHtml(d.comment)}" placeholder="${t('hostsComment')}" oninput="hostsState.editDraft.comment = this.value" onkeydown="if (event.key === 'Enter') saveHostsEntry(${e.line})" />
+          <div class="h-actions">
+            <button class="secondary small" onclick="cancelEditHostsEntry()">${t('cancel')}</button>
+            <button class="small" ${busy} onclick="saveHostsEntry(${e.line})">${t('save')}</button>
+          </div>
+        </div>
+      `;
+    }
+    const actions = e.managed
+      ? `<span class="badge" title="${escapeHtml(t('hostsManagedHint'))}">${t('hostsManagedBadge')}</span>`
+      : `
+        <button class="secondary small" ${busy} onclick="startEditHostsEntry(${e.line})">${t('edit')}</button>
+        <button class="danger small" ${busy} onclick="deleteHostsEntry(${e.line})">${t('delete')}</button>
+      `;
+    return `
+      <div class="hosts-row ${e.enabled ? '' : 'disabled'}">
+        <input type="checkbox" class="h-toggle" title="${escapeHtml(t('hostsToggleHint'))}" ${e.enabled ? 'checked' : ''} ${e.managed || hostsState.busy ? 'disabled' : ''} onchange="toggleHostsEntry(${e.line}, this.checked)" />
+        <span class="h-text h-ip">${escapeHtml(e.ip)}</span>
+        <span class="h-text h-hosts">${escapeHtml(e.hostnames.join(' '))}</span>
+        <span class="h-text h-comment">${e.comment ? '# ' + escapeHtml(e.comment) : ''}</span>
+        <div class="h-actions">${actions}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderHostsPage() {
+  if (!isHostsPage()) return;
+  const d = hostsState.addDraft;
+  const busy = hostsState.busy ? 'disabled' : '';
+  const data = hostsState.data;
+
+  let body;
+  if (hostsState.error) body = `<div class="error-msg">${escapeHtml(hostsState.error)}</div>`;
+  else if (!data) body = `<div class="hosts-empty">${t('hostsLoading')}</div>`;
+  else body = `<div id="hostsList">${renderHostsList()}</div>`;
+
+  document.getElementById('hostsPage').innerHTML = `
+    <div class="hosts-header">
+      <button class="secondary small" onclick="location.hash = ''">${t('back')}</button>
+      <h2>${t('hostsTitle')}</h2>
+      <span class="hosts-path">${data ? escapeHtml(data.path) : ''}</span>
+    </div>
+
+    <div class="hosts-card">
+      <div class="hosts-card-title">${t('hostsAddTitle')}</div>
+      <div class="hosts-form">
+        <input class="h-ip" value="${escapeHtml(d.ip)}" placeholder="${t('hostsIp')}" oninput="hostsState.addDraft.ip = this.value" />
+        <input class="h-hosts" value="${escapeHtml(d.hostnames)}" placeholder="${t('hostsHostnames')}" oninput="hostsState.addDraft.hostnames = this.value" onkeydown="if (event.key === 'Enter') addHostsEntry()" />
+        <input class="h-comment" value="${escapeHtml(d.comment)}" placeholder="${t('hostsComment')}" oninput="hostsState.addDraft.comment = this.value" onkeydown="if (event.key === 'Enter') addHostsEntry()" />
+        <button ${busy} onclick="addHostsEntry()">${t('hostsAdd')}</button>
+      </div>
+      <div class="hosts-note">${t('hostsNote')}</div>
+    </div>
+
+    <div class="hosts-card">
+      <div class="hosts-toolbar">
+        <div class="hosts-card-title" style="margin:0">
+          ${t('hostsEntriesTitle')}
+          <span id="hostsCount" style="text-transform:none; font-weight:500">${data ? t('hostsCount', filteredHostsEntries().length, data.entries.length) : ''}</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input class="hosts-filter" value="${escapeHtml(hostsState.filter)}" placeholder="${t('hostsFilter')}" oninput="setHostsFilter(this.value)" />
+          <button class="secondary small" ${hostsState.loading ? 'disabled' : ''} onclick="loadHosts()">${t('refresh')}</button>
+        </div>
+      </div>
+      ${body}
+    </div>
+  `;
+}
+
+applyRoute();
 
 Promise.all([fetchProjects(), checkCaddyStatus(), loadServices()]).finally(() => {
   document.getElementById('pageLoading').classList.add('hidden');
