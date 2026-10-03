@@ -1,9 +1,9 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const net = require('net');
 const store = require('./store');
-const pm = require('./processManager');
+const docker = require('./dockerManager');
+const wsl = require('./wsl');
 const caddy = require('./caddyManager');
 const hosts = require('./hostsManager');
 const envFile = require('./envFile');
@@ -19,194 +19,327 @@ const PORT = process.env.LOTWORK_PORT || 4400;
 app.use(express.json());
 app.use(express.static(publicDir));
 
-function checkPortFree(port) {
-  return new Promise((resolve) => {
-    const tester = net.createServer()
-      .once('error', () => resolve(false))
-      .once('listening', () => tester.once('close', () => resolve(true)).close())
-      .listen(port, '127.0.0.1');
-  });
-}
+// Git info for WSL repos costs a wsl.exe spawn per call, and the dashboard
+// polls every few seconds - so commit/change summaries are cached briefly.
+const GIT_CACHE_MS = 10000;
+const gitCache = new Map(); // cwd -> { at, data }
 
-function serialize(project) {
-  return {
-    ...project,
-    status: pm.getStatus(project.id),
-    repoUrl: gitOps.getRemoteUrlSync(project.cwd),
-    currentBranch: gitOps.getCurrentBranchSync(project.cwd),
-    defaultBranch: gitOps.getDefaultBranchSync(project.cwd),
-  };
-}
-
-async function serializeWithCommit(project) {
+async function getGitInfo(cwd) {
+  const cached = gitCache.get(cwd);
+  if (cached && Date.now() - cached.at < GIT_CACHE_MS) return cached.data;
   const [lastCommit, gitChanges] = await Promise.all([
-    gitOps.getLastCommit(project.cwd),
-    gitOps.getChangeSummary(project.cwd),
+    gitOps.getLastCommit(cwd).catch(() => null),
+    gitOps.getChangeSummary(cwd).catch(() => null),
   ]);
-  return { ...serialize(project), lastCommit, gitChanges };
+  const data = {
+    lastCommit,
+    gitChanges,
+    repoUrl: gitOps.getRemoteUrlSync(cwd),
+    currentBranch: gitOps.getCurrentBranchSync(cwd),
+    defaultBranch: gitOps.getDefaultBranchSync(cwd),
+  };
+  gitCache.set(cwd, { at: Date.now(), data });
+  return data;
+}
+
+function invalidateGit(cwd) {
+  gitCache.delete(cwd);
+}
+
+async function serialize(project) {
+  if (project.kind !== 'compose') {
+    // Archived pre-Docker project: read-only, never started or git-polled.
+    return { ...project, status: { running: false } };
+  }
+  const [status, git] = await Promise.all([docker.getProjectStatus(project), getGitInfo(project.cwd)]);
+  return { ...project, status, ...git };
+}
+
+function domainTargets(projects) {
+  return projects
+    .filter(p => p.kind === 'compose')
+    .flatMap(p => (p.domains || []).map(d => ({ domain: d.domain, port: d.port })));
 }
 
 function syncDomains() {
-  const projects = store.loadProjects();
-  const caddyResult = caddy.reloadCaddy(projects);
-  const domains = projects.filter(p => p.domain).map(p => p.domain);
-  const hostsResult = hosts.syncHosts(domains);
+  const targets = domainTargets(store.loadProjects());
+  const caddyResult = caddy.reloadCaddy(targets);
+  const hostsResult = hosts.syncHosts(targets.map(t => t.domain));
   return { caddyResult, hostsResult };
 }
 
-// Best-effort: if this is a Next.js project, add its domain to allowedDevOrigins
-// so the dev server doesn't block HMR requests coming through the Caddy proxy.
-function syncNextAllowedOrigin(project) {
-  if (!project.domain) return null;
-  const result = nextConfig.ensureAllowedDevOrigin(project.cwd, project.domain);
-  if (result.reason === 'not_next_project') return null;
-  return result;
+// Best-effort: if the project (or one of its first-level subfolders, e.g.
+// repo/frontend) is a Next.js app, add the domain to allowedDevOrigins so the
+// dev server doesn't block HMR requests coming through the Caddy proxy.
+function syncNextAllowedOrigin(project, domain) {
+  const candidates = [project.cwd];
+  try {
+    for (const entry of fs.readdirSync(project.cwd, { withFileTypes: true })) {
+      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+        candidates.push(path.join(project.cwd, entry.name));
+      }
+    }
+  } catch {}
+  let last = null;
+  for (const dir of candidates) {
+    const result = nextConfig.ensureAllowedDevOrigin(dir, domain);
+    if (result.reason !== 'not_next_project') last = result;
+    if (result.ok === false && result.reason === 'unrecognized_format') return result;
+  }
+  return last;
 }
+
+const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.local$/;
 
 const LOTWORK_SELF_ID = '__lotwork_self__';
 
 async function getLotworkSelfEntry() {
-  const cwd = appRoot;
-  const [lastCommit, gitChanges] = await Promise.all([
-    gitOps.getLastCommit(cwd),
-    gitOps.getChangeSummary(cwd),
-  ]);
   return {
     id: LOTWORK_SELF_ID,
     name: 'LotWork',
-    cwd,
-    command: null,
+    cwd: appRoot,
     port: PORT,
-    domain: null,
     isSelf: true,
     status: { running: true },
-    repoUrl: gitOps.getRemoteUrlSync(cwd),
-    currentBranch: gitOps.getCurrentBranchSync(cwd),
-    defaultBranch: gitOps.getDefaultBranchSync(cwd),
-    lastCommit,
-    gitChanges,
+    ...(await getGitInfo(appRoot)),
   };
+}
+
+// Validates the add/edit form and reads the compose file, so the stored
+// project always matches what `docker compose` itself sees.
+async function buildComposeProject(body, existingId) {
+  const name = (body.name || '').trim();
+  const cwd = (body.cwd || '').trim();
+  const composeFile = (body.composeFile || '').trim();
+  if (!name || !cwd || !composeFile) throw new Error('Nama, folder, dan compose file wajib diisi.');
+  const cwdInfo = wsl.parseUnc(cwd);
+  const fileInfo = wsl.parseUnc(composeFile);
+  if (!cwdInfo || !fileInfo) throw new Error('Folder dan compose file harus berada di dalam WSL.');
+  if (cwdInfo.distro.toLowerCase() !== fileInfo.distro.toLowerCase()) {
+    throw new Error('Folder dan compose file harus berada di distro WSL yang sama.');
+  }
+  if (!fs.existsSync(cwd)) throw new Error(`Folder tidak ditemukan: ${cwdInfo.linuxPath}`);
+
+  const info = await docker.inspectComposeFile(composeFile);
+  const clash = store.loadProjects().find(p => p.kind === 'compose' && p.composeProject === info.name && p.id !== existingId);
+  if (clash) throw new Error(`Compose project "${info.name}" sudah terdaftar sebagai "${clash.name}".`);
+
+
+  return {
+    name, cwd, composeFile,
+    composeProject: info.name,
+    services: info.services,
+    ports: info.ports,
+  };
+}
+
+function getComposeProject(req, res) {
+  const project = store.getProject(req.params.id);
+  if (!project) {
+    res.status(404).json({ error: 'Project tidak ditemukan' });
+    return null;
+  }
+  if (project.kind !== 'compose') {
+    res.status(400).json({ error: 'Project arsip tidak bisa dijalankan.' });
+    return null;
+  }
+  return project;
 }
 
 app.get('/api/projects', async (req, res) => {
   const projects = store.loadProjects();
-  const serialized = await Promise.all(projects.map(serializeWithCommit));
-  const selfEntry = await getLotworkSelfEntry();
+  const [serialized, selfEntry] = await Promise.all([
+    Promise.all(projects.map(serialize)),
+    getLotworkSelfEntry(),
+  ]);
   res.json([selfEntry, ...serialized]);
 });
 
-app.post('/api/projects', (req, res) => {
+app.post('/api/projects', async (req, res) => {
   try {
-    if (req.body.domain && !req.body.port) {
-      return res.status(400).json({ error: 'Port wajib diisi kalau pakai custom domain.' });
-    }
-    const project = store.addProject(req.body);
-    let sync = null;
-    if (project.domain) sync = syncDomains();
-    const nextOrigin = syncNextAllowedOrigin(project);
-    res.json({
-      ...serialize(project),
-      sync: sync && { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message },
-      nextOrigin,
-    });
+    const project = store.addProject(await buildComposeProject(req.body));
+    res.json(await serialize(project));
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
 
-app.put('/api/projects/:id', (req, res) => {
+app.put('/api/projects/:id', async (req, res) => {
   try {
     const before = store.getProject(req.params.id);
-    const domain = req.body.domain !== undefined ? req.body.domain : before && before.domain;
-    const port = req.body.port !== undefined ? req.body.port : before && before.port;
-    if (domain && !port) {
-      return res.status(400).json({ error: 'Port wajib diisi kalau pakai custom domain.' });
-    }
-    const project = store.updateProject(req.params.id, req.body);
-    let sync = null;
-    if (project.domain || (before && before.domain)) sync = syncDomains();
-    const nextOrigin = syncNextAllowedOrigin(project);
-    res.json({
-      ...serialize(project),
-      sync: sync && { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message },
-      nextOrigin,
-    });
+    if (!before) return res.status(404).json({ error: 'Project tidak ditemukan' });
+    // Partial updates (e.g. the sidejob toggle) skip the full form validation.
+    const isFullEdit = req.body.composeFile !== undefined;
+    const updates = isFullEdit ? await buildComposeProject(req.body, before.id) : req.body;
+    const project = store.updateProject(req.params.id, updates);
+    invalidateGit(project.cwd);
+    res.json(await serialize(project));
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
 
+// Removes the project from lotwork only - its containers are left as they are.
 app.delete('/api/projects/:id', (req, res) => {
   const project = store.getProject(req.params.id);
   if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
-  pm.stopProject(req.params.id);
   store.removeProject(req.params.id);
-  if (project.domain) syncDomains();
+  if ((project.domains || []).length) syncDomains();
   res.json({ ok: true });
 });
 
-app.get('/api/ports/check/:port', async (req, res) => {
-  const free = await checkPortFree(Number(req.params.port));
-  res.json({ free });
+// --- Custom domains (several per project, each pointing at one published port) ---
+
+app.post('/api/projects/:id/domains', (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  const name = String(req.body.domain || '').trim().toLowerCase().replace(/\.local$/, '');
+  const domain = name ? `${name}.local` : '';
+  const port = Number(req.body.port);
+  if (!DOMAIN_RE.test(domain)) return res.status(400).json({ error: 'Nama domain tidak valid (huruf kecil, angka, titik, dan strip).' });
+  if (!port) return res.status(400).json({ error: 'Pilih port container untuk domain ini.' });
+  const owner = store.loadProjects().find(p => (p.domains || []).some(d => d.domain === domain));
+  if (owner) return res.status(400).json({ error: `Domain ${domain} sudah dipakai di project "${owner.name}".` });
+
+  const published = (project.ports || []).find(pt => pt.hostPort === port);
+  const entry = store.addDomain(project.id, { domain, port, service: published ? published.service : '' });
+  const sync = syncDomains();
+  res.json({
+    domain: entry,
+    sync: { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message },
+    nextOrigin: syncNextAllowedOrigin(project, domain),
+  });
 });
 
-app.get('/api/ports/next', async (req, res) => {
-  const base = Number(req.query.base) || 3000;
-  const max = Number(req.query.max) || (base + 1000);
-  const registeredPorts = new Set(store.loadProjects().map(p => p.port));
-
-  for (let port = base; port <= max; port++) {
-    if (registeredPorts.has(port)) continue;
-    const free = await checkPortFree(port);
-    if (free) return res.json({ port });
-  }
-  res.status(404).json({ error: `Tidak ada port kosong antara ${base}-${max}` });
+app.delete('/api/projects/:id/domains/:domainId', (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  store.removeDomain(project.id, req.params.domainId);
+  const sync = syncDomains();
+  res.json({ ok: true, sync: { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message } });
 });
 
-app.post('/api/projects/:id/start', async (req, res) => {
-  const project = store.getProject(req.params.id);
-  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
-
-  if (project.port) {
-    const free = await checkPortFree(project.port);
-    if (!free) {
-      return res.status(409).json({ error: `Port ${project.port} sedang dipakai proses lain di luar lotwork` });
-    }
-  }
-
+app.post('/api/projects/:id/refresh', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
   try {
-    const result = pm.startProject(project);
-    store.incrementStartCount(project.id);
-    res.json({ ok: true, ...result });
+    const info = await docker.inspectComposeFile(project.composeFile);
+    const updated = store.updateProject(project.id, { composeProject: info.name, services: info.services, ports: info.ports });
+    invalidateGit(project.cwd);
+    res.json(await serialize(updated));
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
 
-function checkPortReady(port) {
-  return new Promise((resolve) => {
-    const socket = net.createConnection({ port, host: '127.0.0.1', timeout: 1000 });
-    socket.once('connect', () => { socket.destroy(); resolve(true); });
-    socket.once('timeout', () => { socket.destroy(); resolve(false); });
-    socket.once('error', () => resolve(false));
-  });
-}
-
-app.get('/api/projects/:id/ready', async (req, res) => {
-  const project = store.getProject(req.params.id);
-  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
-  const ready = project.port ? await checkPortReady(project.port) : true;
-  res.json({ ready });
+app.post('/api/projects/:id/start', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  try {
+    await docker.up(project);
+    store.incrementStartCount(project.id);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-app.post('/api/projects/:id/stop', (req, res) => {
-  const ok = pm.stopProject(req.params.id);
-  res.json({ ok });
+app.post('/api/projects/:id/stop', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  try {
+    await docker.stop(project);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-app.get('/api/projects/:id/logs', (req, res) => {
-  res.json({ logs: pm.getLogs(req.params.id) });
+app.post('/api/projects/:id/restart', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  try {
+    await docker.restart(project);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
+
+app.post('/api/projects/:id/down', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  try {
+    await docker.down(project);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/projects/:id/services/:service/:action', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  const { service, action } = req.params;
+  try {
+    if (action === 'start') await docker.up(project, [service]);
+    else if (action === 'stop') await docker.stop(project, [service]);
+    else if (action === 'restart') await docker.restart(project, [service]);
+    else return res.status(400).json({ error: 'Aksi tidak dikenal' });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/projects/:id/logs', async (req, res) => {
+  const project = getComposeProject(req, res);
+  if (!project) return;
+  try {
+    res.json({ logs: await docker.logs(project, req.query.service || '') });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/docker/status', async (req, res) => {
+  await docker.listContainers({ fresh: true });
+  res.json(docker.dockerHealth());
+});
+
+// --- WSL folder picker ---
+
+app.get('/api/wsl/distros', async (req, res) => {
+  res.json({ distros: await wsl.listDistros() });
+});
+
+app.get('/api/wsl/browse', async (req, res) => {
+  const distro = req.query.distro;
+  if (!distro) return res.status(400).json({ error: 'Distro wajib diisi' });
+  try {
+    const linuxPath = req.query.path || await wsl.getHomeDir(distro);
+    res.json({ distro, ...wsl.listDirectory(distro, linuxPath), unc: wsl.toUnc(distro, linuxPath) });
+  } catch (e) {
+    res.status(400).json({ error: `Tidak bisa membuka folder: ${e.message}` });
+  }
+});
+
+app.get('/api/wsl/compose-files', (req, res) => {
+  const dir = req.query.dir || '';
+  if (!wsl.isWslPath(dir)) return res.status(400).json({ error: 'Folder harus berada di dalam WSL' });
+  const files = wsl.findComposeFiles(dir).map(full => ({ path: full, label: path.relative(dir, full).replace(/\\/g, '/') }));
+  res.json({ files });
+});
+
+app.post('/api/compose/inspect', async (req, res) => {
+  try {
+    res.json(await docker.inspectComposeFile(req.body.composeFile));
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// --- .env, credentials, commands, SSH ---
 
 app.get('/api/projects/:id/env', (req, res) => {
   const project = store.getProject(req.params.id);
@@ -276,12 +409,12 @@ app.delete('/api/projects/:id/commands/:cmdId', (req, res) => {
 });
 
 app.post('/api/projects/:id/commands/:cmdId/run', async (req, res) => {
-  const project = store.getProject(req.params.id);
-  if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  const project = getComposeProject(req, res);
+  if (!project) return;
   const command = (project.commands || []).find(c => c.id === req.params.cmdId);
   if (!command) return res.status(404).json({ error: 'Command tidak ditemukan' });
   try {
-    const result = await pm.runCommand(project, command.command);
+    const result = await docker.runCommand(project, command.service, command.command);
     res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -328,12 +461,14 @@ app.post('/api/projects/:id/ssh-targets/:targetId/connect', (req, res) => {
   }
 });
 
+// --- Git ---
+
 // The "LotWork" self-entry isn't a real registered project, so its GitHub
 // panel operates on lotwork's own repo (appRoot) instead of a project.cwd.
 function resolveProjectCwd(id) {
   if (id === LOTWORK_SELF_ID) return appRoot;
   const project = store.getProject(id);
-  return project ? project.cwd : null;
+  return project && project.kind === 'compose' ? project.cwd : null;
 }
 
 app.get('/api/projects/:id/git/status', async (req, res) => {
@@ -356,6 +491,7 @@ app.post('/api/projects/:id/git/push', async (req, res) => {
       message: req.body.message,
       files: req.body.files,
     });
+    invalidateGit(cwd);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.stderr || e.message });
@@ -373,6 +509,7 @@ app.post('/api/projects/:id/git/pull-main', async (req, res) => {
     if (req.params.id !== LOTWORK_SELF_ID) {
       store.setLastPulledAt(req.params.id, Date.now());
     }
+    invalidateGit(cwd);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.stderr || e.message, isConflict: e.isConflict || false });
@@ -397,6 +534,7 @@ app.post('/api/projects/:id/git/remote', async (req, res) => {
   if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
   try {
     const result = await gitOps.setRemoteUrl(cwd, req.body.url);
+    invalidateGit(cwd);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.stderr || e.message });
@@ -408,20 +546,23 @@ app.post('/api/projects/:id/git/init', async (req, res) => {
   if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
   try {
     const result = await gitOps.initRepo(cwd);
+    invalidateGit(cwd);
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.stderr || e.message });
   }
 });
 
-app.post('/api/projects/:id/pin', (req, res) => {
+app.post('/api/projects/:id/pin', async (req, res) => {
   try {
     const project = store.togglePinned(req.params.id);
-    res.json(serialize(project));
+    res.json(await serialize(project));
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
+
+// --- Caddy, environment, system services, hosts ---
 
 app.post('/api/caddy/reload', (req, res) => {
   const { caddyResult, hostsResult } = syncDomains();
@@ -480,9 +621,7 @@ app.post('/api/services/:serviceName/stop', async (req, res) => {
 });
 
 app.post('/api/hosts/sync', (req, res) => {
-  const projects = store.loadProjects();
-  const domains = projects.filter(p => p.domain).map(p => p.domain);
-  const result = hosts.syncHosts(domains);
+  const result = hosts.syncHosts(domainTargets(store.loadProjects()).map(t => t.domain));
   res.json(result);
 });
 
@@ -521,22 +660,47 @@ app.delete('/api/hosts/entries/:line', (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`lotwork dashboard running at http://localhost:${PORT}`);
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  fs.writeFileSync(path.join(dataDir, 'server.pid'), String(process.pid));
+// Resolves once the dashboard is listening, rejects if the port can't be bound
+// (e.g. another lotwork instance already holds it). The Electron shell awaits
+// this to decide whether to open the window or show an error.
+const ready = new Promise((resolve, reject) => {
+  const server = app.listen(PORT, () => {
+    console.log(`lotwork dashboard running at http://localhost:${PORT}`);
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(path.join(dataDir, 'server.pid'), String(process.pid));
 
-  const projects = store.loadProjects();
-  if (projects.some(p => p.domain)) {
-    syncDomains();
-  }
+    if (domainTargets(store.loadProjects()).length) {
+      syncDomains();
+    }
+    resolve(PORT);
+  });
+  server.once('error', reject);
 });
 
-function shutdown() {
-  pm.stopAll();
+// For the tray menu: how many registered compose projects have containers up.
+async function runningProjects() {
+  const projects = store.loadProjects().filter(p => p.kind === 'compose');
+  const statuses = await Promise.all(projects.map(p => docker.getProjectStatus(p)));
+  return projects.filter((p, i) => statuses[i].running);
+}
+
+async function stopAllProjects() {
+  const running = await runningProjects();
+  await Promise.allSettled(running.map(p => docker.stop(p)));
+}
+
+// Containers belong to Docker, not to lotwork, so they keep running after
+// lotwork quits - only the Caddy proxy lotwork started is stopped.
+function stopEverything() {
   caddy.stopCaddy();
+}
+
+function shutdown() {
+  stopEverything();
   process.exit(0);
 }
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
+
+module.exports = { ready, stopEverything, runningProjects, stopAllProjects, PORT };

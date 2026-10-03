@@ -44,12 +44,26 @@ function loadProjects() {
   } catch {
     projects = [];
   }
+  // Projects saved before the Docker Compose switch have no `kind`; they ran
+  // as plain Windows processes and are kept read-only as an archive.
   return projects
-    .map(p => ({ startCount: 0, lastStartedAt: null, credentials: [], isSidejob: false, pinned: false, ...p }))
+    .map(p => ({ kind: 'legacy', startCount: 0, lastStartedAt: null, credentials: [], isSidejob: false, pinned: false, ...p }))
+    .map(migrateDomains)
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
+}
+
+// Compose projects used to have a single domain/domainPort pair; they now
+// keep a list, since one project can expose e.g. a frontend and an API.
+function migrateDomains(p) {
+  if (p.kind !== 'compose' || Array.isArray(p.domains)) return p;
+  const { domain, domainPort, ...rest } = p;
+  if (!domain || !domainPort) return { ...rest, domains: [] };
+  // The id must be stable: this runs on every load until the project is saved again.
+  const published = (p.ports || []).find(pt => pt.hostPort === domainPort);
+  return { ...rest, domains: [{ id: `d-${domain}`, domain, port: domainPort, service: published ? published.service : '' }] };
 }
 
 function saveProjects(projects) {
@@ -57,24 +71,22 @@ function saveProjects(projects) {
   fs.writeFileSync(DATA_FILE, JSON.stringify({ projects }, null, 2));
 }
 
+// A Docker Compose project inside WSL. `cwd` and `composeFile` are
+// \wsl.localhost UNC paths; `composeProject`, `services` and `ports` come
+// from `docker compose config` and are refreshed on every save.
 function addProject(project) {
   const projects = loadProjects();
   const id = project.id || String(Date.now());
-  if (project.port) {
-    const existingPortOwner = projects.find(p => p.port === project.port && p.id !== id);
-    if (existingPortOwner) {
-      throw new Error(`Port ${project.port} sudah dipakai oleh project "${existingPortOwner.name}"`);
-    }
-  }
   const newProject = {
     id,
+    kind: 'compose',
     name: project.name,
     cwd: project.cwd,
-    command: project.command,
-    port: project.port || null,
-    domain: project.domain || '',
-    env: project.env || {},
-    stack: project.stack || '',
+    composeFile: project.composeFile,
+    composeProject: project.composeProject,
+    services: project.services || [],
+    ports: project.ports || [],
+    domains: [],
     startCount: 0,
     lastStartedAt: null,
     credentials: [],
@@ -89,10 +101,6 @@ function updateProject(id, updates) {
   const projects = loadProjects();
   const idx = projects.findIndex(p => p.id === id);
   if (idx === -1) throw new Error('Project tidak ditemukan');
-  if (updates.port) {
-    const conflict = projects.find(p => p.port === updates.port && p.id !== id);
-    if (conflict) throw new Error(`Port ${updates.port} sudah dipakai oleh project "${conflict.name}"`);
-  }
   projects[idx] = { ...projects[idx], ...updates };
   saveProjects(projects);
   return projects[idx];
@@ -170,6 +178,7 @@ function addCommand(projectId, command) {
     id: String(Date.now()),
     label: command.label,
     command: command.command,
+    service: command.service || '',
   };
   projects[idx].commands = [...(projects[idx].commands || []), newCommand];
   saveProjects(projects);
@@ -231,7 +240,28 @@ function removeSshTarget(projectId, targetId) {
   saveProjects(projects);
 }
 
+function addDomain(projectId, entry) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  const newDomain = { id: 'd' + Date.now(), domain: entry.domain, port: entry.port, service: entry.service || '' };
+  projects[idx].domains = [...(projects[idx].domains || []), newDomain];
+  saveProjects(projects);
+  return newDomain;
+}
+
+function removeDomain(projectId, domainId) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === projectId);
+  if (idx === -1) throw new Error('Project tidak ditemukan');
+  const removed = (projects[idx].domains || []).find(d => d.id === domainId);
+  projects[idx].domains = (projects[idx].domains || []).filter(d => d.id !== domainId);
+  saveProjects(projects);
+  return removed;
+}
+
 module.exports = {
+  addDomain, removeDomain,
   loadProjects, saveProjects, addProject, updateProject, removeProject, getProject, incrementStartCount,
   addCredential, updateCredential, removeCredential, setLastPulledAt, addCommand, removeCommand,
   addSshTarget, updateSshTarget, removeSshTarget, getEnvironment, setEnvironment, togglePinned,

@@ -6,395 +6,441 @@
 <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 <style>
   :root {
-    --bg: #0b0d13;
-    --bg-2: #11141c;
-    --panel: #171b26;
-    --panel-2: #1e2330;
-    --panel-3: #262c3d;
-    --border: #2b3244;
-    --border-soft: #1f2432;
-    --text: #f2f4f8;
-    --muted: #9aa3b8;
-    --muted-2: #666f85;
-    --accent: #7c6ef4;
-    --accent-2: #5b8cff;
-    --accent-hover: #8f83ff;
-    --accent-soft: rgba(124, 110, 244, 0.16);
-    --pink: #f065b0;
-    --pink-soft: rgba(240, 101, 176, 0.14);
-    --green: #3ddb96;
-    --green-soft: rgba(61, 219, 150, 0.14);
-    --red: #ff6767;
-    --red-soft: rgba(255, 103, 103, 0.14);
-    --yellow: #f3c14b;
-    --yellow-soft: rgba(243, 193, 75, 0.14);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --shadow: 0 10px 40px rgba(0,0,0,0.35);
+    --bg: #0d0f13;
+    --bg-2: #090b0e;
+    --panel: #14171c;
+    --panel-2: #1a1e25;
+    --panel-3: #232833;
+    --border: #2a303b;
+    --border-soft: #1f242c;
+    --text: #e9ebef;
+    --muted: #a0a7b4;
+    --muted-2: #6c7380;
+    --accent: #6872ff;
+    --accent-2: #8fb0ff;
+    --accent-hover: #7b84ff;
+    --accent-soft: rgba(104, 114, 255, 0.14);
+    --pink: #f472b6;
+    --pink-soft: rgba(244, 114, 182, 0.12);
+    --green: #3fd28f;
+    --green-soft: rgba(63, 210, 143, 0.12);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.12);
+    --yellow: #f5c04e;
+    --yellow-soft: rgba(245, 192, 78, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-pop: 0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
+    --mono: "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+    color-scheme: dark;
   }
 
   :root[data-theme="light"] {
-    --bg: #f3f4f9;
-    --bg-2: #eaecf4;
+    --bg: #f5f6f8;
+    --bg-2: #eef0f3;
     --panel: #ffffff;
-    --panel-2: #f4f5fa;
-    --panel-3: #eaecf5;
-    --border: #e1e3ee;
-    --border-soft: #ececf3;
-    --text: #1c1f2b;
-    --muted: #6b7288;
-    --muted-2: #9096a8;
-    --accent-soft: rgba(124, 110, 244, 0.12);
-    --pink-soft: rgba(240, 101, 176, 0.12);
-    --green-soft: rgba(16, 163, 96, 0.12);
-    --green: #12a866;
-    --red-soft: rgba(230, 60, 60, 0.1);
-    --red: #e13c3c;
-    --yellow-soft: rgba(200, 140, 10, 0.12);
-    --yellow: #b8860b;
-    --shadow: 0 10px 30px rgba(30,35,60,0.08);
+    --panel-2: #f3f4f7;
+    --panel-3: #e8eaef;
+    --border: #dfe2e8;
+    --border-soft: #eaecf0;
+    --text: #151821;
+    --muted: #535b69;
+    --muted-2: #8a909b;
+    --accent: #5059e6;
+    --accent-2: #3d5bd9;
+    --accent-hover: #4048d4;
+    --accent-soft: rgba(80, 89, 230, 0.1);
+    --pink-soft: rgba(219, 39, 119, 0.08);
+    --green: #0e9f64;
+    --green-soft: rgba(14, 159, 100, 0.1);
+    --red: #dc3b3b;
+    --red-soft: rgba(220, 59, 59, 0.08);
+    --yellow: #b7791f;
+    --yellow-soft: rgba(183, 121, 31, 0.1);
+    --shadow: 0 1px 2px rgba(20,24,40,0.05);
+    --shadow-pop: 0 12px 32px rgba(20,24,40,0.12), 0 0 0 1px var(--border);
+    color-scheme: light;
   }
 
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
     margin: 0;
-    background:
-      radial-gradient(900px 500px at 100% -10%, var(--accent-soft), transparent),
-      radial-gradient(700px 400px at -10% 30%, var(--pink-soft), transparent),
-      var(--bg);
+    background: var(--bg);
     color: var(--text);
-    font-family: "Segoe UI", -apple-system, Roboto, sans-serif;
+    font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    font-size: 13.5px;
     -webkit-font-smoothing: antialiased;
   }
+  code { font-family: var(--mono); }
+  .ico { width: 15px; height: 15px; flex-shrink: 0; display: block; }
 
+  /* --- App bar --- */
   header {
-    padding: 20px 32px;
+    height: 56px; padding: 0 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-soft);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    background: color-mix(in srgb, var(--bg) 80%, transparent);
-    backdrop-filter: blur(14px);
-    z-index: 10;
   }
-  header .brand { display: flex; align-items: center; gap: 12px; }
+  header .brand { display: flex; align-items: center; gap: 10px; }
   header .logo {
-    width: 36px; height: 36px; border-radius: 11px;
+    width: 28px; height: 28px; border-radius: 8px;
     background: linear-gradient(135deg, var(--accent), var(--pink));
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 17px; color: white;
-    box-shadow: 0 4px 16px rgba(124,110,244,0.4);
+    font-weight: 800; font-size: 14px; color: white;
   }
-  header h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
-  header .sub { color: var(--muted-2); font-size: 11.5px; margin-top: 1px; }
-  header .right { display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 14.5px; margin: 0; font-weight: 700; letter-spacing: 0.1px; line-height: 1.1; }
+  header .sub { color: var(--muted-2); font-size: 11px; margin-top: 1px; }
+  header .right { display: flex; align-items: center; gap: 8px; }
 
-  .theme-toggle {
-    display: flex; align-items: center; gap: 4px; background: var(--panel-2);
-    border: 1px solid var(--border); border-radius: 999px; padding: 4px; cursor: pointer;
-    position: relative;
+  /* Segmented controls (env / language / theme) */
+  .theme-toggle, .lang-toggle, .env-toggle {
+    display: flex; align-items: center; gap: 2px; padding: 2px;
+    background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px;
   }
-  .theme-toggle button {
-    background: transparent; border: none; padding: 6px 10px; font-size: 14px;
-    border-radius: 999px; cursor: pointer; color: var(--muted-2); box-shadow: none;
-    display: flex; align-items: center; justify-content: center; min-width: 30px;
+  .theme-toggle button, .lang-toggle button, .env-toggle button {
+    background: transparent; border: 1px solid transparent; box-shadow: none;
+    padding: 4px 10px; min-height: 26px; border-radius: 6px;
+    font-size: 11.5px; font-weight: 600; color: var(--muted-2);
+    display: inline-flex; align-items: center; justify-content: center;
   }
-  .theme-toggle button.active { background: var(--panel-3); color: var(--text); }
-
-  .lang-toggle {
-    display: flex; align-items: center; gap: 4px; background: var(--panel-2);
-    border: 1px solid var(--border); border-radius: 999px; padding: 4px;
+  .theme-toggle button { padding: 4px 7px; }
+  .theme-toggle button .ico { width: 14px; height: 14px; }
+  .theme-toggle button:hover:not(.active), .lang-toggle button:hover:not(.active), .env-toggle button:hover:not(.active) {
+    background: transparent; color: var(--text);
   }
-  .lang-toggle button {
-    background: transparent; border: none; padding: 6px 10px; font-size: 11px; font-weight: 700;
-    border-radius: 999px; cursor: pointer; color: var(--muted-2); box-shadow: none; min-width: 30px;
-  }
-  .lang-toggle button.active { background: var(--panel-3); color: var(--text); }
-
-  .env-toggle {
-    display: flex; align-items: center; gap: 4px; background: var(--panel-2);
-    border: 1px solid var(--border); border-radius: 999px; padding: 4px;
-  }
-  .env-toggle button {
-    background: transparent; border: none; padding: 6px 12px; font-size: 12px; font-weight: 700;
-    border-radius: 999px; cursor: pointer; color: var(--muted-2); box-shadow: none;
+  .theme-toggle button.active, .lang-toggle button.active {
+    background: var(--panel); color: var(--text); border-color: var(--border); box-shadow: var(--shadow);
   }
   .env-toggle button.active[data-env="local"] { background: var(--green-soft); color: var(--green); }
   .env-toggle button.active[data-env="production"] { background: var(--red-soft); color: var(--red); }
 
-  main { padding: 28px 32px 60px; max-width: 1440px; margin: 0 auto; }
+  .caddy-status {
+    font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 7px;
+    padding: 0 10px; height: 32px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--border-soft); font-weight: 600;
+  }
+  .caddy-status .cdot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .caddy-status.caddy-missing { cursor: pointer; border-color: color-mix(in srgb, var(--red) 50%, transparent); color: var(--red); }
+  .caddy-status.caddy-missing:hover { background: var(--red-soft); }
 
-  .main-layout { display: flex; gap: 24px; align-items: flex-start; }
+  /* --- Layout --- */
+  main { padding: 24px 24px 60px; max-width: 1440px; margin: 0 auto; }
+  .main-layout { display: flex; gap: 20px; align-items: flex-start; }
   .main-content { flex: 1; min-width: 0; }
+
+  .toolbar {
+    display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;
+  }
+  .toolbar-title { font-size: 18px; font-weight: 700; margin-right: auto; display: flex; align-items: baseline; gap: 8px; }
+  .toolbar-count { font-size: 12.5px; font-weight: 600; color: var(--muted-2); }
+
+  /* --- Buttons --- */
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--accent); color: #fff;
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    padding: 7px 14px; min-height: 34px;
+    font: inherit; font-size: 13px; font-weight: 600; line-height: 1.2;
+    cursor: pointer; white-space: nowrap;
+    transition: background-color .12s, border-color .12s, color .12s, opacity .12s;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.secondary { background: var(--panel-2); color: var(--text); border-color: var(--border); }
+  button.secondary:hover:not(:disabled) { background: var(--panel-3); }
+  button.success { background: var(--green); color: #06140d; }
+  button.success:hover:not(:disabled) { background: color-mix(in srgb, var(--green) 88%, white); }
+  button.danger { background: var(--red-soft); color: var(--red); }
+  button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 20%, transparent); }
+  button.ghost { background: transparent; color: var(--muted); }
+  button.ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); }
+  button.small { padding: 5px 11px; min-height: 30px; font-size: 12.5px; }
+  button.icon-btn { padding: 7px 11px; }
+  .icon-btn-count { font-size: 12.5px; font-weight: 700; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* --- Project cards --- */
+  .project-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .project-card {
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    position: relative;
+    transition: border-color .15s;
+  }
+  .project-card:hover { border-color: var(--border); }
+  .project-card.running { border-color: color-mix(in srgb, var(--green) 28%, var(--border-soft)); }
+  .self-card { border-color: color-mix(in srgb, var(--accent) 30%, var(--border-soft)); }
+
+  .card-body { padding: 16px 18px 14px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .card-title { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+  .proj-name { font-weight: 650; font-size: 15px; letter-spacing: 0.1px; }
+  .card-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+  .pin-btn {
+    background: transparent; border: none; padding: 2px; min-height: 0;
+    color: var(--muted-2); opacity: 0.6;
+  }
+  .pin-btn .ico { width: 15px; height: 15px; }
+  .pin-btn:hover:not(:disabled) { background: transparent; color: var(--yellow); opacity: 1; }
+  .pin-btn.pinned { color: var(--yellow); opacity: 1; }
+  .pin-btn.pinned .ico { fill: currentColor; }
+
+  .card-sub {
+    display: flex; align-items: center; gap: 8px; margin-top: 6px; min-width: 0;
+    font-size: 12px; color: var(--muted-2);
+  }
+  .card-sub .sep { opacity: 0.5; }
+  .repo-link {
+    display: inline-flex; align-items: center; gap: 5px; color: var(--muted); text-decoration: none;
+    font-size: 12px; font-family: var(--mono); flex-shrink: 0; max-width: 50%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .repo-link .ico { width: 13px; height: 13px; }
+  .repo-link:hover { color: var(--accent-2); }
+  .repo-link.no-remote { color: var(--red); cursor: default; }
+  .repo-link.no-remote:hover { color: var(--red); }
+  .last-commit { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px;
+    background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 6px;
+    font-size: 12px; color: var(--muted); max-width: 100%; min-width: 0;
+  }
+  .chip .ico { width: 13px; height: 13px; color: var(--muted-2); }
+  .chip code { font-size: 11.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip a.domain-link { color: var(--accent-2); }
+  .chip.changes { background: var(--yellow-soft); border-color: transparent; color: var(--yellow); font-weight: 600; }
+  .chip.changes .ico { color: currentColor; }
+  .chip.muted { background: transparent; border-style: dashed; }
+  .branch-vs { color: var(--muted-2); }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px 3px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-pill.on { background: var(--green-soft); color: var(--green); }
+  .status-pill.off { background: var(--panel-2); color: var(--muted-2); }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+  .dot.on { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 22%, transparent); }
+  .dot.off { background: var(--muted-2); }
+
+  /* Panel tabs along the bottom of each card */
+  .card-tabs {
+    display: flex; gap: 2px; padding: 6px 10px; flex-wrap: wrap;
+    border-top: 1px solid var(--border-soft);
+  }
+  .tab-btn {
+    background: transparent; color: var(--muted); border: none;
+    padding: 5px 10px; min-height: 30px; font-size: 12.5px; font-weight: 600; border-radius: 6px;
+  }
+  .tab-btn .ico { width: 14px; height: 14px; }
+  .tab-btn:hover:not(:disabled) { background: var(--panel-2); color: var(--text); }
+  .tab-btn.active, .tab-btn.active:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent-2); }
+  .tab-count {
+    font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+    background: var(--panel-3); color: var(--muted);
+  }
+  .tab-btn.active .tab-count { background: color-mix(in srgb, var(--accent) 22%, transparent); color: inherit; }
+
+  /* Card overflow menu */
+  .card-menu-wrap { position: relative; }
+  .card-menu-btn {
+    background: transparent; border: none; color: var(--muted);
+    padding: 0; width: 32px; min-height: 32px; border-radius: 8px;
+  }
+  .card-menu-btn:hover:not(:disabled) { background: var(--panel-2); color: var(--text); }
+  .card-menu {
+    position: absolute; top: calc(100% + 4px); right: 0; min-width: 190px; padding: 4px;
+    background: var(--panel); border-radius: 10px; box-shadow: var(--shadow-pop); z-index: 15;
+  }
+  .card-menu button {
+    display: flex; justify-content: flex-start; width: 100%; background: transparent; color: var(--text);
+    border: none; border-radius: 6px; padding: 7px 10px; min-height: 0; font-size: 13px; font-weight: 500;
+  }
+  .card-menu button .ico { color: var(--muted); }
+  .card-menu button:hover:not(:disabled) { background: var(--panel-2); }
+  .card-menu button.menu-danger, .card-menu button.menu-danger .ico { color: var(--red); }
+  .card-menu button.menu-danger:hover:not(:disabled) { background: var(--red-soft); }
+  .menu-sep { height: 1px; background: var(--border-soft); margin: 4px 2px; }
+
+  .badge {
+    display: inline-flex; align-items: center; font-size: 11px; padding: 3px 8px; border-radius: 999px;
+    background: var(--panel-2); color: var(--muted); font-weight: 600;
+  }
+  .self-badge { background: var(--accent-soft); color: var(--accent-2); }
+  a.domain-link { color: var(--accent-2); text-decoration: none; font-weight: 600; }
+  a.domain-link:hover { text-decoration: underline; }
+
+  .empty-state {
+    padding: 64px 20px; text-align: center; color: var(--muted-2);
+    background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius);
+    font-size: 13.5px; line-height: 1.8;
+  }
+
+  /* --- Services sidebar --- */
   .services-sidebar {
-    flex: 0 0 260px; background: var(--panel); border: 1px solid var(--border-soft);
-    border-radius: var(--radius); padding: 18px; position: sticky; top: 96px;
+    flex: 0 0 264px; background: var(--panel); border: 1px solid var(--border-soft);
+    border-radius: var(--radius); padding: 16px; position: sticky; top: 80px; box-shadow: var(--shadow);
   }
   .sidebar-title {
-    font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 14px;
-    text-transform: uppercase; letter-spacing: 0.6px;
+    font-size: 11px; font-weight: 700; color: var(--muted-2); margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.7px;
   }
   .service-row {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+    padding: 9px 0; border-bottom: 1px solid var(--border-soft);
   }
   .service-row:last-child { border-bottom: none; }
-  .service-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .service-name { font-size: 13px; font-weight: 600; color: var(--text); }
-  .service-sub { font-size: 11px; color: var(--muted-2); }
+  .service-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .service-name { font-size: 13px; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+  .service-sub { font-size: 11px; color: var(--muted-2); display: inline-flex; align-items: center; gap: 5px; }
   .service-toggle {
-    flex-shrink: 0; padding: 5px 12px; font-size: 11px; border-radius: 999px; font-weight: 600;
-    box-shadow: none;
+    flex-shrink: 0; padding: 3px 10px; min-height: 26px; font-size: 11.5px; border-radius: 6px; font-weight: 600;
   }
   .service-toggle.on { background: var(--red-soft); color: var(--red); }
+  .service-toggle.on:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 20%, transparent); }
   .service-toggle.off { background: var(--green-soft); color: var(--green); }
-  .service-toggle:disabled { opacity: 0.5; }
+  .service-toggle.off:hover:not(:disabled) { background: color-mix(in srgb, var(--green) 20%, transparent); }
   .services-empty { font-size: 12px; color: var(--muted-2); padding: 8px 0; }
-  .runtime-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0;
-  }
+  .runtime-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; }
   .runtime-name { font-size: 12.5px; color: var(--text); }
-  .runtime-version { font-size: 11px; color: var(--muted-2); font-family: "Cascadia Code", Consolas, monospace; }
-  .services-divider { border: none; border-top: 1px solid var(--border-soft); margin: 14px 0; }
+  .runtime-version { font-size: 11px; color: var(--muted-2); font-family: var(--mono); }
+  .services-divider { border: none; border-top: 1px solid var(--border-soft); margin: 10px 0; }
 
   @media (max-width: 980px) {
     .main-layout { flex-direction: column; }
     .services-sidebar { flex: 1 1 auto; width: 100%; position: static; }
   }
 
-  .toolbar { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
-
-  button {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 4px 14px rgba(124,110,244,0.3);
-  }
-  button:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(124,110,244,0.4); }
-  button.secondary {
-    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-    box-shadow: none;
-  }
-  button.secondary:hover:not(:disabled) { background: var(--panel-3); box-shadow: none; }
-  button.success { background: linear-gradient(135deg, var(--green), #2bb583); box-shadow: 0 4px 14px rgba(61,219,150,0.3); }
-  button.danger { background: var(--red-soft); color: var(--red); box-shadow: none; }
-  button.danger:hover:not(:disabled) { background: rgba(255,103,103,0.22); box-shadow: none; }
-  button.ghost { background: transparent; color: var(--muted); box-shadow: none; padding: 12px 18px; }
-  button.ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); box-shadow: none; }
-  button.small { padding: 8px 14px; font-size: 12.5px; border-radius: 8px; }
-  button.icon-btn {
-    display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; font-size: 15px;
-  }
-  .icon-btn-count { font-size: 12.5px; font-weight: 700; }
-  button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none !important; }
-
-  .project-grid { display: flex; flex-direction: column; gap: 14px; }
-
-  .project-card {
-    background: var(--panel);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--radius);
-    padding: 20px 22px;
-    box-shadow: var(--shadow);
-    position: relative;
-  }
-  .project-card::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: var(--muted-2); opacity: 0.3;
-    border-radius: var(--radius) 0 0 var(--radius);
-  }
-  .project-card.running::before { background: linear-gradient(var(--green), var(--accent)); opacity: 1; }
-  .self-card::before { background: linear-gradient(var(--pink), var(--accent)); opacity: 1; }
-  .card-menu-wrap { position: absolute; top: 14px; right: 16px; z-index: 5; }
-  .card-menu-btn {
-    background: transparent; border: none; box-shadow: none; color: var(--muted);
-    font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 6px; cursor: pointer;
-  }
-  .card-menu-btn:hover { background: var(--panel-2); color: var(--text); box-shadow: none; }
-  .card-menu {
-    position: absolute; top: 100%; right: 0; margin-top: 4px; min-width: 160px;
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-sm);
-    box-shadow: var(--shadow); overflow: hidden; z-index: 10;
-  }
-  .card-menu button {
-    display: block; width: 100%; text-align: left; background: transparent; color: var(--text);
-    border: none; box-shadow: none; border-radius: 0; padding: 10px 14px; font-size: 13px; font-weight: 500;
-    cursor: pointer;
-  }
-  .card-menu button:hover { background: var(--panel-2); box-shadow: none; }
-  .self-badge { background: var(--accent-soft); color: var(--accent); }
-  .project-card:hover { border-color: var(--border); }
-
-  .project-top {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
-  }
-  .project-info { display: flex; flex-direction: column; gap: 6px; }
-  .project-name-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .proj-name { font-weight: 700; font-size: 15.5px; }
-  .pin-btn {
-    background: transparent; border: none; box-shadow: none; padding: 2px; font-size: 17px;
-    color: var(--border); cursor: pointer; line-height: 1; display: flex; align-items: center;
-  }
-  .pin-btn:hover { color: var(--yellow); transform: none; }
-  .pin-btn.pinned { color: var(--yellow); }
-  .project-card.pinned { border-color: var(--yellow); }
-  .project-card.pinned::before { background: linear-gradient(var(--yellow), var(--accent)); opacity: 1; }
-  .repo-link {
-    display: inline-flex; align-items: center; gap: 5px; color: var(--muted-2); text-decoration: none;
-    font-size: 11.5px; margin-top: 2px; margin-bottom: 8px; font-family: "Cascadia Code", Consolas, monospace;
-  }
-  .repo-link::before { content: "\1F517"; font-size: 11px; }
-  .repo-link:hover { color: var(--accent); text-decoration: underline; }
-  .repo-link.no-remote { color: var(--red); cursor: default; }
-  .repo-link.no-remote:hover { text-decoration: none; color: var(--red); }
-  .last-commit {
-    font-size: 11.5px; color: var(--muted-2); margin-bottom: 6px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
-  }
-  .branch-info { font-size: 11.5px; color: var(--muted-2); }
-  .branch-info code {
-    background: var(--panel-2); padding: 2px 7px; border-radius: 5px;
-    font-size: 11px; color: var(--accent-2); font-family: "Cascadia Code", Consolas, monospace;
-  }
-  .branch-vs { color: var(--muted-2); }
-  .branch-changes-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-  .changes-badge {
-    background: var(--yellow-soft); color: var(--yellow); font-weight: 700; cursor: default;
-  }
-  .project-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12.5px; color: var(--muted); }
-  .project-meta .meta-item { display: flex; align-items: center; gap: 5px; }
-  .project-meta code {
-    background: var(--panel-2); padding: 3px 8px; border-radius: 6px;
-    font-size: 12px; color: var(--accent-2); font-family: "Cascadia Code", Consolas, monospace;
-  }
-
-  .status-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 6px 12px 6px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
-    flex-shrink: 0;
-  }
-  .status-pill.on { background: var(--green-soft); color: var(--green); }
-  .status-pill.off { background: var(--panel-2); color: var(--muted); }
-  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-  .dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); }
-  .dot.off { background: var(--muted-2); }
-
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-
-  .empty-state {
-    padding: 70px 20px; text-align: center; color: var(--muted-2);
-    background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius);
-    font-size: 14px; line-height: 1.8;
-  }
-
+  /* --- Modals --- */
   .modal-bg {
-    display: none; position: fixed; inset: 0; background: rgba(6, 7, 12, 0.65);
-    align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    display: none; position: fixed; inset: 0; background: rgba(5, 6, 10, 0.6);
+    align-items: center; justify-content: center; backdrop-filter: blur(3px);
     z-index: 100;
   }
-  .modal-bg.open { display: flex; }
+  :root[data-theme="light"] .modal-bg { background: rgba(20, 24, 40, 0.3); }
+  .modal-bg.open { display: flex; animation: fade-in .12s ease-out; }
+  .modal-bg.open .modal { animation: pop-in .16s ease-out; }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(6px) scale(.98); } }
   .modal {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 20px;
-    padding: 28px; width: 460px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    background: var(--panel); border-radius: 14px; padding: 22px; width: 460px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4), 0 0 0 1px var(--border);
     max-height: 88vh; overflow-y: auto;
   }
-  .modal h2 { margin: 0 0 18px; font-size: 18px; font-weight: 700; }
+  .modal h2 { margin: 0 0 18px; font-size: 16px; font-weight: 700; }
   .dialog-modal { width: 400px; }
   .dialog-message { font-size: 13.5px; color: var(--text); line-height: 1.6; white-space: pre-line; }
   .dialog-modal.alert-only #dialogCancelBtn { display: none; }
-  .field { margin-bottom: 16px; }
-  .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 7px; font-weight: 600; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .modal-subtitle { color: var(--muted-2); font-size: 12.5px; margin: -12px 0 18px; line-height: 1.5; }
+  .modal-subtitle code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+  /* --- Form fields --- */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
   .field input, .field select {
-    width: 100%; padding: 11px 13px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-    background: var(--bg-2); color: var(--text); font-size: 13.5px;
+    width: 100%; padding: 8px 11px; min-height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: var(--bg-2); color: var(--text); font: inherit; font-size: 13px;
+    transition: border-color .12s, box-shadow .12s;
   }
   .field input:focus, .field select:focus {
     outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
   }
   .domain-input {
-    display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--bg-2); overflow: hidden;
   }
   .domain-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .domain-input input { border: none; background: transparent; flex: 1; box-shadow: none !important; }
   .domain-input input:focus { outline: none; }
-  .domain-suffix { padding: 11px 13px 11px 0; color: var(--muted-2); font-size: 13.5px; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
-  .badge {
-    font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2);
-    color: var(--muted); font-weight: 600;
-  }
-  a.domain-link { color: var(--accent-2); text-decoration: none; font-weight: 600; }
-  a.domain-link:hover { text-decoration: underline; }
-  .modal-subtitle { color: var(--muted-2); font-size: 12.5px; margin: -12px 0 20px; line-height: 1.5; }
-  .modal-subtitle code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+  .domain-suffix { padding: 0 11px 0 0; color: var(--muted-2); font-size: 13px; }
 
-  .panel-btn-active { background: var(--accent-soft) !important; color: var(--accent) !important; border-color: transparent !important; }
+  .panel-btn-active { background: var(--accent-soft) !important; color: var(--accent-2) !important; border-color: transparent !important; }
 
+  /* --- Inline panels (logs, env, git, ...) --- */
   .inline-panel {
-    margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);
+    padding: 16px 18px 18px; border-top: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--bg) 45%, var(--panel));
+    border-radius: 0 0 var(--radius) var(--radius);
   }
   .inline-panel-title {
-    font-size: 12.5px; font-weight: 700; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 11px; font-weight: 700; color: var(--muted-2);
+    text-transform: uppercase; letter-spacing: 0.7px;
   }
   .inline-panel-title-row {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
   }
   .panel-close-btn {
-    background: transparent; border: none; box-shadow: none; color: var(--muted);
-    font-size: 20px; line-height: 1; padding: 0 4px; cursor: pointer;
+    background: transparent; border: none; color: var(--muted);
+    padding: 0; width: 28px; min-height: 28px; border-radius: 6px;
   }
-  .panel-close-btn:hover { color: var(--text); box-shadow: none; }
+  .panel-close-btn:hover:not(:disabled) { background: var(--panel-3); color: var(--text); }
   .log-box {
-    background: var(--bg-2); padding: 14px; border-radius: var(--radius-sm); height: 260px; overflow: auto;
-    font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
-    font-family: "Cascadia Code", Consolas, monospace; border: 1px solid var(--border-soft); margin: 0;
+    background: var(--bg-2); padding: 12px 14px; border-radius: var(--radius-sm); height: 280px; overflow: auto;
+    font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+    font-family: var(--mono); border: 1px solid var(--border-soft); margin: 0; color: var(--text);
   }
 
+  /* Thin overlay-style scrollbars (Docker Desktop-like): no arrows, transparent
+     track, a slim rounded thumb that widens a bit and brightens on hover. The
+     transparent border + padding-box clip keeps the hit area larger than the
+     visible thumb. */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+  ::-webkit-scrollbar-button { display: none; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--muted-2) 45%, transparent);
+    border: 3px solid transparent; border-radius: 999px; background-clip: padding-box;
+    min-height: 32px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--muted) 70%, transparent);
+    border-width: 2px;
+  }
+  ::-webkit-scrollbar-thumb:active { background-color: var(--muted); border-width: 2px; }
+
   #envRows { max-height: 380px; overflow-y: auto; margin-bottom: 14px; padding-right: 4px; }
-  #envRows::-webkit-scrollbar { width: 8px; }
-  #envRows::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   .env-row-head {
-    display: flex; gap: 8px; padding: 0 4px 8px; font-size: 10.5px; font-weight: 700;
+    display: flex; gap: 8px; padding: 0 4px 6px; font-size: 10.5px; font-weight: 700;
     color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.6px;
   }
   .env-row-head .col-key { flex: 0 0 34%; }
   .env-row-head .col-value { flex: 1; }
   .env-row {
-    display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
-    background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
-    padding: 7px;
+    display: flex; gap: 8px; margin-bottom: 6px; align-items: center;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+    padding: 4px 6px;
   }
-  .env-row:focus-within { border-color: var(--accent); }
+  .env-row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .env-row input.env-key, .env-row input.env-value {
-    background: transparent; border: none; color: var(--text);
-    font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; padding: 5px 7px;
+    background: transparent; border: none; color: var(--text); min-width: 0;
+    font-family: var(--mono); font-size: 12.5px; padding: 6px 7px;
   }
   .env-row input.env-key { flex: 0 0 34%; color: var(--accent-2); border-right: 1px solid var(--border-soft); border-radius: 0; }
   .env-row input.env-value { flex: 1; }
   .env-row input:focus { outline: none; box-shadow: none; }
-  .env-row .source-badge {
-    flex-shrink: 0; font-size: 9.5px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
-    text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; cursor: pointer;
+  .source-badge {
+    flex-shrink: 0; font-size: 9.5px; font-weight: 700; padding: 3px 7px; border-radius: 5px;
+    text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; cursor: pointer;
   }
-  .env-row .source-badge.env { background: var(--accent-soft); color: var(--accent); }
-  .env-row .source-badge.env-local { background: var(--green-soft); color: var(--green); }
+  .source-badge.env { background: var(--accent-soft); color: var(--accent-2); }
+  .source-badge.env-local { background: var(--green-soft); color: var(--green); }
   .env-row button.remove-row {
-    flex-shrink: 0; background: transparent; color: var(--muted-2); padding: 5px 9px; font-size: 16px;
-    border: none; border-radius: 6px; line-height: 1; box-shadow: none;
+    flex-shrink: 0; background: transparent; color: var(--muted-2); padding: 0; width: 28px; min-height: 28px;
+    font-size: 16px; border-radius: 6px;
   }
-  .env-row button.remove-row:hover { background: var(--red-soft); color: var(--red); transform: none; box-shadow: none; }
+  .env-row button.remove-row:hover:not(:disabled) { background: var(--red-soft); color: var(--red); }
   .env-empty { color: var(--muted-2); font-size: 12.5px; padding: 28px 0; text-align: center; }
   .env-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .env-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted-2); align-items: center; }
@@ -404,22 +450,22 @@
   .hosts-page { display: none; }
   body.page-hosts .hosts-page { display: block; }
   body.page-hosts .main-layout { display: none; }
-  .hosts-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
-  .hosts-header h2 { margin: 0; font-size: 20px; font-weight: 700; }
-  .hosts-path { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; color: var(--muted-2); }
+  .hosts-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .hosts-header h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .hosts-path { font-family: var(--mono); font-size: 12px; color: var(--muted-2); }
   .hosts-card {
     background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius);
-    padding: 20px; margin-bottom: 18px;
+    padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
   }
   .hosts-card-title {
-    font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
-    text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 11px; font-weight: 700; color: var(--muted-2); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.7px;
   }
-  .hosts-form { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .hosts-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .hosts-form input, .hosts-filter, .hosts-row input:not([type="checkbox"]) {
-    padding: 9px 11px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-    background: var(--bg-2); color: var(--text); font-size: 13px;
-    font-family: "Cascadia Code", Consolas, monospace; min-width: 0;
+    padding: 7px 10px; min-height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: var(--bg-2); color: var(--text); font-size: 12.5px;
+    font-family: var(--mono); min-width: 0;
   }
   .hosts-form input:focus, .hosts-filter:focus, .hosts-row input:focus {
     outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
@@ -430,12 +476,13 @@
   .hosts-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   .hosts-filter { width: 260px; max-width: 100%; font-family: inherit; }
   .hosts-row {
-    display: flex; gap: 10px; align-items: center; padding: 10px 12px; margin-bottom: 8px;
-    background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
+    display: flex; gap: 10px; align-items: center; padding: 8px 12px; margin-bottom: 6px;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
     flex-wrap: wrap;
   }
+  .hosts-row:hover { border-color: var(--border); }
   .hosts-row.disabled .h-text { opacity: 0.45; text-decoration: line-through; }
-  .hosts-row .h-text { font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; min-width: 0; word-break: break-all; }
+  .hosts-row .h-text { font-family: var(--mono); font-size: 12.5px; min-width: 0; word-break: break-all; }
   .hosts-row .h-text.h-ip { color: var(--accent-2); }
   .hosts-row .h-text.h-comment { color: var(--muted-2); }
   .hosts-row .h-actions { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; align-items: center; }
@@ -443,56 +490,60 @@
   .hosts-empty { color: var(--muted-2); font-size: 12.5px; padding: 28px 0; text-align: center; }
   .hosts-note { font-size: 12px; color: var(--muted-2); margin-top: 10px; line-height: 1.5; }
 
-  #credentialsList { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; max-height: 320px; overflow-y: auto; }
+  /* --- Credentials / commands / SSH lists --- */
+  #credentialsList { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; max-height: 320px; overflow-y: auto; }
   .cred-card {
-    background: var(--bg-2); border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm);
-    padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+    padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    margin-bottom: 6px;
   }
-  .cred-card-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .cred-card-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
-  .cred-card-row { display: flex; gap: 8px; align-items: center; font-size: 12.5px; font-family: "Cascadia Code", Consolas, monospace; color: var(--text); }
+  .cred-card:hover { border-color: var(--border); }
+  .cred-card-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .cred-card-label { font-size: 11px; font-weight: 700; color: var(--accent-2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .cred-card-row { display: flex; gap: 8px; align-items: center; font-size: 12.5px; font-family: var(--mono); color: var(--text); min-width: 0; }
+  .cred-card-row code { overflow-wrap: anywhere; }
   .copy-btn {
-    background: transparent; border: none; color: var(--muted-2); padding: 6px; cursor: pointer;
-    border-radius: 6px; box-shadow: none; line-height: 1; flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: var(--muted-2); padding: 0; width: 26px; min-height: 26px;
+    border-radius: 6px; flex-shrink: 0;
   }
-  .copy-btn svg { width: 16px; height: 16px; display: block; }
-  .copy-btn:hover { background: var(--panel-3); color: var(--text); transform: none; box-shadow: none; }
+  .copy-btn svg { width: 15px; height: 15px; display: block; }
+  .copy-btn:hover:not(:disabled) { background: var(--panel-3); color: var(--text); }
   .copy-btn.copied { color: var(--green); }
-  .cred-card-row .cred-field-label { color: var(--muted-2); font-family: "Segoe UI", sans-serif; min-width: 60px; }
+  .cred-card-row .cred-field-label { color: var(--muted-2); font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; min-width: 64px; }
   .cred-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .cred-card-actions button {
-    padding: 6px 8px; font-size: 12px; box-shadow: none; background: transparent; color: var(--muted);
+    padding: 4px 10px; min-height: 28px; font-size: 12px; background: var(--panel-2); color: var(--text);
     border: 1px solid var(--border);
   }
-  .cred-card-actions button:hover { background: var(--panel-3); transform: none; box-shadow: none; }
-  .cred-card-actions button.remove-cred:hover { background: var(--red-soft); color: var(--red); }
+  .cred-card-actions button:hover:not(:disabled) { background: var(--panel-3); }
+  .cred-card-actions button.remove-cred { color: var(--red); }
+  .cred-card-actions button.remove-cred:hover:not(:disabled) { background: var(--red-soft); border-color: transparent; }
   .cred-empty { color: var(--muted-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
 
+  /* --- Git panel --- */
   .git-meta { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 4px; }
   .pull-main-row {
     display: flex; align-items: flex-end; gap: 10px; padding: 12px; margin-top: 12px;
-    background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--radius-sm);
+    background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius-sm);
   }
-  .git-branch-settings {
-    display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px;
-  }
+  .git-branch-settings { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
   .git-branch-settings .field { flex: 1; min-width: 140px; max-width: 220px; }
-  .git-mode-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+  .git-mode-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
   .git-mode-buttons button { flex: 1; }
   .git-main-check-row {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px;
-    padding-top: 14px; border-top: 1px solid var(--border);
+    padding-top: 14px; border-top: 1px solid var(--border-soft);
   }
-  .git-mode-detail {
-    padding-top: 16px; border-top: 1px dashed var(--border);
+  .git-mode-detail { padding-top: 16px; border-top: 1px solid var(--border-soft); }
+  .git-file-list {
+    max-height: 260px; overflow-y: auto; margin-bottom: 14px;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
   }
-  .git-file-list { max-height: 260px; overflow-y: auto; margin-bottom: 14px; }
   .git-file-row {
     display: flex; align-items: center; gap: 10px; padding: 7px 10px;
     border-bottom: 1px solid var(--border-soft); font-size: 12.5px; cursor: pointer;
   }
-  .git-file-row:hover { background: var(--bg-2); }
+  .git-file-row:hover { background: var(--panel-2); }
   .git-file-row:last-child { border-bottom: none; }
   .git-file-row input[type="checkbox"], .git-select-all input[type="checkbox"] {
     accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0;
@@ -502,58 +553,140 @@
     color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer;
   }
   .git-file-status {
-    flex-shrink: 0; width: 74px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-    padding: 2px 6px; border-radius: 4px; text-align: center;
+    flex-shrink: 0; width: 74px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 4px; text-align: center; letter-spacing: 0.3px;
   }
   .git-file-status.status-M { background: var(--yellow-soft); color: var(--yellow); }
   .git-file-status.status-A { background: var(--green-soft); color: var(--green); }
   .git-file-status.status-D { background: var(--red-soft); color: var(--red); }
-  .git-file-status.status-R { background: var(--accent-soft); color: var(--accent); }
+  .git-file-status.status-R { background: var(--accent-soft); color: var(--accent-2); }
   .git-file-status.status-untracked { background: var(--panel-3); color: var(--muted); }
-  .git-file-path { font-family: "Cascadia Code", Consolas, monospace; color: var(--text); word-break: break-all; }
+  .git-file-path { font-family: var(--mono); color: var(--text); word-break: break-all; }
   .git-success {
     background: var(--green-soft); color: var(--green); font-size: 12.5px; padding: 10px 12px;
     border-radius: var(--radius-sm); margin-bottom: 12px;
   }
 
   .error-msg { color: var(--red); font-size: 12.5px; margin-top: 10px; }
-  .caddy-status {
-    font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 7px;
-    padding: 8px 14px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border-soft);
-    font-weight: 500;
-  }
-  .caddy-status .cdot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-  .caddy-status.caddy-missing {
-    cursor: pointer; border-color: var(--red); color: var(--red);
-  }
-  .caddy-status.caddy-missing:hover { background: var(--red-soft); }
 
   @media (max-width: 720px) {
-    header { padding: 16px 18px; }
-    main { padding: 20px 18px 50px; }
-    .modal { width: 92vw !important; padding: 20px; }
+    header { padding: 0 16px; }
+    header .sub { display: none; }
+    main { padding: 16px 16px 50px; }
+    .modal { width: 92vw !important; padding: 18px; }
+    .card-body { padding: 14px; }
   }
 
+  /* --- Startup splash --- */
   .page-loading {
     position: fixed; inset: 0; z-index: 1000;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: var(--bg); transition: opacity .2s;
   }
   .page-loading.hidden { opacity: 0; pointer-events: none; }
   .page-loading-logo {
-    width: 56px; height: 56px; border-radius: 16px;
+    width: 52px; height: 52px; border-radius: 14px;
     background: linear-gradient(135deg, var(--accent), var(--pink));
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 26px; color: white;
-    box-shadow: 0 8px 24px rgba(124,110,244,0.4);
+    font-weight: 800; font-size: 24px; color: white;
   }
-  .page-loading-title { font-size: 18px; font-weight: 700; color: var(--text); margin-top: -8px; }
+  .page-loading-title { font-size: 16px; font-weight: 700; color: var(--text); margin-top: -6px; }
   .page-loading-spinner {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 3px solid var(--border); border-top-color: var(--accent);
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2.5px solid var(--border); border-top-color: var(--accent);
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- Docker Compose additions --- */
+  .status-pill.partial { background: var(--yellow-soft); color: var(--yellow); }
+  .status-pill.partial .dot.on { background: var(--yellow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--yellow) 22%, transparent); }
+  .chip-sub { font-size: 11px; color: var(--muted-2); }
+  a.chip-link { text-decoration: none; }
+  a.chip-link:hover { border-color: var(--accent); color: var(--text); }
+  a.chip-link:hover code { color: var(--accent-2); }
+
+  .panel-toolbar { display: flex; gap: 8px; align-items: center; margin: -2px 0 10px; }
+  .panel-select, .field-inline-select {
+    min-height: 30px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: var(--bg-2); color: var(--text); font: inherit; font-size: 12.5px;
+  }
+  .panel-select:focus { outline: none; border-color: var(--accent); }
+
+  .svc-list { background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); }
+  .svc-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--border-soft); }
+  .svc-row:last-child { border-bottom: none; }
+  .svc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .svc-name { font-weight: 600; font-size: 13px; }
+  .svc-meta { font-size: 11.5px; color: var(--muted-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .svc-ports { display: flex; gap: 6px; flex-wrap: wrap; }
+  .port-link {
+    font-family: var(--mono); font-size: 11.5px; color: var(--accent-2); text-decoration: none;
+    padding: 2px 7px; border-radius: 5px; background: var(--accent-soft);
+  }
+  .port-link:hover { text-decoration: underline; }
+  .svc-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  button.icon-only { padding: 0; width: 30px; }
+
+  .archive-section { margin-top: 8px; }
+  .archive-toggle {
+    background: transparent; color: var(--muted); border: none; padding: 6px 4px; min-height: 0;
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .archive-toggle:hover:not(:disabled) { background: transparent; color: var(--text); }
+  .archive-hint { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted-2); margin-left: 4px; }
+  .archive-section .project-grid { margin-top: 8px; }
+  .project-card.archived { opacity: 0.8; }
+  .project-card.archived:hover { opacity: 1; }
+
+  .domain-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .domain-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 12px;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+  }
+  .domain-item:hover { border-color: var(--border); }
+  .domain-item > .ico { color: var(--muted-2); }
+  .domain-arrow { color: var(--muted-2); }
+  .domain-target { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .domain-target code { font-size: 12px; }
+  .remove-domain {
+    margin-left: auto; background: transparent; color: var(--muted-2); border: none;
+    padding: 0; width: 28px; min-height: 28px; border-radius: 6px;
+  }
+  .remove-domain:hover:not(:disabled) { background: var(--red-soft); color: var(--red); }
+  .domain-add { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .domain-add .domain-input { flex: 1 1 220px; }
+  .domain-add .domain-input input { padding: 7px 10px; min-height: 32px; color: var(--text); font: inherit; font-size: 13px; }
+  .domain-add select {
+    flex: 0 1 240px; min-height: 34px; padding: 6px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--bg-2); color: var(--text); font: inherit; font-size: 12.5px;
+  }
+  .path-input { display: flex; gap: 8px; }
+  .path-input input { flex: 1; cursor: pointer; font-family: var(--mono); font-size: 12.5px; }
+  .domain-row { display: flex; gap: 8px; }
+  .domain-row .domain-input { flex: 1; }
+  .domain-row select { flex: 0 0 48%; }
+  .field-hint { font-size: 11.5px; color: var(--muted-2); margin-top: 6px; white-space: pre-wrap; }
+  .field-hint.error { color: var(--red); }
+
+  .browse-modal { width: 520px; }
+  .browse-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .browse-bar code {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 12px; color: var(--muted); background: var(--bg-2); padding: 6px 10px; border-radius: 6px;
+  }
+  .browse-flag { font-size: 11px; font-weight: 600; color: var(--green); background: var(--green-soft); padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .browse-list {
+    height: 320px; overflow-y: auto; border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+    background: var(--bg-2); padding: 4px;
+  }
+  .browse-item {
+    display: flex; justify-content: flex-start; width: 100%; background: transparent; color: var(--text);
+    border: none; border-radius: 6px; padding: 7px 10px; min-height: 0; font-size: 13px; font-weight: 500;
+  }
+  .browse-item .ico { color: var(--accent-2); }
+  .browse-item:hover:not(:disabled) { background: var(--panel-2); }
+  .browse-empty { color: var(--muted-2); font-size: 12.5px; padding: 24px; text-align: center; }
 </style>
 </head>
 <body>
@@ -577,14 +710,15 @@
       <button data-env="local" title="Local development">Local</button>
       <button data-env="production" title="Production server">Production</button>
     </div>
+    <div class="caddy-status" id="dockerStatus"></div>
     <div class="caddy-status" id="caddyStatus"></div>
     <div class="lang-toggle" id="langToggle">
       <button data-lang="en" title="English">EN</button>
       <button data-lang="id" title="Bahasa Indonesia">ID</button>
     </div>
     <div class="theme-toggle" id="themeToggle">
-      <button data-theme="light" title="Light">&#9728;</button>
-      <button data-theme="dark" title="Dark">&#9789;</button>
+      <button data-theme="light" title="Light"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+      <button data-theme="dark" title="Dark"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
     </div>
   </div>
 </header>
@@ -593,10 +727,11 @@
   <div class="main-layout">
     <div class="main-content">
       <div class="toolbar">
-        <button id="addProjectBtn" onclick="openAddModal()">+ Add Project</button>
-        <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">&#8635; Reload Caddy / Sync Domains</button>
-        <button class="secondary" id="editHostsBtn" onclick="location.hash = '#hosts'">Edit Hosts</button>
+        <div class="toolbar-title"><span id="projectsTitle">Projects</span><span class="toolbar-count" id="projectsCount"></span></div>
         <button class="secondary icon-btn" id="toggleSidejobsBtn" style="display:none;" onclick="toggleShowSidejobs()"></button>
+        <button class="secondary" id="editHostsBtn" onclick="location.hash = '#hosts'">Edit Hosts</button>
+        <button class="secondary" id="reloadCaddyBtn" onclick="reloadCaddy()">Reload Caddy / Sync Domains</button>
+        <button id="addProjectBtn" onclick="openAddModal()">Add Project</button>
       </div>
 
       <div class="project-grid" id="projectRows"></div>
@@ -620,43 +755,42 @@
       <input id="fName" placeholder="my-app" />
     </div>
     <div class="field">
-      <label id="lblFolder">Folder (cwd)</label>
-      <input id="fCwd" placeholder="D:\kerjaan-2026\projects\my-app" />
+      <label id="lblDistro">WSL distro</label>
+      <select id="fDistro" onchange="onDistroChange()"></select>
     </div>
     <div class="field">
-      <label id="lblStack">Stack (optional, auto-fills Command)</label>
-      <select id="fStack" onchange="applyStackTemplate()">
-        <option value="">— Choose stack —</option>
-        <option value="node-dev">Node.js (npm run dev)</option>
-        <option value="node-start">Node.js (npm start)</option>
-        <option value="yarn-dev">Node.js (yarn dev)</option>
-        <option value="pnpm-dev">Node.js (pnpm dev)</option>
-        <option value="laravel">Laravel (php artisan serve)</option>
-        <option value="php-builtin">PHP built-in server</option>
-        <option value="django">Django (manage.py runserver)</option>
-        <option value="flask">Flask (flask run)</option>
-        <option value="custom">Custom command</option>
-      </select>
-    </div>
-    <div class="field">
-      <label id="lblCommand">Command</label>
-      <input id="fCommand" placeholder="npm run dev" />
-    </div>
-    <div class="field">
-      <label id="lblPort">Port (optional, required only for custom domain)</label>
-      <input id="fPort" placeholder="leave empty to use the command's own default port" type="number" oninput="applyStackTemplate()" />
-    </div>
-    <div class="field">
-      <label id="lblDomain">Custom domain (optional, needs Caddy + admin)</label>
-      <div class="domain-input">
-        <input id="fDomain" placeholder="my-app" />
-        <span class="domain-suffix">.local</span>
+      <label id="lblFolder">Project folder</label>
+      <div class="path-input">
+        <input id="fCwdDisplay" readonly placeholder="/home/you/projects/my-app" onclick="openBrowseModal()" />
+        <button type="button" class="secondary" id="browseBtn" onclick="openBrowseModal()">Browse</button>
       </div>
+      <input type="hidden" id="fCwd" />
+    </div>
+    <div class="field">
+      <label id="lblCompose">Compose file</label>
+      <select id="fComposeFile" onchange="onComposeFileChange()"></select>
+      <div class="field-hint" id="composeHint"></div>
     </div>
     <div class="error-msg" id="formError"></div>
     <div class="modal-actions">
       <button class="secondary" id="addModalCancelBtn" onclick="closeAddModal()">Cancel</button>
       <button id="addModalSaveBtn" onclick="submitProject()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="browseModal">
+  <div class="modal browse-modal">
+    <h2 id="browseTitle">Choose a folder in WSL</h2>
+    <div class="browse-bar">
+      <button type="button" class="secondary small icon-only" id="browseUpBtn" title="Up" onclick="browseUp()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+      <code id="browsePath"></code>
+      <span class="browse-flag" id="browseComposeFlag" style="display:none">compose</span>
+    </div>
+    <div class="browse-list" id="browseList"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="browseCancelBtn" onclick="closeBrowseModal()">Cancel</button>
+      <button id="browseSelectBtn" onclick="selectBrowsedFolder()">Select this folder</button>
     </div>
   </div>
 </div>
@@ -800,15 +934,17 @@ const I18N = {
     caddyInstalling: 'Installing Caddy...',
     caddyInstallConfirm: 'Caddy is required for custom domains. Install it now via winget? This may take a minute.',
     caddyInstallFailed: 'Failed to install Caddy',
-    caddyRestartInstructions: 'Caddy is installed, but this lotwork process was started before that and can’t see it yet.\n\nClick STOP then START in the lotwork control window to pick it up.',
-    addProject: '+ Add Project',
-    reloadCaddy: '&#8635; Reload Caddy / Sync Domains',
-    emptyState: 'No projects yet.<br>Click <strong>"+ Add Project"</strong> to get started.',
+    caddyRestartInstructions: 'Caddy is installed, but this lotwork process was started before that and can’t see it yet.\n\nRight-click the lotwork tray icon and choose "Restart lotwork" to pick it up.',
+    addProject: 'Add Project',
+    reloadCaddy: 'Sync Domains',
+    reloadCaddyHint: 'Reload Caddy and sync custom domains to the hosts file',
+    projectsTitle: 'Projects',
+    emptyState: 'No Docker projects yet.<br>Click <strong>"Add Project"</strong> and choose a folder in WSL that has a compose file.',
     running: 'Running',
     stopped: 'Stopped',
-    start: '&#9654; Start',
+    start: 'Start',
     starting: 'Starting...',
-    stop: '&#9632; Stop',
+    stop: 'Stop',
     stopping: 'Stopping...',
     close: 'Close',
     copyLogs: 'Copy Logs',
@@ -857,11 +993,11 @@ const I18N = {
     port: 'Port',
     noDomain: 'no domain',
     lastStarted: 'Last started',
-    confirmDeleteProject: 'Delete this project from the list? (project files are not deleted)',
+    confirmDeleteProject: 'Remove this project from lotwork? Its containers and files are not touched.',
     modalAddTitle: 'Add Project',
     modalEditTitle: 'Edit Project',
     fieldName: 'Project name',
-    fieldFolder: 'Folder (cwd)',
+    fieldFolder: 'Project folder',
     fieldStack: 'Stack (optional, auto-fills Command)',
     stackPlaceholder: '— Choose stack —',
     stackCustom: 'Custom command',
@@ -870,8 +1006,8 @@ const I18N = {
     fieldDomain: 'Custom domain (optional, needs Caddy + admin)',
     cancel: 'Cancel',
     save: 'Save',
-    requiredFieldsError: 'Name, folder, and command are required.',
-    portRequiredForDomainError: 'Port is required when a custom domain is set.',
+    requiredFieldsError: 'Name, folder, and compose file are required.',
+    portRequiredForDomainError: 'Choose a container port for the custom domain.',
     hostsSyncFailedAlert: 'Domain saved, but hosts file sync failed:',
     hostsSyncFailedHint: 'Run lotwork as Administrator then click "Reload Caddy / Sync Domains".',
     nextOriginUnrecognized: 'This project looks like Next.js, but lotwork couldn’t recognize its config format:',
@@ -916,7 +1052,9 @@ const I18N = {
     pushing: 'Pushing...',
     confirmPushTitle: (branch) => `Commit & push to branch "${branch}"?`,
     confirmPushFiles: (count) => `${count} file(s) will be committed:`,
-    confirmPushAutoMessage: 'A commit message will be generated automatically (timestamp).',
+    confirmPushAutoMessage: (msg) => `Commit message: ${msg}`,
+    commitMessageLabel: 'Commit message',
+    commitMessagePlaceholder: 'Summary of the changes',
     pushSuccess: (branch, message) => `Successfully pushed to "${branch}": ${message}`,
     pushFailed: 'Push failed',
     statusModified: 'Modified',
@@ -962,6 +1100,44 @@ const I18N = {
     upToDateWithMain: (main) => `Up to date with ${main}`,
     behindMain: (n, main) => `${n} commit${n === 1 ? '' : 's'} behind ${main}`,
     aheadOfMain: (n) => `${n} ahead`,
+    fieldDistro: 'WSL distro',
+    fieldCompose: 'Compose file',
+    browse: 'Browse',
+    browseTitle: 'Choose a folder in WSL',
+    browseSelect: 'Select this folder',
+    browseEmpty: 'No subfolders',
+    noComposeFiles: 'No compose file found in this folder',
+    inspecting: 'Reading compose file...',
+    composeSummary: (name, n) => `Compose project "${name}" · ${n} service${n === 1 ? '' : 's'}`,
+    domainPortPlaceholder: '— container port —',
+    noWslDistro: 'No WSL distro found. Install one with: wsl --install',
+    services: 'Services',
+    restart: 'Restart',
+    restarting: 'Restarting...',
+    down: 'Down (remove containers)',
+    confirmDown: 'Stop and remove this project\'s containers? Volumes and files are kept.',
+    refreshCompose: 'Reload compose file',
+    notCreated: 'not created',
+    noServices: 'No services defined',
+    partialRunning: (a, b) => `Running ${a}/${b}`,
+    logsAllServices: 'All services',
+    commandServiceField: 'Run in',
+    commandServiceShell: 'WSL shell (project folder)',
+    archiveTitle: 'Archive',
+    archiveHint: 'old projects from before Docker · read-only',
+    archivedBadge: 'Archived',
+    dockerRunning: 'Docker: running',
+    dockerDown: 'Docker: not running',
+    dockerActionFailed: 'Docker command failed',
+
+    domains: 'Domains',
+    domainsHint: 'Each domain is proxied by Caddy (HTTPS) to one published container port, e.g. app.local → frontend, api.app.local → backend.',
+    noDomainsYet: 'No custom domains yet.',
+    domainNamePlaceholder: 'my-app or api.my-app',
+    addDomain: 'Add domain',
+    domainRequiredError: 'Enter a domain name and choose a container port.',
+    confirmDeleteDomain: 'Remove this domain? Caddy and the hosts file are updated automatically.',
+    noPublishedPorts: 'This compose file publishes no ports, so there is nothing to point a domain at.',
   },
   id: {
     subtitle: 'Local dev project manager',
@@ -992,15 +1168,17 @@ const I18N = {
     caddyInstalling: 'Menginstall Caddy...',
     caddyInstallConfirm: 'Caddy dibutuhkan untuk custom domain. Install sekarang lewat winget? Proses ini bisa memakan waktu semenit.',
     caddyInstallFailed: 'Gagal install Caddy',
-    caddyRestartInstructions: 'Caddy sudah terpasang, tapi proses lotwork ini dijalankan sebelum itu dan belum bisa mendeteksinya.\n\nKlik STOP lalu START di window kontrol lotwork untuk memuatnya.',
-    addProject: '+ Tambah Project',
-    reloadCaddy: '&#8635; Reload Caddy / Sync Domains',
-    emptyState: 'Belum ada project.<br>Klik <strong>"+ Tambah Project"</strong> untuk mulai.',
+    caddyRestartInstructions: 'Caddy sudah terpasang, tapi proses lotwork ini dijalankan sebelum itu dan belum bisa mendeteksinya.\n\nKlik kanan ikon lotwork di tray lalu pilih "Restart lotwork" untuk memuatnya.',
+    addProject: 'Tambah Project',
+    reloadCaddy: 'Sync Domain',
+    reloadCaddyHint: 'Reload Caddy dan sinkronkan custom domain ke hosts file',
+    projectsTitle: 'Project',
+    emptyState: 'Belum ada project Docker.<br>Klik <strong>"Tambah Project"</strong> lalu pilih folder di WSL yang punya compose file.',
     running: 'Berjalan',
     stopped: 'Berhenti',
-    start: '&#9654; Start',
+    start: 'Start',
     starting: 'Memulai...',
-    stop: '&#9632; Stop',
+    stop: 'Stop',
     stopping: 'Menghentikan...',
     close: 'Tutup',
     copyLogs: 'Salin Logs',
@@ -1049,11 +1227,11 @@ const I18N = {
     port: 'Port',
     noDomain: 'tanpa domain',
     lastStarted: 'Terakhir start',
-    confirmDeleteProject: 'Hapus project ini dari daftar? (file project tidak ikut terhapus)',
+    confirmDeleteProject: 'Hapus project ini dari lotwork? Container dan file-nya tidak disentuh.',
     modalAddTitle: 'Tambah Project',
     modalEditTitle: 'Edit Project',
     fieldName: 'Nama project',
-    fieldFolder: 'Folder (cwd)',
+    fieldFolder: 'Folder project',
     fieldStack: 'Stack (opsional, auto-isi Command)',
     stackPlaceholder: '— Pilih stack —',
     stackCustom: 'Command custom',
@@ -1062,8 +1240,8 @@ const I18N = {
     fieldDomain: 'Custom domain (opsional, butuh Caddy + admin)',
     cancel: 'Batal',
     save: 'Simpan',
-    requiredFieldsError: 'Nama, folder, dan command wajib diisi.',
-    portRequiredForDomainError: 'Port wajib diisi kalau pakai custom domain.',
+    requiredFieldsError: 'Nama, folder, dan compose file wajib diisi.',
+    portRequiredForDomainError: 'Pilih port container untuk custom domain.',
     hostsSyncFailedAlert: 'Domain disimpan, tapi sinkronisasi ke hosts file gagal:',
     hostsSyncFailedHint: 'Jalankan lotwork sebagai Administrator lalu klik "Reload Caddy / Sync Domains".',
     nextOriginUnrecognized: 'Project ini terdeteksi sebagai Next.js, tapi format config-nya tidak dikenali lotwork:',
@@ -1108,7 +1286,9 @@ const I18N = {
     pushing: 'Pushing...',
     confirmPushTitle: (branch) => `Commit & push ke branch "${branch}"?`,
     confirmPushFiles: (count) => `${count} file akan di-commit:`,
-    confirmPushAutoMessage: 'Pesan commit akan dibuat otomatis (timestamp).',
+    confirmPushAutoMessage: (msg) => `Pesan commit: ${msg}`,
+    commitMessageLabel: 'Pesan commit',
+    commitMessagePlaceholder: 'Ringkasan perubahan',
     pushSuccess: (branch, message) => `Berhasil push ke "${branch}": ${message}`,
     pushFailed: 'Gagal push',
     statusModified: 'Modified',
@@ -1154,6 +1334,44 @@ const I18N = {
     upToDateWithMain: (main) => `Sudah update dengan ${main}`,
     behindMain: (n, main) => `Tertinggal ${n} commit dari ${main}`,
     aheadOfMain: (n) => `${n} lebih maju`,
+    fieldDistro: 'Distro WSL',
+    fieldCompose: 'Compose file',
+    browse: 'Pilih',
+    browseTitle: 'Pilih folder di WSL',
+    browseSelect: 'Pilih folder ini',
+    browseEmpty: 'Tidak ada subfolder',
+    noComposeFiles: 'Tidak ada compose file di folder ini',
+    inspecting: 'Membaca compose file...',
+    composeSummary: (name, n) => `Compose project "${name}" · ${n} service`,
+    domainPortPlaceholder: '— port container —',
+    noWslDistro: 'Tidak ada distro WSL. Install dulu: wsl --install',
+    services: 'Services',
+    restart: 'Restart',
+    restarting: 'Me-restart...',
+    down: 'Down (hapus container)',
+    confirmDown: 'Hentikan dan hapus container project ini? Volume dan file tetap aman.',
+    refreshCompose: 'Muat ulang compose file',
+    notCreated: 'belum dibuat',
+    noServices: 'Tidak ada service',
+    partialRunning: (a, b) => `Berjalan ${a}/${b}`,
+    logsAllServices: 'Semua service',
+    commandServiceField: 'Jalankan di',
+    commandServiceShell: 'Shell WSL (folder project)',
+    archiveTitle: 'Arsip',
+    archiveHint: 'project lama sebelum Docker · read-only',
+    archivedBadge: 'Arsip',
+    dockerRunning: 'Docker: jalan',
+    dockerDown: 'Docker: tidak jalan',
+    dockerActionFailed: 'Perintah Docker gagal',
+
+    domains: 'Domain',
+    domainsHint: 'Setiap domain di-proxy Caddy (HTTPS) ke satu port container, mis. app.local → frontend, api.app.local → backend.',
+    noDomainsYet: 'Belum ada custom domain.',
+    domainNamePlaceholder: 'my-app atau api.my-app',
+    addDomain: 'Tambah domain',
+    domainRequiredError: 'Isi nama domain dan pilih port container.',
+    confirmDeleteDomain: 'Hapus domain ini? Caddy dan hosts file diperbarui otomatis.',
+    noPublishedPorts: 'Compose file ini tidak mem-publish port, jadi belum ada tujuan untuk domain.',
   },
 };
 
@@ -1174,6 +1392,41 @@ function setLang(lang) {
   updateStaticTexts();
 }
 
+const ICONS = {
+  play: '<path d="M6 4l14 8-14 8z"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  logs: '<path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>',
+  env: '<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/>',
+  key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+  server: '<rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/>',
+  branch: '<path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+  edit: '<path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  more: '<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>',
+  star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+  plug: '<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  down: '<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/>',
+  chevRight: '<path d="m9 18 6-6-6-6"/>',
+  chevDown: '<path d="m6 9 6 6 6-6"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  pending: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+};
+
+function icon(name) {
+  return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+}
+
 function t(key, ...args) {
   const dict = I18N[getLang()] || I18N.en;
   const value = dict[key] !== undefined ? dict[key] : I18N.en[key];
@@ -1182,18 +1435,21 @@ function t(key, ...args) {
 
 function updateStaticTexts() {
   document.querySelector('header .sub').textContent = t('subtitle');
-  document.getElementById('addProjectBtn').textContent = t('addProject');
-  document.getElementById('reloadCaddyBtn').innerHTML = t('reloadCaddy');
-  document.getElementById('editHostsBtn').textContent = t('editHosts');
+  document.getElementById('addProjectBtn').innerHTML = `${icon('plus')}<span>${t('addProject')}</span>`;
+  const reloadBtn = document.getElementById('reloadCaddyBtn');
+  reloadBtn.innerHTML = `${icon('refresh')}<span>${t('reloadCaddy')}</span>`;
+  reloadBtn.title = t('reloadCaddyHint');
+  document.getElementById('editHostsBtn').innerHTML = `${icon('file')}<span>${t('editHosts')}</span>`;
+  document.getElementById('projectsTitle').textContent = t('projectsTitle');
   if (document.body.classList.contains('page-hosts')) renderHostsPage();
-  document.getElementById('fStack').options[0].textContent = t('stackPlaceholder');
-  document.querySelector('#fStack option[value="custom"]').textContent = t('stackCustom');
   document.getElementById('lblName').textContent = t('fieldName');
   document.getElementById('lblFolder').textContent = t('fieldFolder');
-  document.getElementById('lblStack').textContent = t('fieldStack');
-  document.getElementById('lblCommand').textContent = t('fieldCommand');
-  document.getElementById('lblPort').textContent = t('fieldPort');
-  document.getElementById('lblDomain').textContent = t('fieldDomain');
+  document.getElementById('lblDistro').textContent = t('fieldDistro');
+  document.getElementById('lblCompose').textContent = t('fieldCompose');
+  document.getElementById('browseBtn').textContent = t('browse');
+  document.getElementById('browseTitle').textContent = t('browseTitle');
+  document.getElementById('browseSelectBtn').textContent = t('browseSelect');
+  document.getElementById('browseCancelBtn').textContent = t('cancel');
   document.getElementById('addModalCancelBtn').textContent = t('cancel');
   document.getElementById('addModalSaveBtn').textContent = t('save');
   document.getElementById('lblCredLabel').textContent = t('fieldLabel');
@@ -1209,6 +1465,7 @@ function updateStaticTexts() {
   const credModalTitle = document.getElementById('credModalTitle');
   if (credModalTitle) credModalTitle.textContent = document.getElementById('credModalId').value ? t('editCredentialTitle') : t('addCredentialTitle');
   checkCaddyStatus();
+  checkDockerStatus();
 }
 
 document.getElementById('langToggle').addEventListener('click', (e) => {
@@ -1302,86 +1559,20 @@ function isTypingInProjectRows() {
   return projectRows && projectRows.contains(active);
 }
 
+let showArchive = false;
+
 function render() {
-  const visibleProjects = projects.filter(p => p.isSelf || (showSidejobs ? p.isSidejob : !p.isSidejob));
+  const active = projects.filter(p => p.isSelf || p.kind === 'compose');
+  const archived = projects.filter(p => p.kind === 'legacy');
+  const visibleProjects = active.filter(p => p.isSelf || (showSidejobs ? p.isSidejob : !p.isSidejob));
+  const count = visibleProjects.filter(p => !p.isSelf).length;
 
-  if (visibleProjects.length === 0) {
-    document.getElementById('projectRows').innerHTML =
-      `<div class="empty-state">${t('emptyState')}</div>`;
-    updateSidejobToggleLabel();
-    return;
-  }
+  let html = visibleProjects.map(p => p.isSelf ? renderSelfCard(p) : renderComposeCard(p)).join('');
+  if (count === 0) html += `<div class="empty-state">${t('emptyState')}</div>`;
+  if (archived.length && !showSidejobs) html += renderArchiveSection(archived);
 
-  const cards = visibleProjects.map(p => {
-    if (p.isSelf) return renderSelfCard(p);
-
-    const running = p.status.running;
-    const busy = pendingIds.has(p.id);
-    const domainLink = p.domain
-      ? `<a class="domain-link" href="https://${p.domain}" target="_blank">${p.domain}</a>`
-      : `<span class="badge">${t('noDomain')}</span>`;
-    const toggleBtn = running
-      ? `<button class="danger" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${busy ? t('stopping') : t('stop')}</button>`
-      : `<button class="success" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${busy ? t('starting') : t('start')}</button>`;
-    const lastStarted = p.lastStartedAt ? formatLastStarted(p.lastStartedAt) : null;
-    const lastCommitText = p.lastCommit
-      ? `${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}`
-      : '';
-    const branchText = p.currentBranch
-      ? (p.defaultBranch && p.defaultBranch !== p.currentBranch
-          ? `<code>${escapeHtml(p.currentBranch)}</code> <span class="branch-vs">${t('branchVsMain')}</span> <code>${escapeHtml(p.defaultBranch)}</code>`
-          : `<code>${escapeHtml(p.currentBranch)}</code>`)
-      : '';
-
-    return `
-      <div class="project-card ${running ? 'running' : ''} ${p.pinned ? 'pinned' : ''}">
-        <div class="card-menu-wrap">
-          <button type="button" class="card-menu-btn" title="${t('moreOptions')}" onclick="toggleCardMenu(event, '${p.id}')">&#8942;</button>
-          ${cardMenuOpenId === p.id ? `
-            <div class="card-menu">
-              <button type="button" onclick="toggleSidejob('${p.id}', ${!p.isSidejob})">${p.isSidejob ? t('unsetSidejob') : t('setSidejob')}</button>
-            </div>
-          ` : ''}
-        </div>
-        <div class="project-top">
-          <div class="project-info">
-            <div class="project-name-row">
-              <button type="button" class="pin-btn ${p.pinned ? 'pinned' : ''}" title="${p.pinned ? t('unpinProject') : t('pinProject')}" onclick="togglePin('${p.id}')">&#9733;</button>
-              <span class="proj-name">${escapeHtml(p.name)}</span>
-              <span class="status-pill ${running ? 'on' : 'off'}"><span class="dot ${running ? 'on' : 'off'}"></span>${running ? t('running') : t('stopped')}</span>
-            </div>
-            ${p.repoUrl
-              ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank">${escapeHtml(p.repoUrl)}</a>`
-              : `<span class="repo-link no-remote">${t('noRemote')}</span>`}
-            ${lastCommitText ? `<div class="last-commit">${lastCommitText}</div>` : ''}
-            <div class="branch-changes-row">
-              ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
-              ${renderChangesBadge(p)}
-            </div>
-            <div class="project-meta">
-              ${p.port ? `<span class="meta-item">${t('port')} <code>${p.port}</code></span>` : ''}
-              <span class="meta-item">${domainLink}</span>
-              <span class="meta-item"><code>${escapeHtml(p.command)}</code></span>
-              ${lastStarted ? `<span class="meta-item">${t('lastStarted')}: ${lastStarted}</span>` : ''}
-            </div>
-          </div>
-        </div>
-        <div class="actions">
-          ${toggleBtn}
-          <button class="secondary small ${expandedPanels.get(p.id) === 'logs' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'logs')">${t('logs')}</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'env' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'env')">${t('editEnv')}</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'credentials' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'credentials')">${t('credentials')}${(p.credentials && p.credentials.length) ? ` (${p.credentials.length})` : ''}</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'commands' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'commands')">${t('commands')}${(p.commands && p.commands.length) ? ` (${p.commands.length})` : ''}</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'ssh' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'ssh')">${t('ssh')}${(p.sshTargets && p.sshTargets.length) ? ` (${p.sshTargets.length})` : ''}</button>
-          <button class="secondary small ${expandedPanels.get(p.id) === 'git' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'git')">${t('github')}</button>
-          <button class="secondary small" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">${t('edit')}</button>
-          <button class="danger small" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${busy ? t('deleting') : t('delete')}</button>
-        </div>
-        ${renderPanel(p)}
-      </div>
-    `;
-  }).join('');
-  document.getElementById('projectRows').innerHTML = cards;
+  document.getElementById('projectRows').innerHTML = html;
+  document.getElementById('projectsCount').textContent = String(count);
   restoreLogScroll();
   updateSidejobToggleLabel();
 }
@@ -1426,7 +1617,7 @@ function updateSidejobToggleLabel() {
   btn.style.display = '';
   btn.title = showSidejobs ? t('backToMain') : t('showSidejobs', count);
   btn.classList.toggle('panel-btn-active', showSidejobs);
-  btn.innerHTML = `&#128065; <span class="icon-btn-count">${count}</span>`;
+  btn.innerHTML = `${icon('eye')}<span class="icon-btn-count">${count}</span>`;
 }
 
 function toggleShowSidejobs() {
@@ -1440,43 +1631,392 @@ function renderChangesBadge(p) {
   const parts = [];
   if (gc.changed) parts.push(t('changedCount', gc.changed));
   if (gc.untracked) parts.push(t('untrackedCount', gc.untracked));
-  return `<span class="badge changes-badge" title="${escapeHtml(parts.join(', '))}">${t('unpushedChanges', gc.total)}</span>`;
+  return `<span class="chip changes" title="${escapeHtml(parts.join(', '))}">${icon('pending')}${t('unpushedChanges', gc.total)}</span>`;
+}
+
+function renderBranchChip(p) {
+  if (!p.currentBranch) return '';
+  const inner = p.defaultBranch && p.defaultBranch !== p.currentBranch
+    ? `<code>${escapeHtml(p.currentBranch)}</code><span class="branch-vs">${t('branchVsMain')}</span><code>${escapeHtml(p.defaultBranch)}</code>`
+    : `<code>${escapeHtml(p.currentBranch)}</code>`;
+  return `<span class="chip">${icon('branch')}${inner}</span>`;
+}
+
+function renderCardSub(p) {
+  const repo = p.repoUrl
+    ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank" title="${escapeHtml(p.repoUrl)}">${icon('link')}${escapeHtml(p.repoUrl.replace(/^https?:\/\//, ''))}</a>`
+    : `<span class="repo-link no-remote">${icon('link')}${t('noRemote')}</span>`;
+  const commit = p.lastCommit
+    ? `<span class="sep">·</span><span class="last-commit" title="${escapeHtml(p.lastCommit.message)}">${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}</span>`
+    : '';
+  return `<div class="card-sub">${repo}${commit}</div>`;
+}
+
+function tabBtn(p, type, iconName, label, count) {
+  const active = expandedPanels.get(p.id) === type;
+  return `<button type="button" class="tab-btn ${active ? 'active' : ''}" onclick="togglePanel('${p.id}', '${type}')">${icon(iconName)}<span>${label}</span>${count ? `<span class="tab-count">${count}</span>` : ''}</button>`;
+}
+
+
+
+// --- WSL paths (stored as \\wsl.localhost\<distro>\... UNC paths) ---
+function parseWslPath(unc) {
+  const match = /^\\\\wsl(?:\.localhost|\$)\\([^\\]+)(\\.*)?$/i.exec(unc || '');
+  if (!match) return null;
+  const linuxPath = (match[2] || '\\').replace(/\\/g, '/').replace(/(.)\/+$/, '$1');
+  return { distro: match[1], linuxPath };
+}
+
+function shortLinuxPath(linuxPath) {
+  return linuxPath.replace(/^\/home\/[^/]+/, '~');
+}
+
+function composeFileLabel(p) {
+  const file = parseWslPath(p.composeFile);
+  const dir = parseWslPath(p.cwd);
+  if (!file) return p.composeFile || '';
+  if (dir && file.linuxPath.startsWith(dir.linuxPath + '/')) return file.linuxPath.slice(dir.linuxPath.length + 1);
+  return shortLinuxPath(file.linuxPath);
+}
+
+// --- Docker Compose project card ---
+const pendingAction = new Map(); // projectId -> 'start' | 'stop' | 'restart' | 'down'
+
+function renderStatusPill(status) {
+  if (status.state === 'partial') {
+    return `<span class="status-pill partial"><span class="dot on"></span>${t('partialRunning', status.runningCount, status.total)}</span>`;
+  }
+  const on = status.running;
+  return `<span class="status-pill ${on ? 'on' : 'off'}"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? t('running') : t('stopped')}</span>`;
+}
+
+function renderPortChips(p) {
+  const status = p.status || {};
+  const source = status.running && status.ports && status.ports.length
+    ? status.ports.map(pt => ({ service: pt.service, hostPort: pt.hostPort }))
+    : (p.ports || []);
+  const seen = new Set();
+  return source.filter(pt => !seen.has(pt.hostPort) && seen.add(pt.hostPort)).map(pt => {
+    const inner = `${icon('plug')}<code>${pt.hostPort}</code><span class="chip-sub">${escapeHtml(pt.service)}</span>`;
+    return status.running
+      ? `<a class="chip chip-link" href="http://localhost:${pt.hostPort}" target="_blank" title="http://localhost:${pt.hostPort}">${inner}</a>`
+      : `<span class="chip">${inner}</span>`;
+  }).join('');
+}
+
+function renderComposeCard(p) {
+  const status = p.status || { running: false, services: [] };
+  const running = status.running;
+  const busy = pendingIds.has(p.id);
+  const action = pendingAction.get(p.id);
+  const busyLabel = { start: t('starting'), stop: t('stopping'), restart: t('restarting'), down: t('stopping') }[action] || t('starting');
+  const toggleBtn = running
+    ? `<button class="danger small" ${busy ? 'disabled' : ''} onclick="stopProject('${p.id}')">${icon('stop')}<span>${busy ? busyLabel : t('stop')}</span></button>`
+    : `<button class="success small" ${busy ? 'disabled' : ''} onclick="startProject('${p.id}')">${icon('play')}<span>${busy ? busyLabel : t('start')}</span></button>`;
+  const lastStarted = p.lastStartedAt ? formatLastStarted(p.lastStartedAt) : null;
+  const folder = parseWslPath(p.cwd);
+
+  const chips = [
+    folder ? `<span class="chip" title="${escapeHtml(folder.distro + ':' + folder.linuxPath)}">${icon('folder')}<code>${escapeHtml(shortLinuxPath(folder.linuxPath))}</code></span>` : '',
+    `<span class="chip" title="${escapeHtml(t('fieldCompose'))}: ${escapeHtml(p.composeProject || '')}">${icon('box')}<code>${escapeHtml(composeFileLabel(p))}</code></span>`,
+    renderPortChips(p),
+    (p.domains || []).map(d => `<span class="chip">${icon('globe')}<a class="domain-link" href="https://${d.domain}" target="_blank">${d.domain}</a><span class="chip-sub">${escapeHtml(d.service || '')}:${d.port}</span></span>`).join(''),
+    renderBranchChip(p),
+    renderChangesBadge(p),
+    lastStarted ? `<span class="chip" title="${t('lastStarted')}">${icon('clock')}${lastStarted}</span>` : '',
+  ].join('');
+
+  return `
+    <div class="project-card ${running ? 'running' : ''} ${p.pinned ? 'pinned' : ''}">
+      <div class="card-body">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="proj-name">${escapeHtml(p.name)}</span>
+            <button type="button" class="pin-btn ${p.pinned ? 'pinned' : ''}" title="${p.pinned ? t('unpinProject') : t('pinProject')}" onclick="togglePin('${p.id}')">${icon('star')}</button>
+            ${renderStatusPill(status)}
+          </div>
+          <div class="card-head-actions">
+            ${toggleBtn}
+            <div class="card-menu-wrap">
+              <button type="button" class="card-menu-btn" title="${t('moreOptions')}" onclick="toggleCardMenu(event, '${p.id}')">${icon('more')}</button>
+              ${cardMenuOpenId === p.id ? `
+                <div class="card-menu">
+                  <button type="button" ${busy ? 'disabled' : ''} onclick="openEditModal('${p.id}')">${icon('edit')}<span>${t('edit')}</span></button>
+                  ${running ? `<button type="button" ${busy ? 'disabled' : ''} onclick="restartProject('${p.id}')">${icon('refresh')}<span>${t('restart')}</span></button>` : ''}
+                  <button type="button" ${busy ? 'disabled' : ''} onclick="refreshProject('${p.id}')">${icon('file')}<span>${t('refreshCompose')}</span></button>
+                  <button type="button" onclick="toggleSidejob('${p.id}', ${!p.isSidejob})">${icon('layers')}<span>${p.isSidejob ? t('unsetSidejob') : t('setSidejob')}</span></button>
+                  <div class="menu-sep"></div>
+                  <button type="button" class="menu-danger" ${busy ? 'disabled' : ''} onclick="downProject('${p.id}')">${icon('down')}<span>${t('down')}</span></button>
+                  <button type="button" class="menu-danger" ${busy ? 'disabled' : ''} onclick="deleteProject('${p.id}')">${icon('trash')}<span>${t('delete')}</span></button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+        ${renderCardSub(p)}
+        <div class="chips">${chips}</div>
+      </div>
+      <div class="card-tabs">
+        ${tabBtn(p, 'services', 'box', t('services'), status.total ? `${status.runningCount}/${status.total}` : 0)}
+        ${tabBtn(p, 'domains', 'globe', t('domains'), (p.domains || []).length)}
+        ${tabBtn(p, 'logs', 'logs', t('logs'))}
+        ${tabBtn(p, 'env', 'env', t('editEnv'))}
+        ${tabBtn(p, 'credentials', 'key', t('credentials'), (p.credentials || []).length)}
+        ${tabBtn(p, 'commands', 'zap', t('commands'), (p.commands || []).length)}
+        ${tabBtn(p, 'ssh', 'server', t('ssh'), (p.sshTargets || []).length)}
+        ${tabBtn(p, 'git', 'branch', t('github'))}
+      </div>
+      ${renderPanel(p)}
+    </div>
+  `;
+}
+
+// --- Services panel (one row per compose service) ---
+const servicePendingKeys = new Set(); // `${projectId}:${service}`
+
+function renderServicesPanel(p) {
+  const services = (p.status && p.status.services) || [];
+  const rows = services.length ? services.map(s => {
+    const busy = servicePendingKeys.has(`${p.id}:${s.name}`) || pendingIds.has(p.id);
+    const isRunning = s.state === 'running';
+    const ports = s.ports.map(pt => `<a class="port-link" href="http://localhost:${pt.hostPort}" target="_blank">:${pt.hostPort}</a>`).join('');
+    const detail = s.state === 'not-created' ? t('notCreated') : (s.status || s.state);
+    const actions = isRunning
+      ? `<button class="secondary small icon-only" title="${t('restart')}" ${busy ? 'disabled' : ''} onclick="serviceAction('${p.id}', '${s.name}', 'restart')">${icon('refresh')}</button>
+         <button class="danger small icon-only" title="${t('stop')}" ${busy ? 'disabled' : ''} onclick="serviceAction('${p.id}', '${s.name}', 'stop')">${icon('stop')}</button>`
+      : `<button class="success small icon-only" title="${t('start')}" ${busy ? 'disabled' : ''} onclick="serviceAction('${p.id}', '${s.name}', 'start')">${icon('play')}</button>`;
+    return `
+      <div class="svc-row">
+        <span class="dot ${isRunning ? 'on' : 'off'}"></span>
+        <div class="svc-info">
+          <span class="svc-name">${escapeHtml(s.name)}</span>
+          <span class="svc-meta">${s.image ? `${escapeHtml(s.image)} · ` : ''}${escapeHtml(detail)}</span>
+        </div>
+        <div class="svc-ports">${ports}</div>
+        <div class="svc-actions">${actions}</div>
+      </div>
+    `;
+  }).join('') : `<div class="cred-empty">${t('noServices')}</div>`;
+
+  return `
+    <div class="inline-panel">
+      ${panelTitleWithClose(p.id, 'services', t('services'))}
+      <div class="svc-list">${rows}</div>
+    </div>
+  `;
+}
+
+async function serviceAction(id, service, action) {
+  const key = `${id}:${service}`;
+  if (servicePendingKeys.has(key)) return;
+  servicePendingKeys.add(key);
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/services/${encodeURIComponent(service)}/${action}`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) await showAlert(data.error);
+  } catch (e) {
+    await showAlert(e.message);
+  } finally {
+    servicePendingKeys.delete(key);
+    await fetchProjects();
+  }
+}
+
+// --- Domains panel (several custom .local domains per project) ---
+const domainDrafts = new Map(); // projectId -> { name, port }
+const domainBusy = new Set();
+
+function renderDomainsPanel(p) {
+  const domains = p.domains || [];
+  const draft = domainDrafts.get(p.id) || { name: '', port: '' };
+  const ports = p.ports || [];
+  const busy = domainBusy.has(p.id) ? 'disabled' : '';
+
+  const list = domains.length
+    ? domains.map(d => `
+        <div class="domain-item">
+          ${icon('globe')}
+          <a class="domain-link" href="https://${d.domain}" target="_blank">${d.domain}</a>
+          <span class="domain-arrow">→</span>
+          <span class="domain-target">${d.service ? `<span class="badge">${escapeHtml(d.service)}</span>` : ''}<code>localhost:${d.port}</code></span>
+          <button type="button" class="remove-domain" title="${t('delete')}" ${busy} onclick="deleteDomain('${p.id}', '${d.id}')">${icon('trash')}</button>
+        </div>
+      `).join('')
+    : `<div class="cred-empty">${t('noDomainsYet')}</div>`;
+
+  const portOptions = `<option value="">${t('domainPortPlaceholder')}</option>` + ports.map(pt =>
+    `<option value="${pt.hostPort}" ${String(draft.port) === String(pt.hostPort) ? 'selected' : ''}>${escapeHtml(pt.service)} → localhost:${pt.hostPort}</option>`).join('');
+
+  return `
+    <div class="inline-panel">
+      ${panelTitleWithClose(p.id, 'domains', t('domains'))}
+      <div class="modal-subtitle" style="margin-top:0">${t('domainsHint')}</div>
+      <div class="domain-list">${list}</div>
+      ${ports.length ? `
+        <div class="domain-add">
+          <div class="domain-input">
+            <input value="${escapeHtml(draft.name)}" placeholder="${t('domainNamePlaceholder')}" oninput="updateDomainDraft('${p.id}', 'name', this.value)" onkeydown="if (event.key === 'Enter') addDomain('${p.id}')" />
+            <span class="domain-suffix">.local</span>
+          </div>
+          <select onchange="updateDomainDraft('${p.id}', 'port', this.value)">${portOptions}</select>
+          <button type="button" class="small" ${busy} onclick="addDomain('${p.id}')">${icon('plus')}<span>${t('addDomain')}</span></button>
+        </div>
+      ` : `<div class="field-hint">${t('noPublishedPorts')}</div>`}
+    </div>
+  `;
+}
+
+function updateDomainDraft(id, field, value) {
+  const draft = domainDrafts.get(id) || { name: '', port: '' };
+  draft[field] = value;
+  domainDrafts.set(id, draft);
+}
+
+async function showDomainSyncResult(data) {
+  if (data.sync && data.sync.hostsOk === false) {
+    await showAlert(`${t('hostsSyncFailedAlert')}\n\n${data.sync.hostsMessage}\n\n${t('hostsSyncFailedHint')}`);
+  }
+  if (data.nextOrigin && data.nextOrigin.ok === false && data.nextOrigin.reason === 'unrecognized_format') {
+    await showAlert(`${t('nextOriginUnrecognized')}\n\n${data.nextOrigin.message}`);
+  }
+}
+
+async function addDomain(id) {
+  const draft = domainDrafts.get(id) || { name: '', port: '' };
+  const name = draft.name.trim().replace(/\.local$/, '');
+  if (!name || !draft.port) {
+    await showAlert(t('domainRequiredError'));
+    return;
+  }
+  domainBusy.add(id);
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/domains`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: name, port: Number(draft.port) }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      await showAlert(data.error);
+      return;
+    }
+    domainDrafts.delete(id);
+    await showDomainSyncResult(data);
+  } finally {
+    domainBusy.delete(id);
+    await fetchProjects();
+    checkCaddyStatus();
+  }
+}
+
+async function deleteDomain(id, domainId) {
+  if (!(await showConfirm(t('confirmDeleteDomain')))) return;
+  domainBusy.add(id);
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/domains/${domainId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) await showAlert(data.error);
+    else await showDomainSyncResult(data);
+  } finally {
+    domainBusy.delete(id);
+    await fetchProjects();
+  }
+}
+
+// --- Archive (projects from before the Docker switch, read-only) ---
+function renderArchiveSection(archived) {
+  return `
+    <div class="archive-section">
+      <button type="button" class="archive-toggle" onclick="toggleArchive()">
+        ${icon(showArchive ? 'chevDown' : 'chevRight')}
+        <span>${t('archiveTitle')}</span>
+        <span class="tab-count">${archived.length}</span>
+        <span class="archive-hint">${t('archiveHint')}</span>
+      </button>
+      ${showArchive ? `<div class="project-grid">${archived.map(renderArchivedCard).join('')}</div>` : ''}
+    </div>
+  `;
+}
+
+function toggleArchive() {
+  showArchive = !showArchive;
+  render();
+}
+
+function renderArchivedCard(p) {
+  const chips = [
+    p.command ? `<span class="chip">${icon('logs')}<code>${escapeHtml(p.command)}</code></span>` : '',
+    p.port ? `<span class="chip">${icon('plug')}<code>${p.port}</code></span>` : '',
+    p.domain ? `<span class="chip">${icon('globe')}${escapeHtml(p.domain)}</span>` : '',
+  ].join('');
+  return `
+    <div class="project-card archived">
+      <div class="card-body">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="proj-name">${escapeHtml(p.name)}</span>
+            <span class="badge">${t('archivedBadge')}</span>
+          </div>
+          <div class="card-head-actions">
+            <div class="card-menu-wrap">
+              <button type="button" class="card-menu-btn" title="${t('moreOptions')}" onclick="toggleCardMenu(event, '${p.id}')">${icon('more')}</button>
+              ${cardMenuOpenId === p.id ? `
+                <div class="card-menu">
+                  <button type="button" class="menu-danger" onclick="deleteProject('${p.id}')">${icon('trash')}<span>${t('delete')}</span></button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="card-sub"><span class="repo-link" title="${escapeHtml(p.cwd || '')}">${icon('folder')}${escapeHtml(p.cwd || '')}</span></div>
+        <div class="chips">${chips}</div>
+      </div>
+      <div class="card-tabs">
+        ${tabBtn(p, 'credentials', 'key', t('credentials'), (p.credentials || []).length)}
+        ${tabBtn(p, 'ssh', 'server', t('ssh'), (p.sshTargets || []).length)}
+      </div>
+      ${renderPanel(p)}
+    </div>
+  `;
+}
+
+// --- Docker status pill in the header ---
+async function checkDockerStatus() {
+  const el = document.getElementById('dockerStatus');
+  try {
+    const res = await fetch('/api/docker/status');
+    const data = await res.json();
+    el.classList.toggle('caddy-missing', !data.ok);
+    el.title = data.ok ? '' : (data.error || '');
+    el.innerHTML = `<span class="cdot" style="background:var(${data.ok ? '--green' : '--red'})"></span>${data.ok ? t('dockerRunning') : t('dockerDown')}`;
+  } catch {}
 }
 
 function renderSelfCard(p) {
-  const lastCommitText = p.lastCommit
-    ? `${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}`
-    : '';
-  const branchText = p.currentBranch
-    ? (p.defaultBranch && p.defaultBranch !== p.currentBranch
-        ? `<code>${escapeHtml(p.currentBranch)}</code> <span class="branch-vs">${t('branchVsMain')}</span> <code>${escapeHtml(p.defaultBranch)}</code>`
-        : `<code>${escapeHtml(p.currentBranch)}</code>`)
-    : '';
+  const chips = [
+    p.port ? `<span class="chip" title="${t('port')}">${icon('plug')}<code>${p.port}</code></span>` : '',
+    renderBranchChip(p),
+    renderChangesBadge(p),
+  ].join('');
 
   return `
     <div class="project-card running self-card">
-      <div class="project-top">
-        <div class="project-info">
-          <div class="project-name-row">
+      <div class="card-body">
+        <div class="card-head">
+          <div class="card-title">
             <span class="proj-name">${escapeHtml(p.name)}</span>
             <span class="badge self-badge">${t('selfBadge')}</span>
             <span class="status-pill on"><span class="dot on"></span>${t('running')}</span>
           </div>
-          ${p.repoUrl
-            ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank">${escapeHtml(p.repoUrl)}</a>`
-            : `<span class="repo-link no-remote">${t('noRemote')}</span>`}
-          ${lastCommitText ? `<div class="last-commit">${lastCommitText}</div>` : ''}
-          <div class="branch-changes-row">
-            ${branchText ? `<div class="branch-info">${branchText}</div>` : ''}
-            ${renderChangesBadge(p)}
-          </div>
-          <div class="project-meta">
-            ${p.port ? `<span class="meta-item">${t('port')} <code>${p.port}</code></span>` : ''}
-          </div>
         </div>
+        ${renderCardSub(p)}
+        <div class="chips">${chips}</div>
       </div>
-      <div class="actions">
-        <button class="secondary small ${expandedPanels.get(p.id) === 'git' ? 'panel-btn-active' : ''}" onclick="togglePanel('${p.id}', 'git')">${t('github')}</button>
+      <div class="card-tabs">
+        ${tabBtn(p, 'git', 'branch', t('github'))}
       </div>
       ${renderPanel(p)}
     </div>
@@ -1552,56 +2092,52 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function startProject(id) {
+// `docker compose up -d` can take a while (image pulls/builds), so the
+// button stays in its busy state until the request comes back.
+async function runProjectAction(id, action) {
   if (pendingIds.has(id)) return;
   pendingIds.add(id);
+  pendingAction.set(id, action);
+  cardMenuOpenId = null;
   render();
   try {
-    const res = await fetch(`/api/projects/${id}/start`, { method: 'POST' });
+    const res = await fetch(`/api/projects/${id}/${action}`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      await showAlert(data.error);
-      return;
+      await showAlert(data.error || t('dockerActionFailed'));
+      if (action === 'start' && expandedPanels.get(id) !== 'logs') togglePanel(id, 'logs');
     }
-
-    // Poll until the project's port actually accepts connections (or the
-    // process crashes / we time out), rather than just trusting the process
-    // spawned successfully — a spawned process isn't necessarily ready yet.
-    const maxAttempts = 20; // ~20s
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      await sleep(1000);
-      await fetchProjects();
-      const p = projects.find(x => x.id === id);
-      if (!p) break;
-      if (!p.status.running) {
-        // process died before becoming ready (e.g. missing deps) - show logs
-        if (expandedPanels.get(id) !== 'logs') togglePanel(id, 'logs');
-        break;
-      }
-      const readyRes = await fetch(`/api/projects/${id}/ready`);
-      const readyData = await readyRes.json();
-      if (readyData.ready) break;
-    }
+  } catch (e) {
+    await showAlert(e.message);
   } finally {
     pendingIds.delete(id);
+    pendingAction.delete(id);
     await fetchProjects();
   }
 }
 
-async function stopProject(id) {
-  if (pendingIds.has(id)) return;
-  pendingIds.add(id);
+const startProject = (id) => runProjectAction(id, 'start');
+const stopProject = (id) => runProjectAction(id, 'stop');
+const restartProject = (id) => runProjectAction(id, 'restart');
+
+async function downProject(id) {
+  cardMenuOpenId = null;
+  if (!(await showConfirm(t('confirmDown')))) return render();
+  await runProjectAction(id, 'down');
+}
+
+async function refreshProject(id) {
+  cardMenuOpenId = null;
   render();
-  try {
-    await fetch(`/api/projects/${id}/stop`, { method: 'POST' });
-  } finally {
-    pendingIds.delete(id);
-    await fetchProjects();
-  }
+  const res = await fetch(`/api/projects/${id}/refresh`, { method: 'POST' });
+  const data = await res.json();
+  if (!res.ok) await showAlert(data.error);
+  await fetchProjects();
 }
 
 async function deleteProject(id) {
-  if (!(await showConfirm(t('confirmDeleteProject')))) return;
+  cardMenuOpenId = null;
+  if (!(await showConfirm(t('confirmDeleteProject')))) return render();
   if (pendingIds.has(id)) return;
   pendingIds.add(id);
   render();
@@ -1613,73 +2149,127 @@ async function deleteProject(id) {
   }
 }
 
-const STACK_TEMPLATES = {
-  'node-dev': 'npm run dev',
-  'node-start': 'npm start',
-  'yarn-dev': 'yarn dev',
-  'pnpm-dev': 'pnpm dev',
-  'laravel': 'php artisan serve --port={PORT}',
-  'php-builtin': 'php -S localhost:{PORT} -t public',
-  'django': 'python manage.py runserver 0.0.0.0:{PORT}',
-  'flask': 'flask run --port={PORT}',
-  'custom': '',
-};
-
-const STACK_PORT_BASE = {
-  'node-dev': { base: 3000, max: 4000 },
-  'node-start': { base: 3000, max: 4000 },
-  'yarn-dev': { base: 3000, max: 4000 },
-  'pnpm-dev': { base: 3000, max: 4000 },
-  'laravel': { base: 8000, max: 9000 },
-  'php-builtin': { base: 8080, max: 9080 },
-  'django': { base: 8000, max: 9000 },
-  'flask': { base: 5000, max: 6000 },
-};
-
-async function applyStackTemplate() {
-  const stack = document.getElementById('fStack').value;
-  if (!stack || !(stack in STACK_TEMPLATES)) return;
-
-  const portField = document.getElementById('fPort');
-  if (!portField.value && STACK_PORT_BASE[stack]) {
-    const { base, max } = STACK_PORT_BASE[stack];
-    try {
-      const res = await fetch(`/api/ports/next?base=${base + 1}&max=${max}`);
-      const data = await res.json();
-      if (res.ok) portField.value = data.port;
-    } catch {}
-  }
-
-  const port = portField.value || '{PORT}';
-  document.getElementById('fCommand').value = STACK_TEMPLATES[stack].replace('{PORT}', port);
+// --- Add / Edit project modal ---
+function setFormError(message) {
+  document.getElementById('formError').textContent = message || '';
 }
 
-function openAddModal() {
-  document.getElementById('modalTitle').textContent = 'Tambah Project';
+function setComposeHint(text, isError) {
+  const el = document.getElementById('composeHint');
+  el.textContent = text || '';
+  el.classList.toggle('error', Boolean(isError));
+}
+
+async function loadDistros(selected) {
+  const select = document.getElementById('fDistro');
+  const res = await fetch('/api/wsl/distros');
+  const { distros } = await res.json();
+  select.innerHTML = distros.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+  if (!distros.length) {
+    setFormError(t('noWslDistro'));
+    return;
+  }
+  const match = selected && distros.find(d => d.toLowerCase() === selected.toLowerCase());
+  select.value = match || distros[0];
+}
+
+function onDistroChange() {
+  setFolder('', { skipCompose: true });
+  fillComposeSelect([]);
+  setComposeHint('');
+}
+
+async function setFolder(unc, { skipCompose, selectCompose } = {}) {
+  document.getElementById('fCwd').value = unc;
+  const parsed = parseWslPath(unc);
+  document.getElementById('fCwdDisplay').value = parsed ? parsed.linuxPath : '';
+  if (!unc || skipCompose) return;
+  const nameField = document.getElementById('fName');
+  if (!nameField.value.trim() && parsed) nameField.value = parsed.linuxPath.split('/').filter(Boolean).pop() || '';
+  await loadComposeFiles(selectCompose);
+}
+
+function fillComposeSelect(files, selected) {
+  const select = document.getElementById('fComposeFile');
+  select.innerHTML = files.length
+    ? files.map(f => `<option value="${escapeHtml(f.path)}">${escapeHtml(f.label)}</option>`).join('')
+    : `<option value="">${t('noComposeFiles')}</option>`;
+  if (!files.length) return;
+  // Prefer the canonical compose file at the folder root when there are several.
+  const preferred = files.find(f => f.path === selected)
+    || files.find(f => /^(docker-)?compose\.ya?ml$/i.test(f.label))
+    || files[0];
+  select.value = preferred.path;
+}
+
+async function loadComposeFiles(selected) {
+  const dir = document.getElementById('fCwd').value;
+  if (!dir) return;
+  setComposeHint(t('inspecting'));
+  const res = await fetch(`/api/wsl/compose-files?dir=${encodeURIComponent(dir)}`);
+  const data = await res.json();
+  if (!res.ok) {
+    fillComposeSelect([]);
+    setComposeHint(data.error, true);
+    return;
+  }
+  fillComposeSelect(data.files, selected);
+  await onComposeFileChange();
+}
+
+let composeInspectSeq = 0;
+async function onComposeFileChange() {
+  const composeFile = document.getElementById('fComposeFile').value;
+  if (!composeFile) {
+    setComposeHint(document.getElementById('fCwd').value ? t('noComposeFiles') : '', true);
+    return;
+  }
+  const seq = ++composeInspectSeq;
+  setComposeHint(t('inspecting'));
+  const res = await fetch('/api/compose/inspect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ composeFile }),
+  });
+  const data = await res.json();
+  if (seq !== composeInspectSeq) return; // a newer selection is in flight
+  if (!res.ok) {
+    setComposeHint(data.error, true);
+    return;
+  }
+  setComposeHint(t('composeSummary', data.name, data.services.length));
+}
+
+function resetProjectForm() {
   document.getElementById('editId').value = '';
   document.getElementById('fName').value = '';
   document.getElementById('fCwd').value = '';
-  document.getElementById('fStack').value = '';
-  document.getElementById('fCommand').value = '';
-  document.getElementById('fPort').value = '';
-  document.getElementById('fDomain').value = '';
-  document.getElementById('formError').textContent = '';
-  document.getElementById('addModal').classList.add('open');
+  document.getElementById('fCwdDisplay').value = '';
+  fillComposeSelect([]);
+  setComposeHint('');
+  setFormError('');
 }
 
-function openEditModal(id) {
+async function openAddModal() {
+  resetProjectForm();
+  document.getElementById('modalTitle').textContent = t('modalAddTitle');
+  document.getElementById('addModal').classList.add('open');
+  await loadDistros();
+}
+
+async function openEditModal(id) {
   const p = projects.find(x => x.id === id);
   if (!p) return;
-  document.getElementById('modalTitle').textContent = 'Edit Project';
+  cardMenuOpenId = null;
+  resetProjectForm();
+  document.getElementById('modalTitle').textContent = t('modalEditTitle');
   document.getElementById('editId').value = p.id;
   document.getElementById('fName').value = p.name;
-  document.getElementById('fCwd').value = p.cwd;
-  document.getElementById('fStack').value = p.stack || '';
-  document.getElementById('fCommand').value = p.command;
-  document.getElementById('fPort').value = p.port || '';
-  document.getElementById('fDomain').value = (p.domain || '').replace(/\.local$/, '');
-  document.getElementById('formError').textContent = '';
   document.getElementById('addModal').classList.add('open');
+  const parsed = parseWslPath(p.cwd);
+  await loadDistros(parsed && parsed.distro);
+  await setFolder(p.cwd, { selectCompose: p.composeFile });
+  render();
 }
 
 function closeAddModal() {
@@ -1688,45 +2278,89 @@ function closeAddModal() {
 
 async function submitProject() {
   const id = document.getElementById('editId').value;
-  const domainName = document.getElementById('fDomain').value.trim().replace(/\.local$/, '');
-  const portValue = document.getElementById('fPort').value.trim();
   const body = {
     name: document.getElementById('fName').value.trim(),
-    cwd: document.getElementById('fCwd').value.trim(),
-    command: document.getElementById('fCommand').value.trim(),
-    port: portValue ? Number(portValue) : null,
-    domain: domainName ? `${domainName}.local` : '',
-    stack: document.getElementById('fStack').value,
+    cwd: document.getElementById('fCwd').value,
+    composeFile: document.getElementById('fComposeFile').value,
   };
-  if (!body.name || !body.cwd || !body.command) {
-    document.getElementById('formError').textContent = t('requiredFieldsError');
+  if (!body.name || !body.cwd || !body.composeFile) {
+    setFormError(t('requiredFieldsError'));
     return;
   }
-  if (body.domain && !body.port) {
-    document.getElementById('formError').textContent = t('portRequiredForDomainError');
-    return;
-  }
-  const url = id ? `/api/projects/${id}` : '/api/projects';
-  const method = id ? 'PUT' : 'POST';
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    document.getElementById('formError').textContent = data.error;
-    return;
+  const saveBtn = document.getElementById('addModalSaveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = t('saving');
+  try {
+    const res = await fetch(id ? `/api/projects/${id}` : '/api/projects', {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setFormError(data.error);
+      return;
+    }
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = t('save');
   }
   closeAddModal();
   fetchProjects();
-  if (data.sync && data.sync.hostsOk === false) {
-    await showAlert(`${t('hostsSyncFailedAlert')}\n\n${data.sync.hostsMessage}\n\n${t('hostsSyncFailedHint')}`);
+}
+
+// --- WSL folder browser ---
+const browseState = { distro: '', path: '', dirs: [], unc: '' };
+
+async function openBrowseModal() {
+  const distro = document.getElementById('fDistro').value;
+  if (!distro) {
+    setFormError(t('noWslDistro'));
+    return;
   }
-  if (data.nextOrigin && data.nextOrigin.ok === false && data.nextOrigin.reason === 'unrecognized_format') {
-    await showAlert(`${t('nextOriginUnrecognized')}\n\n${data.nextOrigin.message}`);
+  const current = parseWslPath(document.getElementById('fCwd').value);
+  browseState.distro = distro;
+  document.getElementById('browseModal').classList.add('open');
+  await browseTo(current && current.distro === distro ? current.linuxPath : '');
+}
+
+function closeBrowseModal() {
+  document.getElementById('browseModal').classList.remove('open');
+}
+
+async function browseTo(linuxPath) {
+  const list = document.getElementById('browseList');
+  list.innerHTML = `<div class="browse-empty">${t('loadingLogs')}</div>`;
+  const query = new URLSearchParams({ distro: browseState.distro });
+  if (linuxPath) query.set('path', linuxPath);
+  const res = await fetch(`/api/wsl/browse?${query}`);
+  const data = await res.json();
+  if (!res.ok) {
+    list.innerHTML = `<div class="browse-empty error-msg">${escapeHtml(data.error)}</div>`;
+    return;
   }
-  checkCaddyStatus();
+  Object.assign(browseState, { path: data.path, dirs: data.dirs, unc: data.unc });
+  document.getElementById('browsePath').textContent = `${data.distro}:${data.path}`;
+  document.getElementById('browseUpBtn').disabled = data.path === '/';
+  document.getElementById('browseComposeFlag').style.display = data.hasCompose ? '' : 'none';
+  list.innerHTML = data.dirs.length
+    ? data.dirs.map((d, i) => `<button type="button" class="browse-item" onclick="browseInto(${i})">${icon('folder')}<span>${escapeHtml(d)}</span></button>`).join('')
+    : `<div class="browse-empty">${t('browseEmpty')}</div>`;
+}
+
+function browseInto(index) {
+  const name = browseState.dirs[index];
+  browseTo(browseState.path === '/' ? `/${name}` : `${browseState.path}/${name}`);
+}
+
+function browseUp() {
+  const parent = browseState.path.replace(/\/[^/]+$/, '') || '/';
+  browseTo(parent);
+}
+
+async function selectBrowsedFolder() {
+  closeBrowseModal();
+  await setFolder(browseState.unc);
 }
 
 // --- Inline expandable panels (Logs / Edit .env / Credentials) ---
@@ -1751,7 +2385,7 @@ function panelTitleWithClose(id, type, label) {
   return `
     <div class="inline-panel-title-row">
       <div class="inline-panel-title">${label}</div>
-      <button type="button" class="panel-close-btn" title="${t('close')}" onclick="togglePanel('${id}', '${type}')">&times;</button>
+      <button type="button" class="panel-close-btn" title="${t('close')}" onclick="togglePanel('${id}', '${type}')">${icon('x')}</button>
     </div>
   `;
 }
@@ -1759,6 +2393,8 @@ function panelTitleWithClose(id, type, label) {
 function renderPanel(p) {
   const type = expandedPanels.get(p.id);
   if (!type) return '';
+  if (type === 'services') return renderServicesPanel(p);
+  if (type === 'domains') return renderDomainsPanel(p);
   if (type === 'logs') return renderLogsPanel(p);
   if (type === 'env') return renderEnvPanel(p);
   if (type === 'credentials') return renderCredentialsPanel(p);
@@ -1768,13 +2404,21 @@ function renderPanel(p) {
   return '';
 }
 
-// --- Logs panel ---
+// --- Logs panel (docker compose logs, optionally for one service) ---
+const logServiceById = new Map(); // projectId -> service name ('' = all)
+
 function renderLogsPanel(p) {
   const logs = logCache.get(p.id) || t('loadingLogs');
+  const selected = logServiceById.get(p.id) || '';
+  const services = ((p.status && p.status.services) || []).map(s => s.name);
+  const options = [`<option value="">${t('logsAllServices')}</option>`]
+    .concat(services.map(s => `<option value="${escapeHtml(s)}" ${selected === s ? 'selected' : ''}>${escapeHtml(s)}</option>`))
+    .join('');
   return `
     <div class="inline-panel">
       ${panelTitleWithClose(p.id, 'logs', t('logs'))}
-      <div class="modal-actions" style="justify-content:flex-start; margin: -4px 0 10px;">
+      <div class="panel-toolbar">
+        <select class="panel-select" onchange="setLogService('${p.id}', this.value)">${options}</select>
         <button type="button" class="secondary small" onclick="copyElementText(this, 'logBox-${p.id}')">${t('copyLogs')}</button>
       </div>
       <pre class="log-box" id="logBox-${p.id}">${escapeHtml(logs)}</pre>
@@ -1782,17 +2426,33 @@ function renderLogsPanel(p) {
   `;
 }
 
+function setLogService(id, service) {
+  logServiceById.set(id, service);
+  logCache.delete(id);
+  render();
+  pollLogsFor(id);
+}
+
+const logsInFlight = new Set();
 async function pollLogsFor(id) {
-  if (expandedPanels.get(id) !== 'logs') return;
-  const res = await fetch(`/api/projects/${id}/logs`);
-  const data = await res.json();
-  const logs = data.logs || t('noOutputYet');
-  logCache.set(id, logs);
-  const box = document.getElementById(`logBox-${id}`);
-  if (box) {
-    const wasAtBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 20;
-    box.textContent = logs;
-    if (wasAtBottom) box.scrollTop = box.scrollHeight;
+  if (expandedPanels.get(id) !== 'logs' || logsInFlight.has(id)) return;
+  logsInFlight.add(id);
+  try {
+    const service = logServiceById.get(id) || '';
+    const res = await fetch(`/api/projects/${id}/logs${service ? `?service=${encodeURIComponent(service)}` : ''}`);
+    const data = await res.json();
+    if ((logServiceById.get(id) || '') !== service) return; // filter changed meanwhile
+    const firstLoad = !logCache.has(id);
+    const logs = res.ok ? (data.logs || t('noOutputYet')) : (data.error || t('noOutputYet'));
+    logCache.set(id, logs);
+    const box = document.getElementById(`logBox-${id}`);
+    if (box) {
+      const wasAtBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 20;
+      box.textContent = logs;
+      if (wasAtBottom || firstLoad) box.scrollTop = box.scrollHeight;
+    }
+  } finally {
+    logsInFlight.delete(id);
   }
 }
 
@@ -1802,11 +2462,7 @@ function restoreLogScroll() {
   }
 }
 
-setInterval(() => {
-  for (const [id, type] of expandedPanels) {
-    if (type === 'logs') pollLogsFor(id);
-  }
-}, 1500);
+setInterval(restoreLogScroll, 2000);
 
 // --- Edit .env panel ---
 async function loadEnvDraft(id) {
@@ -1956,7 +2612,7 @@ function renderCommandsPanel(p) {
         <div class="cred-card">
           <div class="cred-card-info">
             <span class="cred-card-label">${escapeHtml(c.label)}</span>
-            <span class="cred-card-row"><code>${escapeHtml(c.command)}</code></span>
+            <span class="cred-card-row"><span class="badge">${escapeHtml(c.service || 'wsl')}</span><code>${escapeHtml(c.command)}</code></span>
           </div>
           <div class="cred-card-actions">
             <button type="button" ${runState && runState.running && runState.cmdId === c.id ? 'disabled' : ''} onclick="runCustomCommand('${p.id}', '${c.id}')">${runState && runState.running && runState.cmdId === c.id ? t('commandRunning') : t('run')}</button>
@@ -1992,6 +2648,13 @@ function renderCommandsPanel(p) {
           <label>${t('commandLabelField')}</label>
           <input list="commandLabelList-${p.id}" value="${escapeHtml(draft.label)}" placeholder="${t('commandLabelPlaceholder')}" oninput="updateCommandDraft('${p.id}', 'label', this.value)" />
           <datalist id="commandLabelList-${p.id}">${labelOptions}</datalist>
+        </div>
+        <div class="field" style="margin-bottom:0; max-width:200px;">
+          <label>${t('commandServiceField')}</label>
+          <select onchange="updateCommandDraft('${p.id}', 'service', this.value)">
+            <option value="">${t('commandServiceShell')}</option>
+            ${(p.services || []).map(s => `<option value="${escapeHtml(s)}" ${draft.service === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
+          </select>
         </div>
         <div class="field" style="margin-bottom:0; flex:1;">
           <label>${t('commandField')}</label>
@@ -2052,7 +2715,7 @@ async function addCustomCommand(id) {
   const res = await fetch(`/api/projects/${id}/commands`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ label, command }),
+    body: JSON.stringify({ label, command, service: draft.service || '' }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -2522,6 +3185,10 @@ function renderGitPanel(p) {
         </label>
       </div>
       <div class="git-file-list">${fileList}</div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>${t('commitMessageLabel')}</label>
+        <input value="${escapeHtml(commitMessageFor(state))}" placeholder="${escapeHtml(t('commitMessagePlaceholder'))}" oninput="setCommitMessage('${p.id}', this.value)" />
+      </div>
       ${state.result ? `<div class="git-success">${escapeHtml(state.result)}</div>` : ''}
       ${state.pushError ? `<div class="error-msg">${escapeHtml(state.pushError)}</div>` : ''}
       <div class="modal-actions" style="justify-content:space-between;">
@@ -2631,6 +3298,43 @@ async function confirmPullFromMain(id) {
   }
 }
 
+// Default commit message: a short summary of the selected changes, e.g.
+// "Add wsl.js; Update server.js, gitOps.js +2 more; Remove portFlag.js".
+function summarizeChanges(files) {
+  const groups = { add: [], update: [], remove: [], rename: [] };
+  const base = (p) => p.split('/').pop();
+  for (const f of files) {
+    const code = f.status || '';
+    if (code.startsWith('R')) {
+      const [from, to] = f.path.split(' -> ');
+      groups.rename.push(`${base(from)} → ${base(to || from)}`);
+    } else if (code === '??' || code.startsWith('A')) groups.add.push(base(f.path));
+    else if (code.includes('D')) groups.remove.push(base(f.path));
+    else groups.update.push(base(f.path));
+  }
+  const list = (names) => names.slice(0, 3).join(', ') + (names.length > 3 ? ` +${names.length - 3} more` : '');
+  return [
+    groups.add.length && `Add ${list(groups.add)}`,
+    groups.update.length && `Update ${list(groups.update)}`,
+    groups.remove.length && `Remove ${list(groups.remove)}`,
+    groups.rename.length && `Rename ${list(groups.rename)}`,
+  ].filter(Boolean).join('; ');
+}
+
+// Follows the file selection until the user types their own message.
+function commitMessageFor(state) {
+  if (state.messageEdited) return state.message || '';
+  const selected = state.data.files.filter(f => state.selectedFiles.has(f.path));
+  return summarizeChanges(selected);
+}
+
+function setCommitMessage(id, value) {
+  const state = gitStatusCache.get(id);
+  if (!state) return;
+  state.message = value;
+  state.messageEdited = value.trim() !== '';
+}
+
 async function confirmGitPush(id) {
   const state = gitStatusCache.get(id);
   if (!state || !state.data) return;
@@ -2639,11 +3343,12 @@ async function confirmGitPush(id) {
   const selectedFileList = data.files.filter(f => selectedFiles.has(f.path));
   if (selectedFileList.length === 0) return;
 
+  const message = commitMessageFor(state).trim() || summarizeChanges(selectedFileList);
   const fileListText = selectedFileList.map(f => `  ${statusLabel(f.status)}: ${f.path}`).join('\n');
   const confirmed = await showConfirm(
     `${t('confirmPushTitle', selectedBranch)}\n\n` +
     `${t('confirmPushFiles', selectedFileList.length)}\n${fileListText}\n\n` +
-    `${t('confirmPushAutoMessage')}`
+    `${t('confirmPushAutoMessage', message)}`
   );
   if (!confirmed) return;
 
@@ -2656,13 +3361,15 @@ async function confirmGitPush(id) {
     const res = await fetch(`/api/projects/${id}/git/push`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ branch: selectedBranch, files: selectedFileList.map(f => f.path) }),
+      body: JSON.stringify({ branch: selectedBranch, files: selectedFileList.map(f => f.path), message }),
     });
     const result = await res.json();
     if (!res.ok) {
       state.pushError = result.error || t('pushFailed');
     } else {
       state.result = t('pushSuccess', result.branch, result.message);
+      state.message = '';
+      state.messageEdited = false;
       await loadGitStatus(id);
       return;
     }
@@ -2679,7 +3386,7 @@ async function reloadCaddy() {
   if (btn.disabled) return;
   btn.disabled = true;
   const originalHtml = btn.innerHTML;
-  btn.textContent = t('reloading');
+  btn.innerHTML = `${icon('refresh')}<span>${t('reloading')}</span>`;
   try {
     const res = await fetch('/api/caddy/reload', { method: 'POST' });
     const data = await res.json();
@@ -3037,11 +3744,12 @@ function renderHostsPage() {
 
 applyRoute();
 
-Promise.all([fetchProjects(), checkCaddyStatus(), loadServices()]).finally(() => {
+Promise.all([fetchProjects(), checkCaddyStatus(), checkDockerStatus(), loadServices()]).finally(() => {
   document.getElementById('pageLoading').classList.add('hidden');
 });
 setInterval(() => fetchProjects(true), 4000);
 setInterval(loadServices, 8000);
+setInterval(checkDockerStatus, 10000);
 </script>
 
 </body>

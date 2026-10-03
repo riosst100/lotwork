@@ -6,29 +6,31 @@ function Write-Step($msg) {
     Write-Output "=== $msg ==="
 }
 
-# 1. Build the app if the exe files aren't there yet (fresh clone on a new PC)
-Write-Step "Checking build output"
-$serverExe = Join-Path $root "lotwork-server.exe"
-$controlExe = Join-Path $root "lotwork-control.exe"
-if ((Test-Path $serverExe) -and (Test-Path $controlExe)) {
-    Write-Output "lotwork-server.exe and lotwork-control.exe already built."
+# 1. Install dependencies, including the Electron runtime (fresh clone on a new PC)
+Write-Step "Checking dependencies"
+$electronExe = Join-Path $root "node_modules\electron\dist\electron.exe"
+if (Test-Path $electronExe) {
+    Write-Output "Dependencies and Electron already installed."
 } else {
-    Write-Output "Build output missing, building now (first-time setup on this machine)..."
     Push-Location $root
-    if (-not (Test-Path (Join-Path $root "node_modules"))) {
-        Write-Output "Installing npm dependencies..."
-        npm install
-    }
-    if (-not (Test-Path $serverExe)) {
-        Write-Output "Building lotwork-server.exe..."
-        npm run build
-    }
-    if (-not (Test-Path $controlExe)) {
-        Write-Output "Building lotwork-control.exe..."
-        npm run build:gui
+    Write-Output "Installing npm dependencies..."
+    npm install
+    # npm may skip Electron's install script (allow-scripts), which is what
+    # downloads electron.exe - run it explicitly so the app can launch.
+    if (-not (Test-Path $electronExe)) {
+        Write-Output "Downloading Electron runtime..."
+        node node_modules\electron\install.js
     }
     Pop-Location
 }
+
+# Branded lotwork.exe (so UAC / Task Manager show "lotwork"). Rebuilt every
+# run since an Electron update replaces the folder it lives in.
+Write-Step "Creating lotwork.exe"
+Push-Location $root
+node scripts\make-exe.js
+Pop-Location
+$appExe = Join-Path $root "node_modules\electron\dist\lotwork.exe"
 
 # 2. Install Caddy if missing
 Write-Step "Checking Caddy"
@@ -88,20 +90,15 @@ $shortcutPath = Join-Path $desktop "lotwork.lnk"
 
 $WshShell = New-Object -ComObject WScript.Shell
 $shortcut = $WshShell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = "$env:WINDIR\System32\wscript.exe"
-$shortcut.Arguments = "`"$root\lotwork.vbs`""
+$shortcut.TargetPath = $appExe
+$shortcut.Arguments = "`"$root`""
 $shortcut.WorkingDirectory = $root
 $shortcut.IconLocation = "$root\lotwork.ico"
 $shortcut.Description = "lotwork - Local Project Manager"
 $shortcut.Save()
 Write-Output "Shortcut created at $shortcutPath"
-
-# 6. Set shortcut to always run as Administrator (needed to edit hosts file for custom domains)
-Write-Step "Setting shortcut to run as Administrator"
-$bytes = [System.IO.File]::ReadAllBytes($shortcutPath)
-$bytes[0x15] = $bytes[0x15] -bor 0x20
-[System.IO.File]::WriteAllBytes($shortcutPath, $bytes)
-Write-Output "Done."
+# No "Run as administrator" flag needed: lotwork.exe's manifest already
+# requires elevation (for the hosts file and system services).
 
 Write-Step "Setup complete"
 Write-Output "Double-click the 'lotwork' shortcut on your Desktop to start."

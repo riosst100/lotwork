@@ -1,10 +1,18 @@
 const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const wsl = require('./wsl');
 
+// Repos inside WSL are reached through their \\wsl.localhost UNC path, but
+// git itself runs inside the distro: Windows git over UNC is slow and trips
+// over "dubious ownership" checks.
 function run(cwd, args) {
+  const inWsl = wsl.parseUnc(cwd);
+  const [file, fileArgs, options] = inWsl
+    ? ['wsl.exe', ['-d', inWsl.distro, '--cd', inWsl.linuxPath, '--exec', 'git', ...args], { maxBuffer: 10 * 1024 * 1024, windowsHide: true }]
+    : ['git', args, { cwd, maxBuffer: 10 * 1024 * 1024 }];
   return new Promise((resolve, reject) => {
-    execFile('git', args, { cwd, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(file, fileArgs, options, (err, stdout, stderr) => {
       if (err) {
         err.stderr = stderr;
         return reject(err);
@@ -174,7 +182,9 @@ async function getStatus(cwd) {
   }
 
   const [statusOut, branchesOut] = await Promise.all([
-    run(cwd, ['status', '--porcelain']),
+    // -z: raw, NUL-separated paths. Plain --porcelain wraps paths with
+    // spaces/special characters in quotes, which then don't match as pathspecs.
+    run(cwd, ['status', '--porcelain', '-z']),
     run(cwd, ['branch', '--format=%(refname:short)']),
   ]);
 
@@ -189,14 +199,18 @@ async function getStatus(cwd) {
     // no remote configured
   }
 
-  const files = statusOut
-    .split('\n')
-    .filter(Boolean)
-    .map(line => {
-      const statusCode = line.slice(0, 2);
-      const filePath = line.slice(3);
-      return { status: statusCode.trim(), path: filePath };
-    });
+  // Entries are "XY path\0"; renames/copies add the original path as the next
+  // entry ("R  new\0old\0"). Shown as "old -> new" like plain porcelain output.
+  const entries = statusOut.split('\0');
+  const files = [];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    if (!entry) continue;
+    const statusCode = entry.slice(0, 2);
+    let filePath = entry.slice(3);
+    if (/[RC]/.test(statusCode)) filePath = `${entries[++i]} -> ${filePath}`;
+    files.push({ status: statusCode.trim(), path: filePath });
+  }
 
   let ahead = 0, behind = 0;
   try {
@@ -257,8 +271,15 @@ async function commitAndPush(cwd, { branch, message, files }) {
     await run(root, ['checkout', branch]);
   }
 
+  let commitPaths = [];
   if (Array.isArray(files) && files.length > 0) {
-    await run(root, ['add', '--', ...files]);
+    // Renames show up as "old -> new" in porcelain output; both sides matter.
+    commitPaths = [...new Set(files.flatMap(f => f.split(' -> ')))];
+    // Only paths still on disk can be `git add`-ed: a deletion (staged or
+    // not) has nothing to add, and `git add` on a path that is gone from
+    // both the worktree and the index fails with "pathspec did not match".
+    const onDisk = commitPaths.filter(f => fs.existsSync(path.join(root, f)));
+    if (onDisk.length) await run(root, ['add', '--', ...onDisk]);
   } else if (!files) {
     await run(root, ['add', '-A']);
   } else {
@@ -268,7 +289,9 @@ async function commitAndPush(cwd, { branch, message, files }) {
   const finalMessage = message || 'Update';
 
   try {
-    await run(root, ['commit', '-m', finalMessage]);
+    // With paths, `git commit -- <paths>` commits exactly those files, even
+    // if other changes were already staged - so unselected files stay out.
+    await run(root, ['commit', '-m', finalMessage, ...(commitPaths.length ? ['--', ...commitPaths] : [])]);
   } catch (e) {
     if (/nothing to commit/i.test(e.stdout || '') || /nothing to commit/i.test(e.stderr || '')) {
       throw new Error('Tidak ada perubahan untuk di-commit');
