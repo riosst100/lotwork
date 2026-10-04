@@ -15,6 +15,7 @@ function run(cwd, args) {
     execFile(file, fileArgs, options, (err, stdout, stderr) => {
       if (err) {
         err.stderr = stderr;
+        err.stdout = stdout;
         return reject(err);
       }
       resolve(stdout);
@@ -271,47 +272,110 @@ async function commitAndPush(cwd, { branch, message, files }) {
     await run(root, ['checkout', branch]);
   }
 
+  // Paths that git reports as changed right now. The dashboard's file list
+  // can be stale (e.g. a previous attempt already committed but failed to
+  // push), and committing a path git no longer knows fails with
+  // "pathspec did not match any file(s) known to git".
+  const changed = new Set(status.files.flatMap(f => f.path.split(' -> ')));
   let commitPaths = [];
+  let shouldCommit = true;
   if (Array.isArray(files) && files.length > 0) {
     // Renames show up as "old -> new" in porcelain output; both sides matter.
-    commitPaths = [...new Set(files.flatMap(f => f.split(' -> ')))];
-    // Only paths still on disk can be `git add`-ed: a deletion (staged or
-    // not) has nothing to add, and `git add` on a path that is gone from
-    // both the worktree and the index fails with "pathspec did not match".
-    const onDisk = commitPaths.filter(f => fs.existsSync(path.join(root, f)));
-    if (onDisk.length) await run(root, ['add', '--', ...onDisk]);
-  } else if (!files) {
-    await run(root, ['add', '-A']);
+    commitPaths = [...new Set(files.flatMap(f => f.split(' -> ')))].filter(f => changed.has(f));
+    if (!commitPaths.length) {
+      if (!status.ahead) throw new Error('Daftar file sudah tidak sesuai (mungkin sudah ter-commit). Klik Refresh lalu coba lagi.');
+      shouldCommit = false; // nothing left to commit, but earlier commits still need pushing
+    } else {
+      // Only paths still on disk can be `git add`-ed: a deletion (staged or
+      // not) has nothing to add, and `git add` on a path that is gone from
+      // both the worktree and the index fails with "pathspec did not match".
+      const onDisk = commitPaths.filter(f => fs.existsSync(path.join(root, f)));
+      if (onDisk.length) await run(root, ['add', '--', ...onDisk]);
+    }
+  } else if (Array.isArray(files)) {
+    // No files selected: only valid as "push the commits I already have".
+    if (!status.ahead) throw new Error('Tidak ada file yang dipilih untuk di-commit');
+    shouldCommit = false;
   } else {
-    throw new Error('Tidak ada file yang dipilih untuk di-commit');
+    await run(root, ['add', '-A']);
   }
 
   const finalMessage = message || 'Update';
 
-  try {
-    // With paths, `git commit -- <paths>` commits exactly those files, even
-    // if other changes were already staged - so unselected files stay out.
-    await run(root, ['commit', '-m', finalMessage, ...(commitPaths.length ? ['--', ...commitPaths] : [])]);
-  } catch (e) {
-    if (/nothing to commit/i.test(e.stdout || '') || /nothing to commit/i.test(e.stderr || '')) {
-      throw new Error('Tidak ada perubahan untuk di-commit');
-    }
-    throw e;
-  }
-
-  const targetBranch = branch || status.currentBranch;
-  try {
-    await run(root, ['push', 'origin', targetBranch]);
-  } catch (e) {
-    // First push on a new branch needs -u
-    if (/no upstream branch/i.test(e.stderr || '')) {
-      await run(root, ['push', '-u', 'origin', targetBranch]);
-    } else {
+  if (shouldCommit) {
+    try {
+      // With paths, `git commit -- <paths>` commits exactly those files, even
+      // if other changes were already staged - so unselected files stay out.
+      await run(root, ['commit', '-m', finalMessage, ...(commitPaths.length ? ['--', ...commitPaths] : [])]);
+    } catch (e) {
+      if (/nothing to commit/i.test(e.stdout || '') || /nothing to commit/i.test(e.stderr || '')) {
+        throw new Error('Tidak ada perubahan untuk di-commit');
+      }
       throw e;
     }
   }
 
-  return { ok: true, message: finalMessage, branch: targetBranch };
+  const targetBranch = branch || status.currentBranch;
+  try {
+    await pushBranch(root, targetBranch);
+  } catch (e) {
+    e.committed = shouldCommit;
+    if (shouldCommit) e.message = `Commit "${finalMessage}" sudah tersimpan di lokal, tapi push gagal. ${e.message}`;
+    throw e;
+  }
+
+  return { ok: true, message: shouldCommit ? finalMessage : null, branch: targetBranch, committed: shouldCommit };
+}
+
+// Pushes, setting the upstream on a branch's first push. A rejection because
+// the remote has commits we don't is turned into an actionable message.
+async function pushBranch(root, branch) {
+  try {
+    await run(root, ['push', 'origin', branch]);
+  } catch (e) {
+    const stderr = e.stderr || '';
+    if (/no upstream branch|has no upstream/i.test(stderr)) {
+      await run(root, ['push', '-u', 'origin', branch]);
+      return;
+    }
+    if (/\[rejected\]|non-fast-forward|fetch first/i.test(stderr)) {
+      const err = new Error(`Branch "${branch}" di remote punya commit yang belum ada di lokal. Klik "Pull & Push" untuk menggabungkannya lalu push lagi.`);
+      err.pushRejected = true;
+      throw err;
+    }
+    e.message = stderr.trim() || e.message;
+    throw e;
+  }
+}
+
+// For a branch that is behind its remote: merge the remote branch in, then
+// push. Conflicts are left in place for the user to resolve, as with pull-main.
+async function pullAndPush(cwd, { branch }) {
+  if (!isGitRepo(cwd)) throw new Error('Bukan git repository');
+  const root = getRepoRoot(cwd);
+  const status = await getStatus(cwd);
+  const target = branch || status.currentBranch;
+  if (target !== status.currentBranch) await run(root, ['checkout', target]);
+  try {
+    await run(root, ['pull', '--no-rebase', '--no-edit', 'origin', target]);
+  } catch (e) {
+    const out = `${e.stdout || ''}\n${e.stderr || ''}`;
+    if (/CONFLICT|Automatic merge failed/i.test(out)) {
+      const err = new Error(
+        `Pull "origin/${target}" menghasilkan conflict. Branch dibiarkan dalam kondisi conflict — ` +
+        `resolve manual lalu commit, atau jalankan "git merge --abort" untuk membatalkan.`
+      );
+      err.isConflict = true;
+      throw err;
+    }
+    if (/would be overwritten/i.test(out)) {
+      throw new Error('Pull dibatalkan: ada perubahan lokal yang belum di-commit yang akan tertimpa. Commit atau stash dulu.');
+    }
+    e.message = (e.stderr || '').trim() || e.message;
+    throw e;
+  }
+  await pushBranch(root, target);
+  return { ok: true, branch: target };
 }
 
 async function hasUncommittedChanges(cwd) {
@@ -407,5 +471,5 @@ async function checkAheadBehindMain(cwd, mainBranch) {
 module.exports = {
   isGitRepo, getStatus, commitAndPush, getRemoteUrlSync, getLastCommit,
   getCurrentBranchSync, getDefaultBranchSync, setRemoteUrl, pullFromMain, getChangeSummary, initRepo,
-  checkAheadBehindMain,
+  checkAheadBehindMain, pullAndPush,
 };

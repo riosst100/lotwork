@@ -494,7 +494,23 @@ app.post('/api/projects/:id/git/push', async (req, res) => {
     invalidateGit(cwd);
     res.json(result);
   } catch (e) {
-    res.status(400).json({ error: e.stderr || e.message });
+    invalidateGit(cwd);
+    // e.message is already user-facing here (gitOps rewrites push failures).
+    res.status(400).json({ error: e.message || e.stderr, pushRejected: Boolean(e.pushRejected), committed: Boolean(e.committed) });
+  }
+});
+
+// For a branch that is behind its remote: pull (merge) then push.
+app.post('/api/projects/:id/git/pull-push', async (req, res) => {
+  const cwd = resolveProjectCwd(req.params.id);
+  if (!cwd) return res.status(404).json({ error: 'Project tidak ditemukan' });
+  try {
+    const result = await gitOps.pullAndPush(cwd, { branch: req.body.branch });
+    invalidateGit(cwd);
+    res.json(result);
+  } catch (e) {
+    invalidateGit(cwd);
+    res.status(400).json({ error: e.message || e.stderr, isConflict: e.isConflict || false });
   }
 });
 

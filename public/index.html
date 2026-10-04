@@ -1054,7 +1054,7 @@ const I18N = {
     confirmPushFiles: (count) => `${count} file(s) will be committed:`,
     confirmPushAutoMessage: (msg) => `Commit message: ${msg}`,
     commitMessageLabel: 'Commit message',
-    commitMessagePlaceholder: 'Summary of the changes',
+    commitMessagePlaceholder: 'Update',
     pushSuccess: (branch, message) => `Successfully pushed to "${branch}": ${message}`,
     pushFailed: 'Push failed',
     statusModified: 'Modified',
@@ -1138,6 +1138,12 @@ const I18N = {
     domainRequiredError: 'Enter a domain name and choose a container port.',
     confirmDeleteDomain: 'Remove this domain? Caddy and the hosts file are updated automatically.',
     noPublishedPorts: 'This compose file publishes no ports, so there is nothing to point a domain at.',
+    pullAndPush: 'Pull & Push',
+    pushCommits: (n) => `Push ${n} commit${n === 1 ? '' : 's'}`,
+    confirmPushOnly: (n, branch) => `Push ${n} unpushed commit${n === 1 ? '' : 's'} to branch "${branch}"?`,
+    pushOnlySuccess: (branch) => `Pushed to "${branch}".`,
+    confirmPullPush: (branch) => `Pull the latest "${branch}" from the remote, merge it with your local commits, then push?`,
+    pullPushSuccess: (branch) => `Pulled and pushed "${branch}".`,
   },
   id: {
     subtitle: 'Local dev project manager',
@@ -1288,7 +1294,7 @@ const I18N = {
     confirmPushFiles: (count) => `${count} file akan di-commit:`,
     confirmPushAutoMessage: (msg) => `Pesan commit: ${msg}`,
     commitMessageLabel: 'Pesan commit',
-    commitMessagePlaceholder: 'Ringkasan perubahan',
+    commitMessagePlaceholder: 'Update',
     pushSuccess: (branch, message) => `Berhasil push ke "${branch}": ${message}`,
     pushFailed: 'Gagal push',
     statusModified: 'Modified',
@@ -1372,6 +1378,12 @@ const I18N = {
     domainRequiredError: 'Isi nama domain dan pilih port container.',
     confirmDeleteDomain: 'Hapus domain ini? Caddy dan hosts file diperbarui otomatis.',
     noPublishedPorts: 'Compose file ini tidak mem-publish port, jadi belum ada tujuan untuk domain.',
+    pullAndPush: 'Pull & Push',
+    pushCommits: (n) => `Push ${n} commit`,
+    confirmPushOnly: (n, branch) => `Push ${n} commit yang belum ter-push ke branch "${branch}"?`,
+    pushOnlySuccess: (branch) => `Berhasil push ke "${branch}".`,
+    confirmPullPush: (branch) => `Ambil "${branch}" terbaru dari remote, gabungkan dengan commit lokal, lalu push?`,
+    pullPushSuccess: (branch) => `Berhasil pull dan push "${branch}".`,
   },
 };
 
@@ -3193,7 +3205,10 @@ function renderGitPanel(p) {
       ${state.pushError ? `<div class="error-msg">${escapeHtml(state.pushError)}</div>` : ''}
       <div class="modal-actions" style="justify-content:space-between;">
         <button type="button" class="secondary small" onclick="loadGitStatus('${p.id}')">${t('refresh')}</button>
-        <button ${(!someChecked || state.pushing) ? 'disabled' : ''} onclick="confirmGitPush('${p.id}')">${state.pushing ? t('pushing') : t('commitAndPush')}</button>
+        <div style="display:flex; gap:8px;">
+          ${(data.behind || state.pushRejected) ? `<button class="secondary" ${state.pushing ? 'disabled' : ''} onclick="pullAndPush('${p.id}')">${state.pushing && state.pullPushing ? t('pulling') : t('pullAndPush')}</button>` : ''}
+          <button ${(!(someChecked || data.ahead) || state.pushing) ? 'disabled' : ''} onclick="confirmGitPush('${p.id}')">${state.pushing && !state.pullPushing ? t('pushing') : (someChecked ? t('commitAndPush') : t('pushCommits', data.ahead))}</button>
+        </div>
       </div>
     </div>
   ` : '';
@@ -3298,41 +3313,15 @@ async function confirmPullFromMain(id) {
   }
 }
 
-// Default commit message: a short summary of the selected changes, e.g.
-// "Add wsl.js; Update server.js, gitOps.js +2 more; Remove portFlag.js".
-function summarizeChanges(files) {
-  const groups = { add: [], update: [], remove: [], rename: [] };
-  const base = (p) => p.split('/').pop();
-  for (const f of files) {
-    const code = f.status || '';
-    if (code.startsWith('R')) {
-      const [from, to] = f.path.split(' -> ');
-      groups.rename.push(`${base(from)} → ${base(to || from)}`);
-    } else if (code === '??' || code.startsWith('A')) groups.add.push(base(f.path));
-    else if (code.includes('D')) groups.remove.push(base(f.path));
-    else groups.update.push(base(f.path));
-  }
-  const list = (names) => names.slice(0, 3).join(', ') + (names.length > 3 ? ` +${names.length - 3} more` : '');
-  return [
-    groups.add.length && `Add ${list(groups.add)}`,
-    groups.update.length && `Update ${list(groups.update)}`,
-    groups.remove.length && `Remove ${list(groups.remove)}`,
-    groups.rename.length && `Rename ${list(groups.rename)}`,
-  ].filter(Boolean).join('; ');
-}
-
-// Follows the file selection until the user types their own message.
+// Empty unless the user typed one; pushes fall back to "Update".
 function commitMessageFor(state) {
-  if (state.messageEdited) return state.message || '';
-  const selected = state.data.files.filter(f => state.selectedFiles.has(f.path));
-  return summarizeChanges(selected);
+  return state.message || '';
 }
 
 function setCommitMessage(id, value) {
   const state = gitStatusCache.get(id);
   if (!state) return;
   state.message = value;
-  state.messageEdited = value.trim() !== '';
 }
 
 async function confirmGitPush(id) {
@@ -3341,14 +3330,16 @@ async function confirmGitPush(id) {
   const { data, selectedBranch, selectedFiles } = state;
 
   const selectedFileList = data.files.filter(f => selectedFiles.has(f.path));
-  if (selectedFileList.length === 0) return;
+  const pushOnly = selectedFileList.length === 0;
+  if (pushOnly && !data.ahead) return;
 
-  const message = commitMessageFor(state).trim() || summarizeChanges(selectedFileList);
+  const message = commitMessageFor(state).trim() || 'Update';
   const fileListText = selectedFileList.map(f => `  ${statusLabel(f.status)}: ${f.path}`).join('\n');
-  const confirmed = await showConfirm(
-    `${t('confirmPushTitle', selectedBranch)}\n\n` +
-    `${t('confirmPushFiles', selectedFileList.length)}\n${fileListText}\n\n` +
-    `${t('confirmPushAutoMessage', message)}`
+  const confirmed = await showConfirm(pushOnly
+    ? t('confirmPushOnly', data.ahead, selectedBranch)
+    : `${t('confirmPushTitle', selectedBranch)}\n\n` +
+      `${t('confirmPushFiles', selectedFileList.length)}\n${fileListText}\n\n` +
+      `${t('confirmPushAutoMessage', message)}`
   );
   if (!confirmed) return;
 
@@ -3365,18 +3356,54 @@ async function confirmGitPush(id) {
     });
     const result = await res.json();
     if (!res.ok) {
-      state.pushError = result.error || t('pushFailed');
-    } else {
-      state.result = t('pushSuccess', result.branch, result.message);
-      state.message = '';
-      state.messageEdited = false;
-      await loadGitStatus(id);
+      // The commit may have gone through even though the push failed, so
+      // reload the file list (otherwise a retry resends stale paths) and keep
+      // showing the error on the refreshed panel.
+      await reloadGitStatusKeeping(id, { pushError: result.error || t('pushFailed'), pushRejected: result.pushRejected });
       return;
     }
+    await reloadGitStatusKeeping(id, { result: result.committed ? t('pushSuccess', result.branch, result.message) : t('pushOnlySuccess', result.branch) });
+    return;
   } catch (e) {
     state.pushError = e.message;
   } finally {
     state.pushing = false;
+    render();
+  }
+}
+
+async function reloadGitStatusKeeping(id, fields) {
+  await loadGitStatus(id);
+  const fresh = gitStatusCache.get(id);
+  if (fresh) Object.assign(fresh, fields);
+  render();
+}
+
+async function pullAndPush(id) {
+  const state = gitStatusCache.get(id);
+  if (!state || !state.data || state.pushing) return;
+  if (!(await showConfirm(t('confirmPullPush', state.selectedBranch)))) return;
+  state.pushing = true;
+  state.pullPushing = true;
+  state.pushError = null;
+  state.result = null;
+  render();
+  try {
+    const res = await fetch(`/api/projects/${id}/git/pull-push`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch: state.selectedBranch }),
+    });
+    const result = await res.json();
+    await reloadGitStatusKeeping(id, res.ok
+      ? { result: t('pullPushSuccess', result.branch) }
+      : { pushError: result.error || t('pushFailed'), pushRejected: !result.isConflict });
+    return;
+  } catch (e) {
+    state.pushError = e.message;
+  } finally {
+    state.pushing = false;
+    state.pullPushing = false;
     render();
   }
 }
