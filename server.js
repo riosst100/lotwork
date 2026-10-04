@@ -19,23 +19,19 @@ const PORT = process.env.LOTWORK_PORT || 4400;
 app.use(express.json());
 app.use(express.static(publicDir));
 
-// Git info for WSL repos costs a wsl.exe spawn per call, and the dashboard
-// polls every few seconds - so commit/change summaries are cached. Git
+// Card git info (branch, remote) is read straight from files in .git - no
+// git spawn - but for WSL repos those are reads over the \\wsl.localhost
+// share and the dashboard polls every few seconds, so it's cached. Git
 // actions invalidate their project, and the dashboard's Sync button
-// (/api/sync) clears everything for anything changed outside lotwork.
+// (/api/sync) clears everything. Change counts and the last commit need a
+// git spawn, so only the Git panel fetches them (/git/status), on demand.
 const GIT_CACHE_MS = 60000;
 const gitCache = new Map(); // cwd -> { at, data }
 
-async function getGitInfo(cwd) {
+function getGitInfo(cwd) {
   const cached = gitCache.get(cwd);
   if (cached && Date.now() - cached.at < GIT_CACHE_MS) return cached.data;
-  const [lastCommit, gitChanges] = await Promise.all([
-    gitOps.getLastCommit(cwd).catch(() => null),
-    gitOps.getChangeSummary(cwd).catch(() => null),
-  ]);
   const data = {
-    lastCommit,
-    gitChanges,
     repoUrl: gitOps.getRemoteUrlSync(cwd),
     currentBranch: gitOps.getCurrentBranchSync(cwd),
     defaultBranch: gitOps.getDefaultBranchSync(cwd),
@@ -63,9 +59,19 @@ function domainTargets(projects) {
     .flatMap(p => (p.domains || []).map(d => ({ domain: d.domain, port: d.port })));
 }
 
+// Syncs run one at a time: reloadCaddy is async now, and two overlapping runs
+// could each see no Caddy process yet and start a second `caddy run`.
+let domainSyncQueue = Promise.resolve();
+
 function syncDomains() {
+  const next = domainSyncQueue.then(syncDomainsNow, syncDomainsNow);
+  domainSyncQueue = next.catch(() => {});
+  return next;
+}
+
+async function syncDomainsNow() {
   const targets = domainTargets(store.loadProjects());
-  const caddyResult = caddy.reloadCaddy(targets);
+  const caddyResult = await caddy.reloadCaddy(targets);
   const hostsResult = hosts.syncHosts(targets.map(t => t.domain));
   return { caddyResult, hostsResult };
 }
@@ -103,7 +109,7 @@ async function getLotworkSelfEntry() {
     port: PORT,
     isSelf: true,
     status: { running: true },
-    ...(await getGitInfo(appRoot)),
+    ...getGitInfo(appRoot),
   };
 }
 
@@ -182,17 +188,17 @@ app.put('/api/projects/:id', async (req, res) => {
 });
 
 // Removes the project from lotwork only - its containers are left as they are.
-app.delete('/api/projects/:id', (req, res) => {
+app.delete('/api/projects/:id', async (req, res) => {
   const project = store.getProject(req.params.id);
   if (!project) return res.status(404).json({ error: 'Project tidak ditemukan' });
   store.removeProject(req.params.id);
-  if ((project.domains || []).length) syncDomains();
+  if ((project.domains || []).length) await syncDomains();
   res.json({ ok: true });
 });
 
 // --- Custom domains (several per project, each pointing at one published port) ---
 
-app.post('/api/projects/:id/domains', (req, res) => {
+app.post('/api/projects/:id/domains', async (req, res) => {
   const project = getComposeProject(req, res);
   if (!project) return;
   const name = String(req.body.domain || '').trim().toLowerCase().replace(/\.local$/, '');
@@ -205,7 +211,7 @@ app.post('/api/projects/:id/domains', (req, res) => {
 
   const published = (project.ports || []).find(pt => pt.hostPort === port);
   const entry = store.addDomain(project.id, { domain, port, service: published ? published.service : '' });
-  const sync = syncDomains();
+  const sync = await syncDomains();
   res.json({
     domain: entry,
     sync: { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message },
@@ -213,11 +219,11 @@ app.post('/api/projects/:id/domains', (req, res) => {
   });
 });
 
-app.delete('/api/projects/:id/domains/:domainId', (req, res) => {
+app.delete('/api/projects/:id/domains/:domainId', async (req, res) => {
   const project = getComposeProject(req, res);
   if (!project) return;
   store.removeDomain(project.id, req.params.domainId);
-  const sync = syncDomains();
+  const sync = await syncDomains();
   res.json({ ok: true, sync: { hostsOk: sync.hostsResult.ok, hostsMessage: sync.hostsResult.message } });
 });
 
@@ -302,13 +308,6 @@ app.get('/api/projects/:id/logs', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
-
-// The project poll keeps the container cache warm, so the periodic status
-// check just reads it; ?fresh=1 (initial load, Sync) forces a real `docker ps`.
-app.get('/api/docker/status', async (req, res) => {
-  if (req.query.fresh) await docker.listContainers({ fresh: true });
-  res.json(docker.dockerHealth());
 });
 
 // Manual "Sync": drops cached git info and container status so the next
@@ -592,13 +591,13 @@ app.post('/api/projects/:id/pin', async (req, res) => {
 
 // --- Caddy, environment, system services, hosts ---
 
-app.post('/api/caddy/reload', (req, res) => {
-  const { caddyResult, hostsResult } = syncDomains();
+app.post('/api/caddy/reload', async (req, res) => {
+  const { caddyResult, hostsResult } = await syncDomains();
   res.json({ ...caddyResult, hostsMessage: hostsResult.message, hostsOk: hostsResult.ok });
 });
 
-app.get('/api/caddy/status', (req, res) => {
-  res.json(caddy.checkCaddyAvailability());
+app.get('/api/caddy/status', async (req, res) => {
+  res.json(await caddy.checkCaddyAvailability());
 });
 
 app.get('/api/environment', (req, res) => {
@@ -699,7 +698,7 @@ const ready = new Promise((resolve, reject) => {
     fs.writeFileSync(path.join(dataDir, 'server.pid'), String(process.pid));
 
     if (domainTargets(store.loadProjects()).length) {
-      syncDomains();
+      syncDomains().catch(e => console.error('Domain sync failed:', e.message));
     }
     resolve(PORT);
   });

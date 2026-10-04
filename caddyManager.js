@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync, spawn } = require('child_process');
+const { exec, spawn } = require('child_process');
 const { dataDir } = require('./paths');
 
 const CADDYFILE = path.join(dataDir, 'Caddyfile');
@@ -14,31 +14,33 @@ function generateCaddyfile(projects) {
   return CADDYFILE;
 }
 
-function isCaddyInstalled() {
-  try {
-    execSync('caddy version', { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
+// Async so these checks (winget especially can take seconds) never block the
+// server, which shares a process with the Electron shell.
+function run(command) {
+  return new Promise(resolve => {
+    exec(command, { encoding: 'utf-8', windowsHide: true, timeout: 30000 }, (err, stdout) => {
+      resolve({ ok: !err, stdout: stdout || '', error: err });
+    });
+  });
+}
+
+async function isCaddyInstalled() {
+  return (await run('caddy version')).ok;
 }
 
 // Distinguishes "not installed at all" from "installed, but this process's
 // PATH hasn't picked it up yet" (common right after a winget install, since
 // PATH changes only apply to new processes) so the UI can suggest the right
 // fix: install vs. restart the server.
-function checkCaddyAvailability() {
-  if (isCaddyInstalled()) {
+async function checkCaddyAvailability() {
+  if (await isCaddyInstalled()) {
     return { installed: true, needsRestart: false };
   }
   if (process.platform === 'win32') {
-    try {
-      const out = execSync('winget list --id CaddyServer.Caddy', { encoding: 'utf-8' });
-      if (out.includes('CaddyServer.Caddy')) {
-        return { installed: false, needsRestart: true };
-      }
-    } catch {
-      // winget not available or Caddy not found via it; fall through
+    // A failure here means winget isn't available or Caddy isn't found via it.
+    const { ok, stdout } = await run('winget list --id CaddyServer.Caddy');
+    if (ok && stdout.includes('CaddyServer.Caddy')) {
+      return { installed: false, needsRestart: true };
     }
   }
   return { installed: false, needsRestart: false };
@@ -46,20 +48,18 @@ function checkCaddyAvailability() {
 
 let caddyProcess = null;
 
-function reloadCaddy(projects) {
+async function reloadCaddy(projects) {
   generateCaddyfile(projects);
 
-  if (!isCaddyInstalled()) {
+  if (!(await isCaddyInstalled())) {
     return { ok: false, message: 'Caddy belum terinstall. Install dulu: winget install CaddyServer.Caddy' };
   }
 
   if (caddyProcess) {
-    try {
-      execSync(`caddy reload --config "${CADDYFILE}"`);
-      return { ok: true, message: 'Caddy config reloaded' };
-    } catch (e) {
-      return { ok: false, message: 'Gagal reload Caddy: ' + e.message };
-    }
+    const { ok, error } = await run(`caddy reload --config "${CADDYFILE}"`);
+    return ok
+      ? { ok: true, message: 'Caddy config reloaded' }
+      : { ok: false, message: 'Gagal reload Caddy: ' + error.message };
   } else {
     caddyProcess = spawn('caddy', ['run', '--config', CADDYFILE], { detached: false });
     caddyProcess.on('exit', () => { caddyProcess = null; });

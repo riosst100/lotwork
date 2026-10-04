@@ -175,7 +175,6 @@
     transition: border-color .15s;
   }
   .project-card:hover { border-color: var(--border); }
-  .project-card.running { border-color: color-mix(in srgb, var(--green) 28%, var(--border-soft)); }
   .self-card { border-color: color-mix(in srgb, var(--accent) 30%, var(--border-soft)); }
 
   .card-body { padding: 16px 18px 14px; }
@@ -223,13 +222,6 @@
   .chip.muted { background: transparent; border-style: dashed; }
   .branch-vs { color: var(--muted-2); }
 
-  .status-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 3px 9px 3px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
-    flex-shrink: 0;
-  }
-  .status-pill.on { background: var(--green-soft); color: var(--green); }
-  .status-pill.off { background: var(--panel-2); color: var(--muted-2); }
   .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
   .dot.on { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 22%, transparent); }
   .dot.off { background: var(--muted-2); }
@@ -532,6 +524,14 @@
   }
   .git-branch-settings { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
   .git-branch-settings .field { flex: 1; min-width: 140px; max-width: 220px; }
+  .git-summary {
+    display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin-bottom: 16px;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .git-summary .git-summary-changes { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .git-summary .git-summary-changes.has-changes { color: var(--yellow); }
+  .git-summary .last-commit { flex: 1; }
+  .git-summary button { margin-left: auto; }
   .git-mode-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
   .git-mode-buttons button { flex: 1; }
   .git-main-check-row {
@@ -603,8 +603,6 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* --- Docker Compose additions --- */
-  .status-pill.partial { background: var(--yellow-soft); color: var(--yellow); }
-  .status-pill.partial .dot.on { background: var(--yellow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--yellow) 22%, transparent); }
   .chip-sub { font-size: 11px; color: var(--muted-2); }
   a.chip-link { text-decoration: none; }
   a.chip-link:hover { border-color: var(--accent); color: var(--text); }
@@ -714,7 +712,6 @@
       <button data-env="local" title="Local development">Local</button>
       <button data-env="production" title="Production server">Production</button>
     </div>
-    <div class="caddy-status" id="dockerStatus"></div>
     <div class="caddy-status" id="caddyStatus"></div>
     <div class="lang-toggle" id="langToggle">
       <button data-lang="en" title="English">EN</button>
@@ -1058,6 +1055,7 @@ const I18N = {
     behind: 'behind',
     changesSelected: (selected, total) => `Changes (${selected}/${total} selected)`,
     noChanges: 'No changes.',
+    lastCommitLabel: 'Last commit',
     refresh: '&#8635; Refresh',
     commitAndPush: 'Commit & Push',
     pushing: 'Pushing...',
@@ -1079,7 +1077,6 @@ const I18N = {
     portFree: 'free',
     branchVsMain: 'vs main',
     selfBadge: 'This app',
-    unpushedChanges: (n) => `${n} unpushed change${n === 1 ? '' : 's'}`,
     changedCount: (n) => `${n} changed`,
     untrackedCount: (n) => `${n} untracked`,
     noRemote: 'No remote repo found',
@@ -1130,15 +1127,12 @@ const I18N = {
     refreshCompose: 'Reload compose file',
     notCreated: 'not created',
     noServices: 'No services defined',
-    partialRunning: (a, b) => `Running ${a}/${b}`,
     logsAllServices: 'All services',
     commandServiceField: 'Run in',
     commandServiceShell: 'WSL shell (project folder)',
     archiveTitle: 'Archive',
     archiveHint: 'old projects from before Docker · read-only',
     archivedBadge: 'Archived',
-    dockerRunning: 'Docker: running',
-    dockerDown: 'Docker: not running',
     dockerActionFailed: 'Docker command failed',
 
     domains: 'Domains',
@@ -1301,6 +1295,7 @@ const I18N = {
     behind: 'behind',
     changesSelected: (selected, total) => `Perubahan (${selected}/${total} dipilih)`,
     noChanges: 'Tidak ada perubahan.',
+    lastCommitLabel: 'Commit terakhir',
     refresh: '&#8635; Refresh',
     commitAndPush: 'Commit & Push',
     pushing: 'Pushing...',
@@ -1322,7 +1317,6 @@ const I18N = {
     portFree: 'kosong',
     branchVsMain: 'vs main',
     selfBadge: 'Aplikasi ini',
-    unpushedChanges: (n) => `${n} perubahan belum di-push`,
     changedCount: (n) => `${n} berubah`,
     untrackedCount: (n) => `${n} untracked`,
     noRemote: 'Belum ada remote repo',
@@ -1373,15 +1367,12 @@ const I18N = {
     refreshCompose: 'Muat ulang compose file',
     notCreated: 'belum dibuat',
     noServices: 'Tidak ada service',
-    partialRunning: (a, b) => `Berjalan ${a}/${b}`,
     logsAllServices: 'Semua service',
     commandServiceField: 'Jalankan di',
     commandServiceShell: 'Shell WSL (folder project)',
     archiveTitle: 'Arsip',
     archiveHint: 'project lama sebelum Docker · read-only',
     archivedBadge: 'Arsip',
-    dockerRunning: 'Docker: jalan',
-    dockerDown: 'Docker: tidak jalan',
     dockerActionFailed: 'Perintah Docker gagal',
 
     domains: 'Domain',
@@ -1459,6 +1450,11 @@ function t(key, ...args) {
   return typeof value === 'function' ? value(...args) : value;
 }
 
+// Last fetched sidebar data, so a language switch can re-render without refetching.
+// Declared before updateStaticTexts() first runs at startup.
+let lastServicesData = null;
+let lastCaddyStatus = null;
+
 function updateStaticTexts() {
   document.querySelector('header .sub').textContent = t('subtitle');
   document.getElementById('addProjectBtn').innerHTML = `${icon('plus')}<span>${t('addProject')}</span>`;
@@ -1490,14 +1486,15 @@ function updateStaticTexts() {
   document.getElementById('credModalCancelBtn').textContent = t('cancel');
   document.getElementById('credModalSaveBtn').textContent = t('save');
   document.getElementById('servicesTitle').textContent = t('servicesTitle');
-  loadServices();
+  // Re-render from the last fetched data - a language switch shouldn't
+  // re-run the PowerShell service scan or the Caddy check.
+  if (lastServicesData) renderServices(lastServicesData);
   // Re-set modal titles only if the modal isn't mid-edit (avoid flashing "Add" over "Edit")
   const modalTitle = document.getElementById('modalTitle');
   if (modalTitle) modalTitle.textContent = document.getElementById('editId').value ? t('modalEditTitle') : t('modalAddTitle');
   const credModalTitle = document.getElementById('credModalTitle');
   if (credModalTitle) credModalTitle.textContent = document.getElementById('credModalId').value ? t('editCredentialTitle') : t('addCredentialTitle');
-  checkCaddyStatus();
-  checkDockerStatus();
+  if (lastCaddyStatus) renderCaddyStatus(lastCaddyStatus);
 }
 
 document.getElementById('langToggle').addEventListener('click', (e) => {
@@ -1611,9 +1608,10 @@ function render() {
   if (count === 0) html += `<div class="empty-state">${t('emptyState')}</div>`;
   if (archived.length && !showSidejobs) html += renderArchiveSection(archived);
 
+  const logScroll = captureLogScroll();
   document.getElementById('projectRows').innerHTML = html;
   document.getElementById('projectsCount').textContent = String(count);
-  restoreLogScroll();
+  restoreLogScroll(logScroll);
   updateSidejobToggleLabel();
 }
 
@@ -1665,15 +1663,6 @@ function toggleShowSidejobs() {
   render();
 }
 
-function renderChangesBadge(p) {
-  const gc = p.gitChanges;
-  if (!gc || gc.total === 0) return '';
-  const parts = [];
-  if (gc.changed) parts.push(t('changedCount', gc.changed));
-  if (gc.untracked) parts.push(t('untrackedCount', gc.untracked));
-  return `<span class="chip changes" title="${escapeHtml(parts.join(', '))}">${icon('pending')}${t('unpushedChanges', gc.total)}</span>`;
-}
-
 function renderBranchChip(p) {
   if (!p.currentBranch) return '';
   const inner = p.defaultBranch && p.defaultBranch !== p.currentBranch
@@ -1686,10 +1675,7 @@ function renderCardSub(p) {
   const repo = p.repoUrl
     ? `<a class="repo-link" href="${escapeHtml(p.repoUrl)}" target="_blank" title="${escapeHtml(p.repoUrl)}">${icon('link')}${escapeHtml(p.repoUrl.replace(/^https?:\/\//, ''))}</a>`
     : `<span class="repo-link no-remote">${icon('link')}${t('noRemote')}</span>`;
-  const commit = p.lastCommit
-    ? `<span class="sep">·</span><span class="last-commit" title="${escapeHtml(p.lastCommit.message)}">${escapeHtml(p.lastCommit.message)} · ${formatCommitDate(p.lastCommit.date)}</span>`
-    : '';
-  return `<div class="card-sub">${repo}${commit}</div>`;
+  return `<div class="card-sub">${repo}</div>`;
 }
 
 function tabBtn(p, type, iconName, label, count) {
@@ -1721,14 +1707,6 @@ function composeFileLabel(p) {
 
 // --- Docker Compose project card ---
 const pendingAction = new Map(); // projectId -> 'start' | 'stop' | 'restart' | 'down'
-
-function renderStatusPill(status) {
-  if (status.state === 'partial') {
-    return `<span class="status-pill partial"><span class="dot on"></span>${t('partialRunning', status.runningCount, status.total)}</span>`;
-  }
-  const on = status.running;
-  return `<span class="status-pill ${on ? 'on' : 'off'}"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? t('running') : t('stopped')}</span>`;
-}
 
 function renderPortChips(p) {
   const status = p.status || {};
@@ -1762,18 +1740,16 @@ function renderComposeCard(p) {
     renderPortChips(p),
     (p.domains || []).map(d => `<span class="chip">${icon('globe')}<a class="domain-link" href="https://${d.domain}" target="_blank">${d.domain}</a><span class="chip-sub">${escapeHtml(d.service || '')}:${d.port}</span></span>`).join(''),
     renderBranchChip(p),
-    renderChangesBadge(p),
     lastStarted ? `<span class="chip" title="${t('lastStarted')}">${icon('clock')}${lastStarted}</span>` : '',
   ].join('');
 
   return `
-    <div class="project-card ${running ? 'running' : ''} ${p.pinned ? 'pinned' : ''}">
+    <div class="project-card ${p.pinned ? 'pinned' : ''}">
       <div class="card-body">
         <div class="card-head">
           <div class="card-title">
             <span class="proj-name">${escapeHtml(p.name)}</span>
             <button type="button" class="pin-btn ${p.pinned ? 'pinned' : ''}" title="${p.pinned ? t('unpinProject') : t('pinProject')}" onclick="togglePin('${p.id}')">${icon('star')}</button>
-            ${renderStatusPill(status)}
           </div>
           <div class="card-head-actions">
             ${toggleBtn}
@@ -2023,33 +1999,19 @@ function renderArchivedCard(p) {
   `;
 }
 
-// --- Docker status pill in the header ---
-async function checkDockerStatus(fresh) {
-  const el = document.getElementById('dockerStatus');
-  try {
-    const res = await fetch(`/api/docker/status${fresh ? '?fresh=1' : ''}`);
-    const data = await res.json();
-    el.classList.toggle('caddy-missing', !data.ok);
-    el.title = data.ok ? '' : (data.error || '');
-    el.innerHTML = `<span class="cdot" style="background:var(${data.ok ? '--green' : '--red'})"></span>${data.ok ? t('dockerRunning') : t('dockerDown')}`;
-  } catch {}
-}
-
 function renderSelfCard(p) {
   const chips = [
     p.port ? `<span class="chip" title="${t('port')}">${icon('plug')}<code>${p.port}</code></span>` : '',
     renderBranchChip(p),
-    renderChangesBadge(p),
   ].join('');
 
   return `
-    <div class="project-card running self-card">
+    <div class="project-card self-card">
       <div class="card-body">
         <div class="card-head">
           <div class="card-title">
             <span class="proj-name">${escapeHtml(p.name)}</span>
             <span class="badge self-badge">${t('selfBadge')}</span>
-            <span class="status-pill on"><span class="dot on"></span>${t('running')}</span>
           </div>
         </div>
         ${renderCardSub(p)}
@@ -2415,7 +2377,7 @@ function togglePanel(id, type) {
   } else {
     expandedPanels.set(id, type);
     if (type === 'env' && !envDrafts.has(id)) loadEnvDraft(id);
-    if (type === 'logs') pollLogsFor(id);
+    if (type === 'logs') { logCache.delete(id); loadLogs(id); }
     if (type === 'git') loadGitStatus(id);
   }
   render();
@@ -2459,6 +2421,7 @@ function renderLogsPanel(p) {
       ${panelTitleWithClose(p.id, 'logs', t('logs'))}
       <div class="panel-toolbar">
         <select class="panel-select" onchange="setLogService('${p.id}', this.value)">${options}</select>
+        <button type="button" class="secondary small" id="logRefresh-${p.id}" ${logsInFlight.has(p.id) ? 'disabled' : ''} onclick="loadLogs('${p.id}')">${t('refresh')}</button>
         <button type="button" class="secondary small" onclick="copyElementText(this, 'logBox-${p.id}')">${t('copyLogs')}</button>
       </div>
       <pre class="log-box" id="logBox-${p.id}">${escapeHtml(logs)}</pre>
@@ -2469,19 +2432,24 @@ function renderLogsPanel(p) {
 function setLogService(id, service) {
   logServiceById.set(id, service);
   logCache.delete(id);
-  render();
-  pollLogsFor(id);
+  const box = document.getElementById(`logBox-${id}`);
+  if (box) box.textContent = t('loadingLogs');
+  loadLogs(id);
 }
 
+// Logs are fetched when the panel opens and on Refresh only - no polling,
+// since each fetch is a `docker compose logs --tail 400` spawn.
 const logsInFlight = new Set();
-async function pollLogsFor(id) {
+async function loadLogs(id) {
   if (expandedPanels.get(id) !== 'logs' || logsInFlight.has(id)) return;
   logsInFlight.add(id);
+  setLogRefreshDisabled(id, true);
+  let filterChanged = false;
   try {
     const service = logServiceById.get(id) || '';
     const res = await fetch(`/api/projects/${id}/logs${service ? `?service=${encodeURIComponent(service)}` : ''}`);
     const data = await res.json();
-    if ((logServiceById.get(id) || '') !== service) return; // filter changed meanwhile
+    if ((logServiceById.get(id) || '') !== service) { filterChanged = true; return; }
     const firstLoad = !logCache.has(id);
     const logs = res.ok ? (data.logs || t('noOutputYet')) : (data.error || t('noOutputYet'));
     logCache.set(id, logs);
@@ -2493,16 +2461,35 @@ async function pollLogsFor(id) {
     }
   } finally {
     logsInFlight.delete(id);
+    setLogRefreshDisabled(id, false);
+    if (filterChanged) loadLogs(id);
   }
 }
 
-function restoreLogScroll() {
+function setLogRefreshDisabled(id, disabled) {
+  const btn = document.getElementById(`logRefresh-${id}`);
+  if (btn) btn.disabled = disabled;
+}
+
+// render() rebuilds the cards wholesale, which would reset an open log box to
+// the top - keep the reader's place (or stick to the bottom if they were there).
+function captureLogScroll() {
+  const saved = new Map();
   for (const [id, type] of expandedPanels) {
-    if (type === 'logs') pollLogsFor(id);
+    const box = type === 'logs' && document.getElementById(`logBox-${id}`);
+    if (box) saved.set(id, { top: box.scrollTop, atBottom: box.scrollTop + box.clientHeight >= box.scrollHeight - 20 });
   }
+  return saved;
 }
 
-setInterval(whenVisible(restoreLogScroll), 2000);
+function restoreLogScroll(saved) {
+  for (const [id, type] of expandedPanels) {
+    const box = type === 'logs' && document.getElementById(`logBox-${id}`);
+    if (!box) continue;
+    const prev = saved.get(id);
+    box.scrollTop = !prev || prev.atBottom ? box.scrollHeight : prev.top;
+  }
+}
 
 // --- Edit .env panel ---
 async function loadEnvDraft(id) {
@@ -3193,6 +3180,21 @@ function renderGitPanel(p) {
 
   const mode = state.gitMode; // null | 'pull' | 'push'
 
+  // Change count + last commit are only fetched here (opening the panel or
+  // Refresh), not on every dashboard poll - they cost a git spawn per repo.
+  const untrackedCount = data.files.filter(f => f.status === '??').length;
+  const changedCount = data.files.length - untrackedCount;
+  const changeParts = [];
+  if (changedCount) changeParts.push(t('changedCount', changedCount));
+  if (untrackedCount) changeParts.push(t('untrackedCount', untrackedCount));
+  const summary = `
+    <div class="git-summary">
+      <span class="git-summary-changes ${changeParts.length ? 'has-changes' : ''}">${icon('pending')}${changeParts.length ? changeParts.join(', ') : t('noChanges')}</span>
+      ${data.lastCommit ? `<span class="last-commit" title="${escapeHtml(data.lastCommit.message)}">${t('lastCommitLabel')}: ${escapeHtml(data.lastCommit.message)} · ${formatCommitDate(data.lastCommit.date)}</span>` : ''}
+      <button type="button" class="secondary small" onclick="loadGitStatus('${p.id}')">${t('refresh')}</button>
+    </div>
+  `;
+
   const pullDetail = mode === 'pull' ? `
     <div class="git-mode-detail">
       <div class="git-main-check-row">
@@ -3269,6 +3271,8 @@ function renderGitPanel(p) {
         </div>
         ${aheadBehind.length ? `<span class="badge">${aheadBehind.join(', ')}</span>` : ''}
       </div>
+
+      ${summary}
 
       <div class="git-mode-buttons">
         <button type="button" class="secondary ${mode === 'pull' ? 'panel-btn-active' : ''}" onclick="setGitMode('${p.id}', 'pull')">${t('pullFromMaster')}</button>
@@ -3455,28 +3459,35 @@ async function reloadCaddy() {
 
 let caddyInstalling = false;
 
-let caddyAlertShownFor = null; // tracks which problem we've already popped up, so we don't nag on every 4s poll
+let caddyAlertShownFor = null; // tracks which problem we've already popped up, so we don't nag on every re-check
 
 async function checkCaddyStatus() {
   const res = await fetch('/api/caddy/status');
   const data = await res.json();
+  lastCaddyStatus = data;
+  renderCaddyStatus(data);
+  if (data.installed) {
+    caddyAlertShownFor = null;
+  } else {
+    const problemKey = data.needsRestart ? 'needsRestart' : 'notInstalled';
+    if (caddyAlertShownFor !== problemKey) {
+      caddyAlertShownFor = problemKey;
+      handleCaddyMissing(data.needsRestart);
+    }
+  }
+}
+
+function renderCaddyStatus(data) {
   const el = document.getElementById('caddyStatus');
   if (data.installed) {
     el.innerHTML = `<span class="cdot"></span>${t('caddyInstalled')}`;
     el.classList.remove('caddy-missing');
     el.onclick = null;
-    caddyAlertShownFor = null;
   } else {
-    const problemKey = data.needsRestart ? 'needsRestart' : 'notInstalled';
     const label = data.needsRestart ? t('caddyNeedsRestart') : t('caddyNotInstalled');
     el.innerHTML = `<span class="cdot" style="background:var(--red)"></span>${label}`;
     el.classList.add('caddy-missing');
     el.onclick = () => handleCaddyMissing(data.needsRestart);
-
-    if (caddyAlertShownFor !== problemKey) {
-      caddyAlertShownFor = problemKey;
-      handleCaddyMissing(data.needsRestart);
-    }
   }
 }
 
@@ -3518,6 +3529,7 @@ async function loadServices() {
   try {
     const res = await fetch('/api/services');
     const data = await res.json();
+    lastServicesData = data;
     renderServices(data);
   } catch (e) {
     document.getElementById('servicesList').innerHTML = `<div class="services-empty">${t('servicesLoadFailed')}</div>`;
@@ -3799,24 +3811,14 @@ function renderHostsPage() {
 
 applyRoute();
 
-Promise.all([fetchProjects(), checkCaddyStatus(), checkDockerStatus(true), loadServices()]).finally(() => {
+Promise.all([fetchProjects(), checkCaddyStatus(), loadServices()]).finally(() => {
   document.getElementById('pageLoading').classList.add('hidden');
 });
-// Polls pause while the window is hidden (e.g. closed to the tray) and catch
-// up as soon as it's shown again, so an idle lotwork spawns nothing. Services
-// (a PowerShell spawn) aren't polled at all - they refresh on load, after a
-// start/stop, and from the sidebar / Sync buttons.
-function whenVisible(fn) {
-  return () => { if (!document.hidden) fn(); };
-}
-
-setInterval(whenVisible(() => fetchProjects(true)), 4000);
-setInterval(whenVisible(() => checkDockerStatus()), 10000);
-
+// Nothing is polled: project state is fetched on load, after every action,
+// from the Sync button, and once when the window is shown again (e.g. reopened
+// from the tray). Services and git details refresh from their own buttons.
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) return;
-  fetchProjects(true);
-  checkDockerStatus();
+  if (!document.hidden) fetchProjects(true);
 });
 
 async function refreshServices() {
@@ -3838,7 +3840,7 @@ async function syncAll() {
   btn.disabled = true;
   try {
     await fetch('/api/sync', { method: 'POST' });
-    await Promise.all([fetchProjects(), checkDockerStatus(true), refreshServices()]);
+    await Promise.all([fetchProjects(), refreshServices()]);
   } catch (e) {
     await showAlert(e.message);
   } finally {

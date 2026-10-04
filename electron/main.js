@@ -35,7 +35,6 @@ function main() {
   let tray = null;
   let isQuitting = false;
   let shownTrayHint = false;
-  let lastRunningCount = -1;
 
   app.on('second-instance', () => showWindow());
 
@@ -139,27 +138,25 @@ function main() {
     tray.setToolTip('lotwork');
     tray.on('click', showWindow);
     tray.on('balloon-click', showWindow);
-    updateTrayMenu();
-    setInterval(updateTrayMenu, 5000);
+    tray.on('right-click', showTrayMenu);
   }
 
-  let trayUpdating = false;
-  async function updateTrayMenu() {
-    if (trayUpdating) return;
-    trayUpdating = true;
+  // No polling: the running count is looked up only when the menu is opened,
+  // so lotwork does nothing at all while it sits in the tray.
+  let trayMenuOpening = false;
+  async function showTrayMenu() {
+    if (trayMenuOpening) return;
+    trayMenuOpening = true;
     let count;
     try {
       count = (await server.runningProjects()).length;
     } catch {
       count = 0;
     } finally {
-      trayUpdating = false;
+      trayMenuOpening = false;
     }
-    if (count === lastRunningCount) return;
-    lastRunningCount = count;
 
-    tray.setToolTip(count ? `lotwork - ${count} project(s) running` : 'lotwork');
-    tray.setContextMenu(Menu.buildFromTemplate([
+    tray.popUpContextMenu(Menu.buildFromTemplate([
       { label: 'Open lotwork', click: showWindow },
       { label: 'Open in browser', click: () => shell.openExternal(dashboardUrl()) },
       { type: 'separator' },
@@ -184,8 +181,6 @@ function main() {
     });
     if (choice !== 0) return;
     await server.stopAllProjects();
-    lastRunningCount = -1;
-    updateTrayMenu();
   }
 
   function restart() {

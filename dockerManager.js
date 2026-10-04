@@ -82,7 +82,7 @@ async function listContainers({ fresh = false } = {}) {
         return null;
       }
     }).filter(c => c && !c.oneoff);
-    cache = { at: Date.now(), containers, promise: null, dockerOk: result.code === 0, dockerError: result.code === 0 ? null : result.stderr.trim() };
+    cache = { at: Date.now(), containers, promise: null };
     return containers;
   })();
   try {
@@ -90,10 +90,6 @@ async function listContainers({ fresh = false } = {}) {
   } finally {
     cache.promise = null;
   }
-}
-
-function dockerHealth() {
-  return { ok: cache.dockerOk !== false, error: cache.dockerError || null };
 }
 
 // Combines the services the compose file defines (stored when the project was
@@ -203,6 +199,6 @@ function invalidate() {
 }
 
 module.exports = {
-  listContainers, getProjectStatus, inspectComposeFile, dockerHealth, invalidate,
+  listContainers, getProjectStatus, inspectComposeFile, invalidate,
   up, stop, restart, down, logs, runCommand, parsePorts,
 };
