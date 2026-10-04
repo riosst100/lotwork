@@ -1,0 +1,128 @@
+{
+  "caddyManager.js": {
+    "mtime": 1789836112.447759,
+    "seen": 1791103962.5584345,
+    "ast_hash": "27f5382c0a8297bd87b7adde25546af1",
+    "semantic_hash": "27f5382c0a8297bd87b7adde25546af1"
+  },
+  "dockerManager.js": {
+    "mtime": 1791017920.1425178,
+    "seen": 1791103962.5584345,
+    "ast_hash": "d20af50eb18e74cc5166ecc26554d9f9",
+    "semantic_hash": "d20af50eb18e74cc5166ecc26554d9f9"
+  },
+  "electron/main.js": {
+    "mtime": 1791018626.9780824,
+    "seen": 1791103962.5584345,
+    "ast_hash": "a9fc6d21b5b862a2f4733d34cec42e1f",
+    "semantic_hash": "a9fc6d21b5b862a2f4733d34cec42e1f"
+  },
+  "envFile.js": {
+    "mtime": 1789788956.51588,
+    "seen": 1791103962.5584345,
+    "ast_hash": "b8cdadb3e1c7a81526ab5b324f62ea0b",
+    "semantic_hash": "b8cdadb3e1c7a81526ab5b324f62ea0b"
+  },
+  "gitOps.js": {
+    "mtime": 1791034615.4103005,
+    "seen": 1791103962.5584345,
+    "ast_hash": "13e0c44ee120281fa40c795729b2a5c1",
+    "semantic_hash": "13e0c44ee120281fa40c795729b2a5c1"
+  },
+  "hostsManager.js": {
+    "mtime": 1790438840.5096638,
+    "seen": 1791103962.5584345,
+    "ast_hash": "397971ad971ba1503114d33dc653c34e",
+    "semantic_hash": "397971ad971ba1503114d33dc653c34e"
+  },
+  "nextConfig.js": {
+    "mtime": 1789829715.7720819,
+    "seen": 1791103962.5584345,
+    "ast_hash": "6fc308d0a2e25c26f2083a8183125c89",
+    "semantic_hash": "6fc308d0a2e25c26f2083a8183125c89"
+  },
+  "package.json": {
+    "mtime": 1791016723.3366265,
+    "seen": 1791103962.5584345,
+    "ast_hash": "a4e5e2cc73d45b4330395f67411ec136",
+    "semantic_hash": "a4e5e2cc73d45b4330395f67411ec136"
+  },
+  "paths.js": {
+    "mtime": 1789748481.3518436,
+    "seen": 1791103962.5584345,
+    "ast_hash": "f91e069f4dd0c6c8d36603f615bc8d3f",
+    "semantic_hash": "f91e069f4dd0c6c8d36603f615bc8d3f"
+  },
+  "scripts/make-exe.js": {
+    "mtime": 1791016721.9322734,
+    "seen": 1791103962.5584345,
+    "ast_hash": "ad7557ab74db27210546e2713a5b5c6b",
+    "semantic_hash": "ad7557ab74db27210546e2713a5b5c6b"
+  },
+  "scripts/make-icon.ps1": {
+    "mtime": 1789749580.835964,
+    "seen": 1791103962.5584345,
+    "ast_hash": "a25b986ba973c1dd6236f9244b1ee1f3",
+    "semantic_hash": "a25b986ba973c1dd6236f9244b1ee1f3"
+  },
+  "scripts/make-shortcut.ps1": {
+    "mtime": 1791016751.9475133,
+    "seen": 1791103962.5584345,
+    "ast_hash": "6c8e81e74fde9dc5d9f4ee28ffa8b225",
+    "semantic_hash": "6c8e81e74fde9dc5d9f4ee28ffa8b225"
+  },
+  "scripts/set-shortcut-admin.ps1": {
+    "mtime": 1789776359.2449894,
+    "seen": 1791103962.5584345,
+    "ast_hash": "f62ceaac0798dce5e86e2b91eea3816e",
+    "semantic_hash": "f62ceaac0798dce5e86e2b91eea3816e"
+  },
+  "scripts/setup.ps1": {
+    "mtime": 1791016750.8398602,
+    "seen": 1791103962.5584345,
+    "ast_hash": "9b733e30fa9cbfae06b1a2f0d9fdee30",
+    "semantic_hash": "9b733e30fa9cbfae06b1a2f0d9fdee30"
+  },
+  "server.js": {
+    "mtime": 1791034635.634444,
+    "seen": 1791103962.5584345,
+    "ast_hash": "86ede3744ebcb6c944d6ff0026fa7452",
+    "semantic_hash": "86ede3744ebcb6c944d6ff0026fa7452"
+  },
+  "sshLauncher.js": {
+    "mtime": 1790428273.8924177,
+    "seen": 1791103962.5584345,
+    "ast_hash": "55ce7a42a64bc1aac38ecc2ece33658d",
+    "semantic_hash": "55ce7a42a64bc1aac38ecc2ece33658d"
+  },
+  "store.js": {
+    "mtime": 1791026506.4059825,
+    "seen": 1791103962.5584345,
+    "ast_hash": "bf3128b60b6db60eb878ff3fa09546be",
+    "semantic_hash": "bf3128b60b6db60eb878ff3fa09546be"
+  },
+  "systemServices.js": {
+    "mtime": 1790432636.8069863,
+    "seen": 1791103962.5584345,
+    "ast_hash": "f194ea26f119db88bbc6bf058bac81f3",
+    "semantic_hash": "f194ea26f119db88bbc6bf058bac81f3"
+  },
+  "wsl.js": {
+    "mtime": 1791031145.1622393,
+    "seen": 1791103962.5584345,
+    "ast_hash": "bd807fd2007002a1b579a61c15324caf",
+    "semantic_hash": "bd807fd2007002a1b579a61c15324caf"
+  },
+  "README.md": {
+    "mtime": 1791019249.5658014,
+    "seen": 1791103962.5584345,
+    "ast_hash": "7e0234c1d8e13defcb51e7d677ce1d85",
+    "semantic_hash": "7e0234c1d8e13defcb51e7d677ce1d85"
+  },
+  "public/index.html": {
+    "mtime": 1791034703.821807,
+    "seen": 1791103962.5584345,
+    "ast_hash": "b5d8989a0134a02d9cd42c7c938ae787",
+    "semantic_hash": "b5d8989a0134a02d9cd42c7c938ae787"
+  }
+}

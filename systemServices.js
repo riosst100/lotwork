@@ -78,63 +78,57 @@ function run(cmd, args) {
   });
 }
 
-// Uses PowerShell Get-Service (structured, locale-independent) rather than
-// parsing `sc query` text output.
-function getWindowsServices() {
+// One PowerShell call per poll: starting powershell.exe is the expensive part
+// (~0.3-0.6s CPU each), so services and process paths come back together.
+// Get-Service is structured and locale-independent, unlike `sc query` text.
+// Process paths come from Win32_Process (which exposes ExecutablePath, unlike
+// Get-Process) because two separate manually-run mysqld.exe instances (e.g.
+// XAMPP's and a standalone install) share the same process name - matching
+// by name alone can't tell them apart. That half is the slower query, so it
+// only runs when a process-based install exists. Async so the poll never
+// blocks the event loop (the server shares a process with the Electron shell).
+async function queryWindowsState(includeProcessPaths) {
+  const paths = includeProcessPaths
+    ? '@(Get-CimInstance Win32_Process | Where-Object ExecutablePath | Select-Object -ExpandProperty ExecutablePath)'
+    : '@()';
+  const script = `@{ services = @(Get-Service | Select-Object Name, DisplayName, Status); paths = ${paths} } | ConvertTo-Json -Compress -Depth 3`;
   try {
-    const out = execFileSync(
-      'powershell',
-      ['-NoProfile', '-Command', 'Get-Service | Select-Object Name, DisplayName, Status | ConvertTo-Json -Compress'],
-      { encoding: 'utf-8', timeout: 15000, windowsHide: true }
-    );
-    const parsed = JSON.parse(out);
-    return Array.isArray(parsed) ? parsed : [parsed];
+    const parsed = JSON.parse(await run('powershell', ['-NoProfile', '-NonInteractive', '-Command', script]));
+    return {
+      services: parsed.services || [],
+      runningPaths: new Set((parsed.paths || []).map(p => p.toLowerCase())),
+    };
   } catch {
-    return [];
-  }
-}
-
-// Checks for a running process by name (no ".exe") via PowerShell
-// Get-Process, mirroring getWindowsServices' approach for services.
-function getWindowsProcessNames() {
-  try {
-    const out = execFileSync(
-      'powershell',
-      ['-NoProfile', '-Command', 'Get-Process | Select-Object -ExpandProperty Name'],
-      { encoding: 'utf-8', timeout: 15000, windowsHide: true }
-    );
-    return out.split('\n').map(s => s.trim()).filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-// Full executable paths of every running process, via Win32_Process (which
-// exposes ExecutablePath, unlike Get-Process). Needed because two separate
-// manually-run mysqld.exe instances (e.g. XAMPP's and a standalone install)
-// share the same process name - matching by name alone can't tell them
-// apart, so status is checked by exact exe path instead.
-function getRunningExecutablePaths() {
-  try {
-    const out = execFileSync(
-      'powershell',
-      ['-NoProfile', '-Command', "Get-CimInstance Win32_Process | Select-Object -ExpandProperty ExecutablePath"],
-      { encoding: 'utf-8', timeout: 15000, windowsHide: true }
-    );
-    return new Set(
-      out.split('\n').map(s => s.trim().toLowerCase()).filter(Boolean)
-    );
-  } catch {
-    return new Set();
+    return { services: [], runningPaths: new Set() };
   }
 }
 
 // Finds installed dev-database services on this machine and their current
 // status. Returns only services that were actually found (not every
 // definition), since most machines won't have all of them installed.
+// Overlapping callers share one in-flight query.
+let detectInFlight = null;
+
 function detectServices() {
-  if (process.platform !== 'win32') return [];
-  const services = getWindowsServices();
+  if (process.platform !== 'win32') return Promise.resolve([]);
+  if (!detectInFlight) {
+    detectInFlight = detectServicesNow().finally(() => { detectInFlight = null; });
+  }
+  return detectInFlight;
+}
+
+async function detectServicesNow() {
+  // Process-based MySQL installs (XAMPP's bundled copy, plus any manually
+  // unzipped standalone installs) - only list entries whose exe actually
+  // exists on this machine, and check "running" by exact exe path since
+  // process name alone ("mysqld") can't tell two such installs apart.
+  const processDefs = [];
+  const xamppRoot = findXamppRoot();
+  if (xamppRoot) processDefs.push(...buildXamppDefs(xamppRoot));
+  for (const root of findManualMysqlRoots()) processDefs.push(buildManualMysqlDef(root));
+  const existingProcessDefs = processDefs.filter(def => fs.existsSync(def.exe));
+
+  const { services, runningPaths } = await queryWindowsState(existingProcessDefs.length > 0);
 
   const found = [];
   for (const def of SERVICE_DEFINITIONS) {
@@ -151,28 +145,15 @@ function detectServices() {
     }
   }
 
-  // Process-based MySQL installs (XAMPP's bundled copy, plus any manually
-  // unzipped standalone installs) - only list entries whose exe actually
-  // exists on this machine, and check "running" by exact exe path since
-  // process name alone ("mysqld") can't tell two such installs apart.
-  const processDefs = [];
-  const xamppRoot = findXamppRoot();
-  if (xamppRoot) processDefs.push(...buildXamppDefs(xamppRoot));
-  for (const root of findManualMysqlRoots()) processDefs.push(buildManualMysqlDef(root));
-
-  if (processDefs.length > 0) {
-    const runningPaths = getRunningExecutablePaths();
-    for (const def of processDefs) {
-      if (!fs.existsSync(def.exe)) continue;
-      found.push({
-        id: def.id,
-        label: def.label,
-        serviceName: def.id,
-        displayName: def.label,
-        running: runningPaths.has(def.exe.toLowerCase()),
-        kind: def.id.startsWith('xampp') ? 'xampp' : 'manual-process',
-      });
-    }
+  for (const def of existingProcessDefs) {
+    found.push({
+      id: def.id,
+      label: def.label,
+      serviceName: def.id,
+      displayName: def.label,
+      running: runningPaths.has(def.exe.toLowerCase()),
+      kind: def.id.startsWith('xampp') ? 'xampp' : 'manual-process',
+    });
   }
 
   return found;
@@ -265,22 +246,31 @@ async function stopService(serviceName) {
   await run('powershell', ['-NoProfile', '-Command', `Stop-Service -Name "${serviceName}" -Force`]);
 }
 
-function getVersionSync(cmd, versionArgs, extractRegex) {
-  try {
-    const out = execFileSync(cmd, versionArgs, { encoding: 'utf-8', timeout: 5000, windowsHide: true });
-    const match = out.match(extractRegex);
-    return match ? match[1] : out.trim().split('\n')[0];
-  } catch {
-    return null;
-  }
+function getVersion(cmd, versionArgs, extractRegex) {
+  return new Promise(resolve => {
+    execFile(cmd, versionArgs, { encoding: 'utf-8', timeout: 5000, windowsHide: true }, (err, stdout) => {
+      if (err) return resolve(null);
+      const match = stdout.match(extractRegex);
+      resolve(match ? match[1] : stdout.trim().split('\n')[0]);
+    });
+  });
 }
 
 // Runtime availability (not services - these are just "is it on PATH").
+// Versions practically never change while lotwork runs, so the result is
+// cached instead of spawning node/php on every services poll.
+const RUNTIMES_TTL_MS = 5 * 60 * 1000;
+let runtimesCache = { at: 0, promise: null };
+
 function detectRuntimes() {
-  return [
-    { id: 'node', label: 'Node.js', version: getVersionSync('node', ['--version'], /v?([\d.]+)/) },
-    { id: 'php', label: 'PHP', version: getVersionSync('php', ['-v'], /PHP ([\d.]+)/) },
-  ].map(r => ({ ...r, installed: r.version !== null }));
+  if (!runtimesCache.promise || Date.now() - runtimesCache.at > RUNTIMES_TTL_MS) {
+    const promise = Promise.all([
+      getVersion('node', ['--version'], /v?([\d.]+)/).then(version => ({ id: 'node', label: 'Node.js', version })),
+      getVersion('php', ['-v'], /PHP ([\d.]+)/).then(version => ({ id: 'php', label: 'PHP', version })),
+    ]).then(list => list.map(r => ({ ...r, installed: r.version !== null })));
+    runtimesCache = { at: Date.now(), promise };
+  }
+  return runtimesCache.promise;
 }
 
 module.exports = { detectServices, startService, stopService, detectRuntimes };

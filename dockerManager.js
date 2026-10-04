@@ -40,7 +40,7 @@ function runComposeByName(project, args, opts) {
 // so the dashboard's polling doesn't spawn a process per project) ---
 
 let cache = { at: 0, containers: [], promise: null };
-const CACHE_MS = 1500;
+const CACHE_MS = 4000;
 
 function labelValue(labels, key) {
   const match = new RegExp(`(?:^|,)${key.replace(/\./g, '\\.')}=([^,]*)`).exec(labels || '');
@@ -203,6 +203,6 @@ function invalidate() {
 }
 
 module.exports = {
-  listContainers, getProjectStatus, inspectComposeFile, dockerHealth,
+  listContainers, getProjectStatus, inspectComposeFile, dockerHealth, invalidate,
   up, stop, restart, down, logs, runCommand, parsePorts,
 };

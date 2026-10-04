@@ -20,8 +20,10 @@ app.use(express.json());
 app.use(express.static(publicDir));
 
 // Git info for WSL repos costs a wsl.exe spawn per call, and the dashboard
-// polls every few seconds - so commit/change summaries are cached briefly.
-const GIT_CACHE_MS = 10000;
+// polls every few seconds - so commit/change summaries are cached. Git
+// actions invalidate their project, and the dashboard's Sync button
+// (/api/sync) clears everything for anything changed outside lotwork.
+const GIT_CACHE_MS = 60000;
 const gitCache = new Map(); // cwd -> { at, data }
 
 async function getGitInfo(cwd) {
@@ -302,9 +304,19 @@ app.get('/api/projects/:id/logs', async (req, res) => {
   }
 });
 
+// The project poll keeps the container cache warm, so the periodic status
+// check just reads it; ?fresh=1 (initial load, Sync) forces a real `docker ps`.
 app.get('/api/docker/status', async (req, res) => {
-  await docker.listContainers({ fresh: true });
+  if (req.query.fresh) await docker.listContainers({ fresh: true });
   res.json(docker.dockerHealth());
+});
+
+// Manual "Sync": drops cached git info and container status so the next
+// fetch reflects changes made outside lotwork (editor, terminal, Docker CLI).
+app.post('/api/sync', (req, res) => {
+  gitCache.clear();
+  docker.invalidate();
+  res.json({ ok: true });
 });
 
 // --- WSL folder picker ---
@@ -611,11 +623,12 @@ app.post('/api/caddy/install', (req, res) => {
   });
 });
 
-app.get('/api/services', (req, res) => {
-  res.json({
-    services: systemServices.detectServices(),
-    runtimes: systemServices.detectRuntimes(),
-  });
+app.get('/api/services', async (req, res) => {
+  const [services, runtimes] = await Promise.all([
+    systemServices.detectServices(),
+    systemServices.detectRuntimes(),
+  ]);
+  res.json({ services, runtimes });
 });
 
 app.post('/api/services/:serviceName/start', async (req, res) => {

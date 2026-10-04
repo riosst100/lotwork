@@ -140,7 +140,7 @@ function main() {
     tray.on('click', showWindow);
     tray.on('balloon-click', showWindow);
     updateTrayMenu();
-    setInterval(updateTrayMenu, 2000);
+    setInterval(updateTrayMenu, 5000);
   }
 
   let trayUpdating = false;
